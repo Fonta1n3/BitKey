@@ -74,7 +74,7 @@ class ViewController: UIViewController {
             privateKey = privateKey3![1].replacingOccurrences(of: ">", with: "")
             print("privateKey = \(privateKey!)")
             
-            let bitcoinAddress1 = keyPair?.compressedPublicKeyAddress.description
+            let bitcoinAddress1 = keyPair?.address.description
             var bitcoinAddress2 = bitcoinAddress1?.components(separatedBy: " ")
             bitcoinAddress = bitcoinAddress2![1].replacingOccurrences(of: ">", with: "")
             print("bitcoinAddress = \(bitcoinAddress)")
