@@ -1,0 +1,445 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 48;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		631F99E7179C80B3B0E962E1 /* libPods-BitKeys.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6B7ACBBE3624198C10931574 /* libPods-BitKeys.a */; };
+		D09FB1DC1FCBFDE000A9630F /* bitcoinIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */; };
+		D0C56F591FCBFBC4004A5F47 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C56F581FCBFBC4004A5F47 /* AppDelegate.swift */; };
+		D0C56F5B1FCBFBC4004A5F47 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C56F5A1FCBFBC4004A5F47 /* ViewController.swift */; };
+		D0C56F5E1FCBFBC4004A5F47 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D0C56F5C1FCBFBC4004A5F47 /* Main.storyboard */; };
+		D0C56F611FCBFBC4004A5F47 /* BitKeys.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D0C56F5F1FCBFBC4004A5F47 /* BitKeys.xcdatamodeld */; };
+		D0C56F631FCBFBC4004A5F47 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D0C56F621FCBFBC4004A5F47 /* Assets.xcassets */; };
+		D0C56F661FCBFBC4004A5F47 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D0C56F641FCBFBC4004A5F47 /* LaunchScreen.storyboard */; };
+		D0EF966B1FCC07FB004A8E4E /* ObjectiveCHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = D0EF966A1FCC07FB004A8E4E /* ObjectiveCHeader.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		6B7ACBBE3624198C10931574 /* libPods-BitKeys.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BitKeys.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		89CBD468A5EF7493E5F477B6 /* Pods-BitKeys.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitKeys.release.xcconfig"; path = "Pods/Target Support Files/Pods-BitKeys/Pods-BitKeys.release.xcconfig"; sourceTree = "<group>"; };
+		C6342F80D31874B6ABC8D895 /* Pods-BitKeys.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitKeys.debug.xcconfig"; path = "Pods/Target Support Files/Pods-BitKeys/Pods-BitKeys.debug.xcconfig"; sourceTree = "<group>"; };
+		D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bitcoinIcon.png; sourceTree = "<group>"; };
+		D09FB1DD1FCC002200A9630F /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Header.h; sourceTree = "<group>"; };
+		D0C56F551FCBFBC4004A5F47 /* BitKeys.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BitKeys.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D0C56F581FCBFBC4004A5F47 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		D0C56F5A1FCBFBC4004A5F47 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		D0C56F5D1FCBFBC4004A5F47 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		D0C56F601FCBFBC4004A5F47 /* BitKeys.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BitKeys.xcdatamodel; sourceTree = "<group>"; };
+		D0C56F621FCBFBC4004A5F47 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D0C56F651FCBFBC4004A5F47 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		D0C56F671FCBFBC4004A5F47 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D0EF96691FCC07FA004A8E4E /* BitKeys-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BitKeys-Bridging-Header.h"; sourceTree = "<group>"; };
+		D0EF966A1FCC07FB004A8E4E /* ObjectiveCHeader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ObjectiveCHeader.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D0C56F521FCBFBC4004A5F47 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				631F99E7179C80B3B0E962E1 /* libPods-BitKeys.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A0C88E4F84D8B0DF84BC4A7B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6B7ACBBE3624198C10931574 /* libPods-BitKeys.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D0C56F4C1FCBFBC4004A5F47 = {
+			isa = PBXGroup;
+			children = (
+				D0C56F571FCBFBC4004A5F47 /* BitKeys */,
+				D0C56F561FCBFBC4004A5F47 /* Products */,
+				E481ABCF6DB8348A90F6F327 /* Pods */,
+				A0C88E4F84D8B0DF84BC4A7B /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		D0C56F561FCBFBC4004A5F47 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D0C56F551FCBFBC4004A5F47 /* BitKeys.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D0C56F571FCBFBC4004A5F47 /* BitKeys */ = {
+			isa = PBXGroup;
+			children = (
+				D0C56F581FCBFBC4004A5F47 /* AppDelegate.swift */,
+				D0C56F5A1FCBFBC4004A5F47 /* ViewController.swift */,
+				D0C56F5C1FCBFBC4004A5F47 /* Main.storyboard */,
+				D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */,
+				D0C56F621FCBFBC4004A5F47 /* Assets.xcassets */,
+				D0C56F641FCBFBC4004A5F47 /* LaunchScreen.storyboard */,
+				D0C56F671FCBFBC4004A5F47 /* Info.plist */,
+				D0C56F5F1FCBFBC4004A5F47 /* BitKeys.xcdatamodeld */,
+				D09FB1DD1FCC002200A9630F /* Header.h */,
+				D0EF966A1FCC07FB004A8E4E /* ObjectiveCHeader.m */,
+				D0EF96691FCC07FA004A8E4E /* BitKeys-Bridging-Header.h */,
+			);
+			path = BitKeys;
+			sourceTree = "<group>";
+		};
+		E481ABCF6DB8348A90F6F327 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				C6342F80D31874B6ABC8D895 /* Pods-BitKeys.debug.xcconfig */,
+				89CBD468A5EF7493E5F477B6 /* Pods-BitKeys.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D0C56F541FCBFBC4004A5F47 /* BitKeys */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D0C56F6A1FCBFBC4004A5F47 /* Build configuration list for PBXNativeTarget "BitKeys" */;
+			buildPhases = (
+				C9DCDB75CDE3B5E7DF54FB68 /* [CP] Check Pods Manifest.lock */,
+				D0C56F511FCBFBC4004A5F47 /* Sources */,
+				D0C56F521FCBFBC4004A5F47 /* Frameworks */,
+				D0C56F531FCBFBC4004A5F47 /* Resources */,
+				577AE22B756C8A8F651E5094 /* [CP] Embed Pods Frameworks */,
+				4738A628959DF2CE8EB5D012 /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BitKeys;
+			productName = BitKeys;
+			productReference = D0C56F551FCBFBC4004A5F47 /* BitKeys.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D0C56F4D1FCBFBC4004A5F47 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 0910;
+				LastUpgradeCheck = 0910;
+				ORGANIZATIONNAME = Fontaine;
+				TargetAttributes = {
+					D0C56F541FCBFBC4004A5F47 = {
+						CreatedOnToolsVersion = 9.1;
+						LastSwiftMigration = 0910;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = D0C56F501FCBFBC4004A5F47 /* Build configuration list for PBXProject "BitKeys" */;
+			compatibilityVersion = "Xcode 8.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = D0C56F4C1FCBFBC4004A5F47;
+			productRefGroup = D0C56F561FCBFBC4004A5F47 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D0C56F541FCBFBC4004A5F47 /* BitKeys */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D0C56F531FCBFBC4004A5F47 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D0C56F661FCBFBC4004A5F47 /* LaunchScreen.storyboard in Resources */,
+				D0C56F631FCBFBC4004A5F47 /* Assets.xcassets in Resources */,
+				D0C56F5E1FCBFBC4004A5F47 /* Main.storyboard in Resources */,
+				D09FB1DC1FCBFDE000A9630F /* bitcoinIcon.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		4738A628959DF2CE8EB5D012 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-BitKeys/Pods-BitKeys-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		577AE22B756C8A8F651E5094 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-BitKeys/Pods-BitKeys-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		C9DCDB75CDE3B5E7DF54FB68 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D0C56F511FCBFBC4004A5F47 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D0EF966B1FCC07FB004A8E4E /* ObjectiveCHeader.m in Sources */,
+				D0C56F5B1FCBFBC4004A5F47 /* ViewController.swift in Sources */,
+				D0C56F611FCBFBC4004A5F47 /* BitKeys.xcdatamodeld in Sources */,
+				D0C56F591FCBFBC4004A5F47 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		D0C56F5C1FCBFBC4004A5F47 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D0C56F5D1FCBFBC4004A5F47 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		D0C56F641FCBFBC4004A5F47 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D0C56F651FCBFBC4004A5F47 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		D0C56F681FCBFBC4004A5F47 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		D0C56F691FCBFBC4004A5F47 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		D0C56F6B1FCBFBC4004A5F47 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C6342F80D31874B6ABC8D895 /* Pods-BitKeys.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 69FR345CDA;
+				INFOPLIST_FILE = BitKeys/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.fontaine.BitKeys1;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "BitKeys/BitKeys-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D0C56F6C1FCBFBC4004A5F47 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 89CBD468A5EF7493E5F477B6 /* Pods-BitKeys.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 69FR345CDA;
+				INFOPLIST_FILE = BitKeys/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.fontaine.BitKeys1;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "BitKeys/BitKeys-Bridging-Header.h";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D0C56F501FCBFBC4004A5F47 /* Build configuration list for PBXProject "BitKeys" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D0C56F681FCBFBC4004A5F47 /* Debug */,
+				D0C56F691FCBFBC4004A5F47 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D0C56F6A1FCBFBC4004A5F47 /* Build configuration list for PBXNativeTarget "BitKeys" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D0C56F6B1FCBFBC4004A5F47 /* Debug */,
+				D0C56F6C1FCBFBC4004A5F47 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		D0C56F5F1FCBFBC4004A5F47 /* BitKeys.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				D0C56F601FCBFBC4004A5F47 /* BitKeys.xcdatamodel */,
+			);
+			currentVersion = D0C56F601FCBFBC4004A5F47 /* BitKeys.xcdatamodel */;
+			path = BitKeys.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
+	};
+	rootObject = D0C56F4D1FCBFBC4004A5F47 /* Project object */;
+}
