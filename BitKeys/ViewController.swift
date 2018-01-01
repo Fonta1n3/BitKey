@@ -67,17 +67,17 @@ class ViewController: UIViewController {
         
         if let newData = randomNum.data(using: String.Encoding.utf8){
             
-            let privateKey1 = BTCKey.init(privateKey: newData)!
-            let  privateKey2 = privateKey1.privateKeyAddress!.description
-            var privateKey3 = privateKey2.components(separatedBy: " ")
-            privateKey = privateKey3[1].replacingOccurrences(of: ">", with: "")
+            let keyPair = BTCKey.init()
+            
+            let  privateKey2 = keyPair?.privateKeyAddress!.description
+            var privateKey3 = privateKey2?.components(separatedBy: " ")
+            privateKey = privateKey3![1].replacingOccurrences(of: ">", with: "")
             print("privateKey = \(privateKey!)")
             
-            let publicKey = BTCKey.init(privateKey: newData)
-            let bitcoinAddress1 = publicKey!.compressedPublicKeyAddress!.description
-            var bitcoinAddress2 = bitcoinAddress1.components(separatedBy: " ")
-            bitcoinAddress = bitcoinAddress2[1].replacingOccurrences(of: ">", with: "")
-            print("bitcoinAddress = \(bitcoinAddress!)")
+            let bitcoinAddress1 = keyPair?.compressedPublicKeyAddress.description
+            var bitcoinAddress2 = bitcoinAddress1?.components(separatedBy: " ")
+            bitcoinAddress = bitcoinAddress2![1].replacingOccurrences(of: ">", with: "")
+            print("bitcoinAddress = \(bitcoinAddress)")
             
             return (privateKey, bitcoinAddress)
         }
