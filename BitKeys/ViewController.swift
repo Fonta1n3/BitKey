@@ -52,6 +52,7 @@ class ViewController: UIViewController {
         imageView.isUserInteractionEnabled = true
         imageView.addGestureRecognizer(bitcoinDragged)
         view.addSubview(imageView)
+        print("test")
         
     }
     
