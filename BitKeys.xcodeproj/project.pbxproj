@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		631F99E7179C80B3B0E962E1 /* libPods-BitKeys.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6B7ACBBE3624198C10931574 /* libPods-BitKeys.a */; };
 		D09FB1DC1FCBFDE000A9630F /* bitcoinIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */; };
+		D0B597852013E96E000767A7 /* ViewControllerBalanceChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B597842013E96E000767A7 /* ViewControllerBalanceChecker.swift */; };
 		D0C56F591FCBFBC4004A5F47 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C56F581FCBFBC4004A5F47 /* AppDelegate.swift */; };
 		D0C56F5B1FCBFBC4004A5F47 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C56F5A1FCBFBC4004A5F47 /* ViewController.swift */; };
 		D0C56F5E1FCBFBC4004A5F47 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D0C56F5C1FCBFBC4004A5F47 /* Main.storyboard */; };
@@ -24,6 +25,7 @@
 		C6342F80D31874B6ABC8D895 /* Pods-BitKeys.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitKeys.debug.xcconfig"; path = "Pods/Target Support Files/Pods-BitKeys/Pods-BitKeys.debug.xcconfig"; sourceTree = "<group>"; };
 		D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bitcoinIcon.png; sourceTree = "<group>"; };
 		D09FB1DD1FCC002200A9630F /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Header.h; sourceTree = "<group>"; };
+		D0B597842013E96E000767A7 /* ViewControllerBalanceChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerBalanceChecker.swift; sourceTree = "<group>"; };
 		D0C56F551FCBFBC4004A5F47 /* BitKeys.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BitKeys.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0C56F581FCBFBC4004A5F47 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D0C56F5A1FCBFBC4004A5F47 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -83,6 +85,7 @@
 				D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */,
 				D0C56F621FCBFBC4004A5F47 /* Assets.xcassets */,
 				D0C56F641FCBFBC4004A5F47 /* LaunchScreen.storyboard */,
+				D0B597842013E96E000767A7 /* ViewControllerBalanceChecker.swift */,
 				D0C56F671FCBFBC4004A5F47 /* Info.plist */,
 				D0C56F5F1FCBFBC4004A5F47 /* BitKeys.xcdatamodeld */,
 				D09FB1DD1FCC002200A9630F /* Header.h */,
@@ -227,6 +230,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0EF966B1FCC07FB004A8E4E /* ObjectiveCHeader.m in Sources */,
+				D0B597852013E96E000767A7 /* ViewControllerBalanceChecker.swift in Sources */,
 				D0C56F5B1FCBFBC4004A5F47 /* ViewController.swift in Sources */,
 				D0C56F611FCBFBC4004A5F47 /* BitKeys.xcdatamodeld in Sources */,
 				D0C56F591FCBFBC4004A5F47 /* AppDelegate.swift in Sources */,

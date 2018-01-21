@@ -39,10 +39,57 @@
                     </view>
                     <connections>
                         <outlet property="upperLabel" destination="iET-hq-qnv" id="xyy-0j-gSQ"/>
+                        <segue destination="JhR-Ze-ACz" kind="show" identifier="checkAddress" id="mHy-SU-D65"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
+            <point key="canvasLocation" x="68" y="37"/>
+        </scene>
+        <!--View Controller Balance Checker-->
+        <scene sceneID="HXX-dt-ujO">
+            <objects>
+                <viewController id="JhR-Ze-ACz" customClass="ViewControllerBalanceChecker" customModule="BitKeys" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="bsy-K8-UFW">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rb4-YD-yD1">
+                                <rect key="frame" x="0.0" y="162" width="375" height="343"/>
+                                <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="375" id="YG9-xe-K41"/>
+                                    <constraint firstAttribute="height" constant="343" id="rXO-dr-Tld"/>
+                                </constraints>
+                            </view>
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Type or paste a Bitcoin address" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Bn8-xE-3Tw">
+                                <rect key="frame" x="0.0" y="124" width="375" height="30"/>
+                                <nil key="textColor"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits" returnKeyType="go"/>
+                                <connections>
+                                    <action selector="addressText:" destination="JhR-Ze-ACz" eventType="editingDidEnd" id="fOu-IX-JeZ"/>
+                                </connections>
+                            </textField>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="Bn8-xE-3Tw" firstAttribute="trailing" secondItem="EgZ-Ps-Rsq" secondAttribute="trailing" id="0Pp-rv-QJP"/>
+                            <constraint firstItem="rb4-YD-yD1" firstAttribute="top" secondItem="Bn8-xE-3Tw" secondAttribute="bottom" constant="8" id="Ihm-G9-j5j"/>
+                            <constraint firstItem="Bn8-xE-3Tw" firstAttribute="leading" secondItem="EgZ-Ps-Rsq" secondAttribute="leading" id="WBb-Ef-2aJ"/>
+                            <constraint firstItem="rb4-YD-yD1" firstAttribute="centerY" secondItem="bsy-K8-UFW" secondAttribute="centerY" id="iLg-iy-OSM"/>
+                            <constraint firstItem="rb4-YD-yD1" firstAttribute="centerX" secondItem="bsy-K8-UFW" secondAttribute="centerX" id="kOR-sm-BlV"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="EgZ-Ps-Rsq"/>
+                    </view>
+                    <connections>
+                        <outlet property="addressToDisplay" destination="Bn8-xE-3Tw" id="blb-GO-O0N"/>
+                        <outlet property="videoPreview" destination="rb4-YD-yD1" id="maQ-TV-lh9"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="roD-LG-h1Y" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1100" y="164.16791604197903"/>
         </scene>
     </scenes>
 </document>

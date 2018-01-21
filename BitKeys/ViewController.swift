@@ -23,9 +23,11 @@ class ViewController: UIViewController {
     var button = UIButton(type: .custom)
     var bitcoinAddressButton = UIButton(type: .custom)
     var backUpButton = UIButton(type: .custom)
+    var checkAddressButton = UIButton(type: .custom)
     var privateKeyText:String!
     var bitcoinAddress:String!
     var privateKeyMode:Bool!
+    
     
     
     override func viewDidLoad() {
@@ -37,6 +39,8 @@ class ViewController: UIViewController {
     }
     
     func showBitcoin() {
+        
+        addCheckAddressButton()
         
         bitField = UITextView (frame:CGRect(x: view.center.x - (self.view.frame.width / 2), y: view.center.y - (self.view.frame.height / 2), width: self.view.frame.width, height: self.view.frame.height))
         bitField.isUserInteractionEnabled = false
@@ -53,6 +57,8 @@ class ViewController: UIViewController {
         imageView.addGestureRecognizer(bitcoinDragged)
         view.addSubview(imageView)
         print("test")
+        
+        
         
     }
     
@@ -301,6 +307,23 @@ class ViewController: UIViewController {
         
     }
     
+    func addCheckAddressButton() {
+        
+        DispatchQueue.main.async {
+            self.checkAddressButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.maxY - 55, width: self.view.frame.width, height: 55))
+            self.checkAddressButton.backgroundColor = .black
+            self.checkAddressButton.setTitle("Check Balance", for: .normal)
+            self.checkAddressButton.addTarget(self, action: #selector(self.goToCheckAddress), for: .touchUpInside)
+            self.view.addSubview(self.checkAddressButton)
+        }
+        
+    }
+    
+    @objc func goToCheckAddress() {
+        
+        self.performSegue(withIdentifier: "checkAddress", sender: self)
+    }
+    
     @objc func airDropImage() {
         
         print("airDropImage")
@@ -335,7 +358,7 @@ class ViewController: UIViewController {
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Private Key Text", comment: ""), style: .default, handler: { (action) in
                     
                     let textToShare = [self.privateKeyText]
-                    let activityViewController = UIActivityViewController(activityItems: [textToShare as Any], applicationActivities: nil)
+                    let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
                     self.present(activityViewController, animated: true, completion: nil)
                     
                 }))
