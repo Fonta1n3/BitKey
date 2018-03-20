@@ -77,48 +77,60 @@ class TransactionBuilderViewController: UIViewController {
                                 
                                for utxo in utxoCheck {
                                     
-                                    let utxoDictionary:NSDictionary! = utxo as! NSDictionary
-                                    print("utxo = \(utxoDictionary)")
+                                let utxoDictionary:NSDictionary! = utxo as! NSDictionary
+                                print("utxo = \(utxoDictionary)")
+                                
+                                var amount = Double()
+                                var transactionHash = String()
+                                var transactionOutputN = Double()
+                                var lockingScript = String()
+                                var transactionIndex = Double()
+                                
+                                amount = utxoDictionary["value"] as! Double
+                                transactionHash = utxoDictionary["tx_hash"] as! String
+                                transactionOutputN = utxoDictionary["tx_output_n"] as! Double
+                                lockingScript = utxoDictionary["script"] as! String
+                                transactionIndex = utxoDictionary["tx_index"] as! Double
+                                /*
+                                 print("transactionHash =\(transactionHash)")
+                                 print("transactionOutputN =\(transactionOutputN)")
+                                 print("lockingScript =\(lockingScript)")
+                                 print("transactionIndex =\(transactionIndex)")
+                                 */
+                                balance = balance + amount
+                                
+                                let script = BTCScript.init(hex: lockingScript)
+                                let txId = transactionHash.data(using: .utf8)
+                                
+                                let newInput = BTCTransactionInput()
+                                newInput.previousHash = txId
+                                newInput.previousIndex = UInt32(transactionIndex)
+                                newInput.value = BTCAmount(balance)
+                                newInput.signatureScript = script
+                                
+                                
+                                let address = BTCAddress.init(string: "mxxky7EDvEVa4z9pwenveSMcj6L3CJ85di")
+                                let primaryOutput = BTCTransactionOutput(value: 129870000, address: address)
+                                
+                                
+                                let newTransaction = BTCTransactionBuilder()
+                                newTransaction.shouldSign = false
+                                
+                                let transaction = BTCTransaction()
+                                transaction.addInput(newInput)
+                                transaction.addOutput(primaryOutput)
+                                transaction.fee = 130000
+                                
+                                do {
                                     
-                                    var amount = Double()
-                                    var transactionHash = String()
-                                    var transactionOutputN = Double()
-                                    var lockingScript = String()
-                                    var transactionIndex = Double()
-                                
-                                    amount = utxoDictionary["value"] as! Double
-                                    transactionHash = utxoDictionary["tx_hash"] as! String
-                                    transactionOutputN = utxoDictionary["tx_output_n"] as! Double
-                                    lockingScript = utxoDictionary["script"] as! String
-                                    transactionIndex = utxoDictionary["tx_index"] as! Double
-                                
-                                    print("transactionHash =\(transactionHash)")
-                                    print("transactionOutputN =\(transactionOutputN)")
-                                    print("lockingScript =\(lockingScript)")
-                                    print("transactionIndex =\(transactionIndex)")
-                                
-                                    balance = balance + amount
-                                
-                                //let transactionOutput = BTCTransactionOutput(value: BTCAmount(amount), script: BTCScript(lockingScript))
-                                //let transactionOutput = BTCTransactionOutput(value: <#T##BTCAmount#>, script: lockingScript)
-                                //}
-                                
-                                print("balance = \(balance)")
-                                
-                                
-                                //balance is in satoshis 100,000,000 satoshis = 1 Bitcoin
-                                
-                                //in order to send that bitcoin if the transaction amount is less then the total then change needs to be generated and sent back to the original address. And produce two outputs
-                                //BTCTransaction.init(dictionary: <#T##[AnyHashable : Any]!#>)
-                                
-                                let newInput = BTCTransactionInput(dictionary: utxoDictionary as! [AnyHashable : Any]!)
-                                //newInput?.previousHash = transactionHash
-                                //newInput?.previousIndex = UInt32(transactionIndex)
-                                //newInput?.value = BTCAmount(0.001)
-                                //newInput?.signatureScript = lockingScript
-                                
-                                let rawTransaction = BTCTransaction()
-                                //rawTransaction.
+                                    let transactionRaw = try newTransaction.buildTransaction()
+                                    print("transactionRaw = \(transactionRaw)")
+                                    
+                                } catch {
+                                    
+                                    print("error = \(error as Any)")
+                                    
+                                }
                                 
                             }
                            
