@@ -16,7 +16,9 @@
 		D0C56F611FCBFBC4004A5F47 /* BitKeys.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D0C56F5F1FCBFBC4004A5F47 /* BitKeys.xcdatamodeld */; };
 		D0C56F631FCBFBC4004A5F47 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D0C56F621FCBFBC4004A5F47 /* Assets.xcassets */; };
 		D0C56F661FCBFBC4004A5F47 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D0C56F641FCBFBC4004A5F47 /* LaunchScreen.storyboard */; };
+		D0E8115C20615E23000DBBE8 /* MayerMultipleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E8115B20615E23000DBBE8 /* MayerMultipleViewController.swift */; };
 		D0EF966B1FCC07FB004A8E4E /* ObjectiveCHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = D0EF966A1FCC07FB004A8E4E /* ObjectiveCHeader.m */; };
+		D0F858A0202BD39C00560247 /* TransactionBuilderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F8589F202BD39C00560247 /* TransactionBuilderViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,8 +36,10 @@
 		D0C56F621FCBFBC4004A5F47 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D0C56F651FCBFBC4004A5F47 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D0C56F671FCBFBC4004A5F47 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D0E8115B20615E23000DBBE8 /* MayerMultipleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MayerMultipleViewController.swift; sourceTree = "<group>"; };
 		D0EF96691FCC07FA004A8E4E /* BitKeys-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BitKeys-Bridging-Header.h"; sourceTree = "<group>"; };
 		D0EF966A1FCC07FB004A8E4E /* ObjectiveCHeader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ObjectiveCHeader.m; sourceTree = "<group>"; };
+		D0F8589F202BD39C00560247 /* TransactionBuilderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionBuilderViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,10 +86,12 @@
 				D0C56F581FCBFBC4004A5F47 /* AppDelegate.swift */,
 				D0C56F5A1FCBFBC4004A5F47 /* ViewController.swift */,
 				D0C56F5C1FCBFBC4004A5F47 /* Main.storyboard */,
+				D0F8589F202BD39C00560247 /* TransactionBuilderViewController.swift */,
 				D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */,
 				D0C56F621FCBFBC4004A5F47 /* Assets.xcassets */,
 				D0C56F641FCBFBC4004A5F47 /* LaunchScreen.storyboard */,
 				D0B597842013E96E000767A7 /* ViewControllerBalanceChecker.swift */,
+				D0E8115B20615E23000DBBE8 /* MayerMultipleViewController.swift */,
 				D0C56F671FCBFBC4004A5F47 /* Info.plist */,
 				D0C56F5F1FCBFBC4004A5F47 /* BitKeys.xcdatamodeld */,
 				D09FB1DD1FCC002200A9630F /* Header.h */,
@@ -140,7 +146,7 @@
 					D0C56F541FCBFBC4004A5F47 = {
 						CreatedOnToolsVersion = 9.1;
 						LastSwiftMigration = 0910;
-						ProvisioningStyle = Manual;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -232,7 +238,9 @@
 				D0EF966B1FCC07FB004A8E4E /* ObjectiveCHeader.m in Sources */,
 				D0B597852013E96E000767A7 /* ViewControllerBalanceChecker.swift in Sources */,
 				D0C56F5B1FCBFBC4004A5F47 /* ViewController.swift in Sources */,
+				D0F858A0202BD39C00560247 /* TransactionBuilderViewController.swift in Sources */,
 				D0C56F611FCBFBC4004A5F47 /* BitKeys.xcdatamodeld in Sources */,
+				D0E8115C20615E23000DBBE8 /* MayerMultipleViewController.swift in Sources */,
 				D0C56F591FCBFBC4004A5F47 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -372,15 +380,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
-				CODE_SIGN_STYLE = Manual;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 69FR345CDA;
 				INFOPLIST_FILE = BitKeys/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.fontaine.BitKeys1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "6bbcde70-d068-4276-9737-c743e71d4d91";
-				PROVISIONING_PROFILE_SPECIFIER = BitKey;
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "BitKeys/BitKeys-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.0;
@@ -394,15 +402,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
-				CODE_SIGN_STYLE = Manual;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 69FR345CDA;
 				INFOPLIST_FILE = BitKeys/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.fontaine.BitKeys1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "6bbcde70-d068-4276-9737-c743e71d4d91";
-				PROVISIONING_PROFILE_SPECIFIER = BitKey;
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "BitKeys/BitKeys-Bridging-Header.h";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

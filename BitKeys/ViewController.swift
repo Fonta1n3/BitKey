@@ -27,6 +27,7 @@ class ViewController: UIViewController {
     var privateKeyText:String!
     var bitcoinAddress:String!
     var privateKeyMode:Bool!
+    var mayerMultipleButton = UIButton(type: .custom)
     
     
     
@@ -41,6 +42,7 @@ class ViewController: UIViewController {
     func showBitcoin() {
         
         addCheckAddressButton()
+        addMayerMultipleButton()
         
         bitField = UITextView (frame:CGRect(x: view.center.x - (self.view.frame.width / 2), y: view.center.y - (self.view.frame.height / 2), width: self.view.frame.width, height: self.view.frame.height))
         bitField.isUserInteractionEnabled = false
@@ -95,6 +97,8 @@ class ViewController: UIViewController {
         
         print("flightWasDragged")
         
+        self.checkAddressButton.removeFromSuperview()
+        self.mayerMultipleButton.removeFromSuperview()
         let translation = gestureRecognizer.translation(in: view)
         let bitcoinView = gestureRecognizer.view!
         bitcoinView.center = CGPoint(x: self.view.bounds.width / 2 + translation.x, y: self.view.bounds.height / 2 + translation.y)
@@ -198,12 +202,14 @@ class ViewController: UIViewController {
         
         DispatchQueue.main.async {
             self.button = UIButton(frame: CGRect(x: 0, y: 0, width: 100 , height: 55))
+            self.button.showsTouchWhenHighlighted = true
             self.button.backgroundColor = .black
             self.button.setTitle("Back", for: .normal)
             self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
             self.view.addSubview(self.button)
             
             self.bitcoinAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 150, y: 0, width: 150 , height: 55))
+            self.bitcoinAddressButton.showsTouchWhenHighlighted = true
             self.bitcoinAddressButton.backgroundColor = .black
             self.bitcoinAddressButton.setTitle("Show Address", for: .normal)
             self.bitcoinAddressButton.addTarget(self, action: #selector(self.getAddress), for: .touchUpInside)
@@ -299,6 +305,7 @@ class ViewController: UIViewController {
         
         DispatchQueue.main.async {
             self.backUpButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.maxY - 55, width: self.view.frame.width, height: 55))
+            self.backUpButton.showsTouchWhenHighlighted = true
             self.backUpButton.backgroundColor = .black
             self.backUpButton.setTitle("Back Up / Share / Save / Copy", for: .normal)
             self.backUpButton.addTarget(self, action: #selector(self.airDropImage), for: .touchUpInside)
@@ -311,12 +318,31 @@ class ViewController: UIViewController {
         
         DispatchQueue.main.async {
             self.checkAddressButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.maxY - 55, width: self.view.frame.width, height: 55))
+            self.checkAddressButton.showsTouchWhenHighlighted = true
             self.checkAddressButton.backgroundColor = .black
             self.checkAddressButton.setTitle("Check Balance", for: .normal)
             self.checkAddressButton.addTarget(self, action: #selector(self.goToCheckAddress), for: .touchUpInside)
             self.view.addSubview(self.checkAddressButton)
         }
         
+    }
+    
+    func addMayerMultipleButton() {
+        
+        DispatchQueue.main.async {
+            self.mayerMultipleButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.minY, width: self.view.frame.width, height: 55))
+            self.mayerMultipleButton.showsTouchWhenHighlighted = true
+            self.mayerMultipleButton.backgroundColor = .black
+            self.mayerMultipleButton.setTitle("Mayer Multiple", for: .normal)
+            self.mayerMultipleButton.addTarget(self, action: #selector(self.goToMayerMultiple), for: .touchUpInside)
+            self.view.addSubview(self.mayerMultipleButton)
+        }
+        
+    }
+    
+    @objc func goToMayerMultiple() {
+        
+        self.performSegue(withIdentifier: "goToMayerMultiple", sender: self)
     }
     
     @objc func goToCheckAddress() {

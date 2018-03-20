@@ -15,12 +15,16 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     var balance = Double()
     var backUpButton = UIButton(type: .custom)
     var bitcoinAddressQRCode = UIImage()
+    var stringURL = String()
+    
+    //change to an array of dictioanries with nickname, and ability to delete them
+    var addresses = String()
 
     
     @IBAction func addressText(_ sender: Any) {
         
         
-        
+      
     }
     
     
@@ -39,17 +43,16 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         addHomeButton()
         scanQRCode()
         
-        //checkBalance()
+        if UserDefaults.standard.object(forKey: "address") != nil {
+            
+            addresses = UserDefaults.standard.object(forKey: "address") as! String
+            self.addAddressBookButton()
+            
+        }
+        
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
     @IBOutlet var videoPreview: UIView!
-    
-    var stringURL = String()
     
     func textFieldDidEndEditing(_ textField: UITextField) {
         
@@ -368,7 +371,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func addHomeButton() {
         
         DispatchQueue.main.async {
-            var button = UIButton(frame: CGRect(x: 0, y: 0, width: 100 , height: 55))
+            let button = UIButton(frame: CGRect(x: 0, y: 0, width: 100 , height: 55))
+            button.showsTouchWhenHighlighted = true
             button.backgroundColor = .black
             button.setTitle("Back", for: .normal)
             button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
@@ -392,11 +396,32 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         DispatchQueue.main.async {
             self.backUpButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.maxY - 55, width: self.view.frame.width, height: 55))
+            self.backUpButton.showsTouchWhenHighlighted = true
             self.backUpButton.backgroundColor = .black
             self.backUpButton.setTitle("Save Bitcoin Address", for: .normal)
             self.backUpButton.addTarget(self, action: #selector(self.airDropImage), for: .touchUpInside)
             self.view.addSubview(self.backUpButton)
         }
+        
+    }
+    
+    func addAddressBookButton() {
+        
+        DispatchQueue.main.async {
+            self.backUpButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.maxY - 55, width: self.view.frame.width, height: 55))
+            self.backUpButton.showsTouchWhenHighlighted = true
+            self.backUpButton.backgroundColor = .black
+            self.backUpButton.setTitle("Address Book", for: .normal)
+            self.backUpButton.addTarget(self, action: #selector(self.openAddressBook), for: .touchUpInside)
+            self.view.addSubview(self.backUpButton)
+        }
+        
+    }
+    
+    @objc func openAddressBook() {
+        
+        self.checkBalance(address: self.addresses)
+        self.addressToDisplay.removeFromSuperview()
         
     }
     
@@ -406,7 +431,14 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         DispatchQueue.main.async {
             
-            let alert = UIAlertController(title: nil, message: nil, preferredStyle: UIAlertControllerStyle.actionSheet)
+            let alert = UIAlertController(title: "Save/Share/Copy", message: nil, preferredStyle: UIAlertControllerStyle.actionSheet)
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Add to Address Book", comment: ""), style: .default, handler: { (action) in
+                
+                let address = self.addressToDisplay.text
+                UserDefaults.standard.set(address, forKey: "address")
+                
+            }))
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Bitcoin Address QR Code", comment: ""), style: .default, handler: { (action) in
                     

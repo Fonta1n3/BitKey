@@ -2,6 +2,8 @@
 //  Use this file to import your target's public headers that you would like to expose to Swift.
 //
 
+#import <CoreBitcoin/BTCTransactionBuilder.h>
+
 #import <CoreBitcoin/BTCAddress.h>
 #import <CoreBitcoin/BTCBase58.h>
 #import <CoreBitcoin/BTCBigNumber.h>
