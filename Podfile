@@ -5,6 +5,7 @@ target 'BitKeys' do
 #use_frameworks!
 
 pod 'CoreBitcoin', :podspec => 'https://raw.github.com/oleganza/CoreBitcoin/master/CoreBitcoin.podspec'
+pod 'coinbase-official'
 
 
 end
