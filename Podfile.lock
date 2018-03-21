@@ -1,4 +1,13 @@
 PODS:
+  - coinbase-official (3.3.0):
+    - coinbase-official/client (= 3.3.0)
+    - coinbase-official/core (= 3.3.0)
+    - coinbase-official/OAuth (= 3.3.0)
+  - coinbase-official/client (3.3.0):
+    - coinbase-official/core
+  - coinbase-official/core (3.3.0)
+  - coinbase-official/OAuth (3.3.0):
+    - coinbase-official/core
   - CoreBitcoin (0.6.8.1):
     - ISO8601DateFormatter
     - OpenSSL-Universal (= 1.0.1.16)
@@ -6,6 +15,7 @@ PODS:
   - OpenSSL-Universal (1.0.1.16)
 
 DEPENDENCIES:
+  - coinbase-official
   - CoreBitcoin (from `https://raw.github.com/oleganza/CoreBitcoin/master/CoreBitcoin.podspec`)
 
 EXTERNAL SOURCES:
@@ -13,10 +23,11 @@ EXTERNAL SOURCES:
     :podspec: https://raw.github.com/oleganza/CoreBitcoin/master/CoreBitcoin.podspec
 
 SPEC CHECKSUMS:
+  coinbase-official: 57de4952bdb85e16a8f99930c57e16505ff571ed
   CoreBitcoin: 4ac6f6a61e543f08399c2fe57496d4fdcbaf74f9
   ISO8601DateFormatter: 4551b6ce4f83185425f583b0b3feb3c7b59b942c
   OpenSSL-Universal: 85ef63bf81d0741b03c8719cd29685c37c59518d
 
-PODFILE CHECKSUM: 0ed594f6a6261ab632726b2c496afdc6a5d250c4
+PODFILE CHECKSUM: 305017cbf1c3aa096195e05a257888d571804257
 
 COCOAPODS: 1.1.1
