@@ -16,6 +16,7 @@
 		D0C56F611FCBFBC4004A5F47 /* BitKeys.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D0C56F5F1FCBFBC4004A5F47 /* BitKeys.xcdatamodeld */; };
 		D0C56F631FCBFBC4004A5F47 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D0C56F621FCBFBC4004A5F47 /* Assets.xcassets */; };
 		D0C56F661FCBFBC4004A5F47 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D0C56F641FCBFBC4004A5F47 /* LaunchScreen.storyboard */; };
+		D0C663352062627C0061B2FF /* CoinbaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C663342062627C0061B2FF /* CoinbaseViewController.swift */; };
 		D0E8115C20615E23000DBBE8 /* MayerMultipleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E8115B20615E23000DBBE8 /* MayerMultipleViewController.swift */; };
 		D0EF966B1FCC07FB004A8E4E /* ObjectiveCHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = D0EF966A1FCC07FB004A8E4E /* ObjectiveCHeader.m */; };
 		D0F858A0202BD39C00560247 /* TransactionBuilderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F8589F202BD39C00560247 /* TransactionBuilderViewController.swift */; };
@@ -36,6 +37,7 @@
 		D0C56F621FCBFBC4004A5F47 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D0C56F651FCBFBC4004A5F47 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D0C56F671FCBFBC4004A5F47 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D0C663342062627C0061B2FF /* CoinbaseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinbaseViewController.swift; sourceTree = "<group>"; };
 		D0E8115B20615E23000DBBE8 /* MayerMultipleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MayerMultipleViewController.swift; sourceTree = "<group>"; };
 		D0EF96691FCC07FA004A8E4E /* BitKeys-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BitKeys-Bridging-Header.h"; sourceTree = "<group>"; };
 		D0EF966A1FCC07FB004A8E4E /* ObjectiveCHeader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ObjectiveCHeader.m; sourceTree = "<group>"; };
@@ -83,6 +85,7 @@
 		D0C56F571FCBFBC4004A5F47 /* BitKeys */ = {
 			isa = PBXGroup;
 			children = (
+				D0C663342062627C0061B2FF /* CoinbaseViewController.swift */,
 				D0C56F581FCBFBC4004A5F47 /* AppDelegate.swift */,
 				D0C56F5A1FCBFBC4004A5F47 /* ViewController.swift */,
 				D0C56F5C1FCBFBC4004A5F47 /* Main.storyboard */,
@@ -237,6 +240,7 @@
 			files = (
 				D0EF966B1FCC07FB004A8E4E /* ObjectiveCHeader.m in Sources */,
 				D0B597852013E96E000767A7 /* ViewControllerBalanceChecker.swift in Sources */,
+				D0C663352062627C0061B2FF /* CoinbaseViewController.swift in Sources */,
 				D0C56F5B1FCBFBC4004A5F47 /* ViewController.swift in Sources */,
 				D0F858A0202BD39C00560247 /* TransactionBuilderViewController.swift in Sources */,
 				D0C56F611FCBFBC4004A5F47 /* BitKeys.xcdatamodeld in Sources */,

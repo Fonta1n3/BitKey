@@ -17,7 +17,58 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        return true
+        
+        /*
+        let url:NSURL = NSURL(string: "com.fontaine.BitKeys1.coinbase-oauth")!
+        CoinbaseOAuth.finishAuthentication(for: url as URL!, clientId: "942e989d2c6fa86b120846408f1c188e2aec25ee9f5395fcce02ea690c568c03", clientSecret: "925f9bb9bcddb01f6d548115bb4d0c333a3c546b0bcce15d1c2546346f64adbe", completion: { (result : AnyObject?, error: NSError?) -> Void in
+                if error != nil {
+                    // Could not authenticate.
+                } else {
+                    // Tokens successfully obtained!
+                    // Do something with them (store them, etc.)
+                    if let result = result as? [String : AnyObject] {
+                        if let accessToken = result["access_token"] as? String {
+                            let apiClient = Coinbase(oAuthAccessToken: accessToken)
+                        }
+                    }
+                    // Note that you should also store 'expire_in' and refresh the token using CoinbaseOAuth.getOAuthTokensForRefreshToken() when it expires
+                }
+            } as! CoinbaseCompletionBlock)
+        */
+        
+        let url:URL!
+        let clientID:String!
+        let clientSecret:String!
+        clientSecret = "925f9bb9bcddb01f6d548115bb4d0c333a3c546b0bcce15d1c2546346f64adbe"
+        clientID = "942e989d2c6fa86b120846408f1c188e2aec25ee9f5395fcce02ea690c568c03"
+        url = URL(string: "com.fontaine.BitKeys1.coinbase-oauth")
+        
+        if url.scheme == "com.fontaine.BitKeys1.coinbase-oauth" {
+            CoinbaseOAuth.finishAuthentication(for: url, clientId: clientID, clientSecret: clientSecret, completion: { (result : AnyObject?, error: NSError?) -> Void in
+                if error != nil {
+                    // Could not authenticate.
+                } else {
+                    // Tokens successfully obtained!
+                    // Do something with them (store them, etc.)
+                    if let result = result as? [String : AnyObject] {
+                        if let accessToken = result["access_token"] as? String {
+                            let apiClient = Coinbase(oAuthAccessToken: accessToken)
+                            print("apiClient = \(String(describing: apiClient))")
+                        }
+                    }
+                    // Note that you should also store 'expire_in' and refresh the token using CoinbaseOAuth.getOAuthTokensForRefreshToken() when it expires
+                }
+                } as! CoinbaseCompletionBlock)
+            
+            return true
+            
+        } else {
+            
+            return false
+        }
+        
+        //return true
+        
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
