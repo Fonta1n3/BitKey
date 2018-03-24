@@ -10,17 +10,22 @@ import UIKit
 
 
 class CoinbaseViewController: UIViewController {
+    
+    let accessToken = UserDefaults.standard.string(forKey: "accessToken")
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        CoinbaseOAuth.startAuthentication(withClientId: "942e989d2c6fa86b120846408f1c188e2aec25ee9f5395fcce02ea690c568c03", scope: "user balance", redirectUri: "com.fontaine.BitKeys1.coinbase-oauth://coinbase-oauth", meta: nil)
+        print("CoinbaseViewController")
         
+        let balance = CoinbaseBalance().amount
+        print("balance = \(balance)")
     }
+    
+    
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    override func viewWillAppear(_ animated: Bool) {
+        CoinbaseOAuth.startAuthentication(withClientId: "942e989d2c6fa86b120846408f1c188e2aec25ee9f5395fcce02ea690c568c03", scope: "user balance", redirectUri: "com.fontaine.bitkeys1.coinbase-oauth://coinbase-oauth", meta: nil)
     }
     
 
