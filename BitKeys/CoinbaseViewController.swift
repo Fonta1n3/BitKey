@@ -11,6 +11,8 @@ import UIKit
 
 class CoinbaseViewController: UIViewController {
     
+    var button = UIButton()
+    
     let accessToken = UserDefaults.standard.string(forKey: "accessToken")
 
     override func viewDidLoad() {
@@ -18,14 +20,34 @@ class CoinbaseViewController: UIViewController {
         
         print("CoinbaseViewController")
         
-        let balance = CoinbaseBalance().amount
-        print("balance = \(balance)")
+        addButton()
+       
+        
+        
     }
     
-    
+    override func viewDidAppear(_ animated: Bool) {
+        
+    }
 
     override func viewWillAppear(_ animated: Bool) {
         CoinbaseOAuth.startAuthentication(withClientId: "942e989d2c6fa86b120846408f1c188e2aec25ee9f5395fcce02ea690c568c03", scope: "user balance", redirectUri: "com.fontaine.bitkeys1.coinbase-oauth://coinbase-oauth", meta: nil)
+    }
+    
+    func addButton() {
+        
+        self.button = UIButton(frame: CGRect(x: self.view.center.x - 50, y: self.view.center.y - 75, width: 150 , height: 55))
+        self.button.showsTouchWhenHighlighted = true
+        self.button.backgroundColor = .black
+        self.button.setTitle("Check Balance", for: .normal)
+        self.button.addTarget(self, action: #selector(self.checkBalance), for: .touchUpInside)
+        self.view.addSubview(self.button)
+    }
+    
+    @objc func checkBalance() {
+        
+        let balance = CoinbaseBalance().amount
+        print("balance = \(balance)")
     }
     
 

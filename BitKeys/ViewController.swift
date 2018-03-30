@@ -8,6 +8,8 @@
 
 import UIKit
 import Security
+import SystemConfiguration
+
 
 class ViewController: UIViewController {
     
@@ -28,7 +30,7 @@ class ViewController: UIViewController {
     var bitcoinAddress:String!
     var privateKeyMode:Bool!
     var mayerMultipleButton = UIButton(type: .custom)
-    
+    var connected:Bool!
     
     
     override func viewDidLoad() {
@@ -37,6 +39,32 @@ class ViewController: UIViewController {
         privateKeyMode = true
         showBitcoin()
         
+    }
+    
+    func isInternetAvailable() -> Bool {
+        
+        var zeroAddress = sockaddr_in()
+        zeroAddress.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+        zeroAddress.sin_family = sa_family_t(AF_INET)
+        
+        guard let defaultRouteReachability = withUnsafePointer(to: &zeroAddress, {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                SCNetworkReachabilityCreateWithAddress(nil, $0)
+            }
+        }) else {
+            return false
+        }
+        
+        var flags: SCNetworkReachabilityFlags = []
+        if !SCNetworkReachabilityGetFlags(defaultRouteReachability, &flags) {
+            return false
+        }
+        
+        let isReachable = flags.contains(.reachable)
+        let needsConnection = flags.contains(.connectionRequired)
+        self.connected = isReachable
+        print("self.connected = \(self.connected)")
+        return (isReachable && !needsConnection)
     }
     
     func showBitcoin() {
@@ -54,148 +82,193 @@ class ViewController: UIViewController {
         imageView.center = view.center
         imageView.frame = CGRect(x: view.center.x - 100, y: view.center.y - 100, width: 200, height: 200)
         
-        let bitcoinDragged = UIPanGestureRecognizer(target: self, action: #selector(self.bitcoinWasDragged(gestureRecognizer:)))
+        let bitcoinDragged = UIPanGestureRecognizer(target: self, action: #selector(self.userCreatesRandomness(gestureRecognizer:)))
         imageView.isUserInteractionEnabled = true
         imageView.addGestureRecognizer(bitcoinDragged)
         view.addSubview(imageView)
-        print("test")
-        
-        
         
     }
     
-    func createPrivateKey(randomness: String) -> (privateKeyAddress: String, publicKeyAddress: String) {
+    func createPrivateKey(userRandomness: String) -> (privateKeyAddress: String, publicKeyAddress: String) {
         
         let bytesCount = 32 // number of bytes
-        var randomNum = "" // hexadecimal version of randomBytes
+        var randomNum = userRandomness // hexadecimal version of randomBytes
         var randomBytes = [UInt8](repeating: 0, count: bytesCount) // array to hold randoms bytes
-        SecRandomCopyBytes(kSecRandomDefault, bytesCount, &randomBytes)
-        randomNum = randomBytes.map({String(format: "%02hhx", $0)}).joined(separator: "")
-        var privateKey:String!
+        let secureRandomNumberCheck = SecRandomCopyBytes(kSecRandomDefault, bytesCount, &randomBytes) //creates a cryptographicaally secure number based off of the random input provided by the user moving the bitcoin around
         
-        if let newData = randomNum.data(using: String.Encoding.utf8){
+        //if the secureRandomNumberCheck is not equal to zero then it failed to create a crytpographically secure number
+        if secureRandomNumberCheck == 0 {
             
-            let keyPair = BTCKey.init()
+            //randomNum is now a true cryptographically secure random number based on users random input and is turned into hexaadecimal format and joined together as a string
+            randomNum = randomBytes.map({String(format: "%02hhx", $0)}).joined(separator: "")
             
-            let  privateKey2 = keyPair?.privateKeyAddress!.description
-            var privateKey3 = privateKey2?.components(separatedBy: " ")
-            privateKey = privateKey3![1].replacingOccurrences(of: ">", with: "")
-            print("privateKey = \(privateKey!)")
+            //convert the joined random string back to data
+            if let newData = randomNum.data(using: String.Encoding.utf8){
+                
+                //get 256 bit hash from the cryptographically secure data
+                let shaOfKey = BTCSHA256(newData)
+                //use the bitcoin library to create the private key based of of the sha256 of the randmoness we created
+                let keys = BTCKey.init(privateKey: shaOfKey! as Data)
+                var privateKey:String!
+                let  privateKey2 = keys?.privateKeyAddress!.description
+                var privateKey3 = privateKey2?.components(separatedBy: " ")
+                privateKey = privateKey3![1].replacingOccurrences(of: ">", with: "")
+                let bitcoinAddress1 = keys?.address.description
+                var bitcoinAddress2 = bitcoinAddress1?.components(separatedBy: " ")
+                self.bitcoinAddress = bitcoinAddress2![1].replacingOccurrences(of: ">", with: "")
+                
+                return (privateKey, self.bitcoinAddress)
+                
+            } else {
+                
+                print("error creating a cryptographically secure random number")
+                
+            }
             
-            let bitcoinAddress1 = keyPair?.address.description
-            var bitcoinAddress2 = bitcoinAddress1?.components(separatedBy: " ")
-            bitcoinAddress = bitcoinAddress2![1].replacingOccurrences(of: ">", with: "")
-            print("bitcoinAddress = \(bitcoinAddress)")
-            
-            return (privateKey, bitcoinAddress)
         }
         
         return ("", "")
     }
     
-    @objc func bitcoinWasDragged(gestureRecognizer: UIPanGestureRecognizer) {
+    @objc func userCreatesRandomness(gestureRecognizer: UIPanGestureRecognizer) {
         
-        print("flightWasDragged")
-        
+        //remove buttons when bitcoin gets dragged
         self.checkAddressButton.removeFromSuperview()
         self.mayerMultipleButton.removeFromSuperview()
+        
+        //set up the drag ability and postion of the bitcoin
         let translation = gestureRecognizer.translation(in: view)
         let bitcoinView = gestureRecognizer.view!
         bitcoinView.center = CGPoint(x: self.view.bounds.width / 2 + translation.x, y: self.view.bounds.height / 2 + translation.y)
+        //gets our source of the numbers that are displayed by tracking the x axis of the bitcoin from the center as user drags it
         let xFromCenter = bitcoinView.center.x - self.view.bounds.width / 2
-        
+        //converts negative numbers to positive numbers and appends them to an array of numbers which is the user radnomness, and conerts to string
         numberArray.append(String(describing: abs(Int(xFromCenter))))
-        
+        //takes the user generated randomness and then randomizes it a step further by randomnly shuffling the indexes of the array
         let shuffledArray = self.numberArray.shuffled()
+        //converts the array into a string
         let string = String(describing: shuffledArray)
         let stringFormat1 = string.replacingOccurrences(of: ", ", with: "")
         let stringFormat2 = stringFormat1.replacingOccurrences(of: "\"", with: "")
         let stringFormat3 = stringFormat2.replacingOccurrences(of: "[", with: "")
         let stringFormat4 = stringFormat3.replacingOccurrences(of: "]", with: "")
-        bitField.text = stringFormat4
         
+        //converts even numbers to 0 and odd numbers to 1 for a geeky computer bit look and is purely aesthetic
+        let twoToZero = stringFormat4.replacingOccurrences(of: "2", with: "0")
+        let fourToZero = twoToZero.replacingOccurrences(of: "4", with: "0")
+        let sixToZero = fourToZero.replacingOccurrences(of: "6", with: "0")
+        let eightToZero = sixToZero.replacingOccurrences(of: "8", with: "0")
+        let threeToOne = eightToZero.replacingOccurrences(of: "3", with: "1")
+        let fiveToOne = threeToOne.replacingOccurrences(of: "5", with: "1")
+        let sevenToOne = fiveToOne.replacingOccurrences(of: "7", with: "1")
+        let nineToOne = sevenToOne.replacingOccurrences(of: "9", with: "1")
+        //displays random bits as user drags bitcoin and creates randomness
+        bitField.text = nineToOne
+        
+        //senses user has stopped dragging the bitcoin
         if gestureRecognizer.state == UIGestureRecognizerState.ended {
             
+            self.isInternetAvailable()
+            
+            //animates bitcoin back to center screen
             UIView.animate(withDuration: 0.5, animations: {
                 
                 bitcoinView.center =  self.view.center
                 
             }, completion: { _ in
                 
-                let privateKey = self.createPrivateKey(randomness: stringFormat4).privateKeyAddress
+                //as soon as user stops moving the bitcoin it takes the user generated random number and uses that to create the truly random cryptographically secure private key
                 
-                if privateKey != "" {
+                //check if user is in airplane mode
+                if self.connected == false {
                   
-                    self.privateKeyText = privateKey
-                    self.privateKeyQRCode = self.generateQrCode(key: privateKey)
-                    self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
-                    self.privateKeyQRView.center = self.view.center
-                    self.privateKeyQRView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y - ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: self.view.frame.width - 50)
-                    self.privateKeyQRView.alpha = 0
+                    let privateKey = self.createPrivateKey(userRandomness: stringFormat4).privateKeyAddress
                     
-                    UIView.animate(withDuration: 0.5, animations: {
+                    if privateKey != "" {
                         
-                        self.imageView.alpha = 0
-                        self.bitField.alpha = 0
-                        
-                    }, completion: { _ in
-                        
-                        self.imageView.removeFromSuperview()
-                        self.bitField.removeFromSuperview()
-                        self.view.addSubview(self.privateKeyQRView)
+                        self.privateKeyText = privateKey
+                        self.privateKeyQRCode = self.generateQrCode(key: privateKey)
+                        self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
+                        self.privateKeyQRView.center = self.view.center
+                        self.privateKeyQRView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y - ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: self.view.frame.width - 50)
+                        self.privateKeyQRView.alpha = 0
                         
                         UIView.animate(withDuration: 0.5, animations: {
                             
-                            self.privateKeyQRView.alpha = 1
+                            self.imageView.alpha = 0
+                            self.bitField.alpha = 0
                             
                         }, completion: { _ in
                             
-                            self.upperLabel.text = "Bitcoin Private Key"
-                            self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y + ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: 100))
-                            self.myField.text = privateKey
-                            self.myField.isEditable = false
-                            self.myField.isSelectable = true
-                            self.myField.font = .systemFont(ofSize: 24)
-                            self.view.addSubview(self.myField)
-                            self.addHomeButton()
-                            self.addBackUpButton()
+                            self.imageView.removeFromSuperview()
+                            self.bitField.removeFromSuperview()
+                            self.view.addSubview(self.privateKeyQRView)
+                            
+                            UIView.animate(withDuration: 0.5, animations: {
+                                
+                                self.privateKeyQRView.alpha = 1
+                                
+                            }, completion: { _ in
+                                
+                                self.upperLabel.text = "Bitcoin Private Key"
+                                self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y + ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: 100))
+                                self.myField.text = privateKey
+                                self.myField.isEditable = false
+                                self.myField.isSelectable = true
+                                self.myField.font = .systemFont(ofSize: 24)
+                                self.view.addSubview(self.myField)
+                                self.addHomeButton()
+                                self.addBackUpButton()
+                                
+                            })
                             
                         })
                         
-                    })
+                    } else {
+                        
+                        DispatchQueue.main.async {
+                            
+                            let alert = UIAlertController(title: "There was an error", message: "Please try again.", preferredStyle: UIAlertControllerStyle.alert)
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .destructive, handler: { (action) in
+                                
+                                self.privateKeyQRCode = nil
+                                self.privateKeyImage = nil
+                                self.privateKeyQRView.image = nil
+                                self.upperLabel.text = ""
+                                self.myField.text = ""
+                                self.imageView.removeFromSuperview()
+                                self.imageView = nil
+                                self.button.removeFromSuperview()
+                                self.backUpButton.removeFromSuperview()
+                                self.numberArray.removeAll()
+                                self.joinedArray = ""
+                                self.privateKeyText = ""
+                                self.showBitcoin()
+                                
+                            }))
+                            
+                            self.present(alert, animated: true, completion: nil)
+                        }
+                        
+                    }
                     
                 } else {
                     
                     DispatchQueue.main.async {
-                        let alert = UIAlertController(title: "There was an error", message: "Please try again.", preferredStyle: UIAlertControllerStyle.alert)
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .destructive, handler: { (action) in
-                            
-                            self.privateKeyQRCode = nil
-                            self.privateKeyImage = nil
-                            self.privateKeyQRView.image = nil
-                            self.upperLabel.text = ""
-                            self.myField.text = ""
-                            self.imageView.removeFromSuperview()
-                            self.imageView = nil
-                            self.button.removeFromSuperview()
-                            self.backUpButton.removeFromSuperview()
-                            self.numberArray.removeAll()
-                            self.joinedArray = ""
-                            self.privateKeyText = ""
-                            self.showBitcoin()
-                            
-                        }))
-                        
-                        self.present(alert, animated: true, completion: nil)
+                        self.displayAlert(title: "Device Connection Insecure", message: "Please enable airplane mode to create private keys.")
+                        self.imageView.removeFromSuperview()
+                        self.bitField.removeFromSuperview()
+                        self.numberArray.removeAll()
+                        self.showBitcoin()
                     }
+                    
                 }
+                    
+                })
                 
                 
-            })
-            
         }
-        
     }
     
     func addHomeButton() {
@@ -215,7 +288,6 @@ class ViewController: UIViewController {
             self.bitcoinAddressButton.addTarget(self, action: #selector(self.getAddress), for: .touchUpInside)
             self.view.addSubview(self.bitcoinAddressButton)
         }
-        
     }
     
     @objc func getAddress() {
@@ -245,9 +317,7 @@ class ViewController: UIViewController {
                 self.privateKeyMode = true
                 
             }
-            
         }
-        
     }
     
     @objc func home() {
@@ -442,6 +512,13 @@ class ViewController: UIViewController {
         return paths[0]
     }
     
+    func displayAlert(title: String, message: String) {
+        
+        let alertcontroller = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alertcontroller.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: nil))
+        self.present(alertcontroller, animated: true, completion: nil)
+        
+    }
     
 }
 

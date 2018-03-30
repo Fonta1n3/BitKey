@@ -9,32 +9,17 @@
 import UIKit
 
 
-class TransactionBuilderViewController: UIViewController {
-
+class TransactionBuilderViewController: UIViewController, BTCTransactionBuilderDataSource {
+    
+    var unspentOutputs = NSMutableArray()
+    let btcAddress = "mo7WCetPLw6yMkT7MdzYfQ1L4eWqAuT2j7"
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
         print("TransactionBuilderViewController")
-        
-        
-        // Get address from user
-        let btcAddress = "mo7WCetPLw6yMkT7MdzYfQ1L4eWqAuT2j7"
-        
-        //get transactions for that btc address. with url call
         parseAddress(address: btcAddress)
-        
-        //prompt user to shut internet
-        
-        //get outputs amount and script from parseAddress
-        //addOutputs
-        //let output = BTCTransactionOutput.init(value: <#T##BTCAmount#>, script: <#T##BTCScript!#>)
-        
-        
-        
-        
-        
-        
         
     }
 
@@ -67,73 +52,14 @@ class TransactionBuilderViewController: UIViewController {
                             
                             let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
                             
-                            //print("jsonAddressResult = \(jsonAddressResult)")
-                            
                             if let utxoCheck = jsonAddressResult["unspent_outputs"] as? NSArray {
                                 
-                                //print("transactionsCheck =\(transactionsCheck)")
+                                print("utxoCheck = \(utxoCheck)")
                                 
-                                var balance:Double = 0
+                                self.unspentOutputs = utxoCheck.mutableCopy() as! NSMutableArray
                                 
-                               for utxo in utxoCheck {
-                                    
-                                let utxoDictionary:NSDictionary! = utxo as! NSDictionary
-                                print("utxo = \(utxoDictionary)")
+                                self.callBTCTransaction()
                                 
-                                var amount = Double()
-                                var transactionHash = String()
-                                var transactionOutputN = Double()
-                                var lockingScript = String()
-                                var transactionIndex = Double()
-                                
-                                amount = utxoDictionary["value"] as! Double
-                                transactionHash = utxoDictionary["tx_hash"] as! String
-                                transactionOutputN = utxoDictionary["tx_output_n"] as! Double
-                                lockingScript = utxoDictionary["script"] as! String
-                                transactionIndex = utxoDictionary["tx_index"] as! Double
-                                /*
-                                 print("transactionHash =\(transactionHash)")
-                                 print("transactionOutputN =\(transactionOutputN)")
-                                 print("lockingScript =\(lockingScript)")
-                                 print("transactionIndex =\(transactionIndex)")
-                                 */
-                                balance = balance + amount
-                                
-                                let script = BTCScript.init(hex: lockingScript)
-                                let txId = transactionHash.data(using: .utf8)
-                                
-                                let newInput = BTCTransactionInput()
-                                newInput.previousHash = txId
-                                newInput.previousIndex = UInt32(transactionIndex)
-                                newInput.value = BTCAmount(balance)
-                                newInput.signatureScript = script
-                                
-                                
-                                let address = BTCAddress.init(string: "mxxky7EDvEVa4z9pwenveSMcj6L3CJ85di")
-                                let primaryOutput = BTCTransactionOutput(value: 129870000, address: address)
-                                
-                                
-                                let newTransaction = BTCTransactionBuilder()
-                                newTransaction.shouldSign = false
-                                
-                                let transaction = BTCTransaction()
-                                transaction.addInput(newInput)
-                                transaction.addOutput(primaryOutput)
-                                transaction.fee = 130000
-                                
-                                do {
-                                    
-                                    let transactionRaw = try newTransaction.buildTransaction()
-                                    print("transactionRaw = \(transactionRaw)")
-                                    
-                                } catch {
-                                    
-                                    print("error = \(error as Any)")
-                                    
-                                }
-                                
-                            }
-                           
                             }
                             
                         } catch {
@@ -149,6 +75,50 @@ class TransactionBuilderViewController: UIViewController {
         }
         
         task.resume()
+        
+    }
+    
+    
+    
+    func callBTCTransaction() {
+        
+        let address = BTCAddress(string: "mxxky7EDvEVa4z9pwenveSMcj6L3CJ85di")
+        let newTransaction = BTCTransactionBuilder()
+        newTransaction.dataSource = self
+        newTransaction.shouldSign = true
+        newTransaction.changeAddress = BTCAddress(string: self.btcAddress)
+        newTransaction.outputs = [BTCTransactionOutput(value: BTCAmount(50000), address: address)]
+        newTransaction.feeRate = BTCAmount(5000)
+        var result:BTCTransactionBuilderResult? = nil
+        do {
+            result = try newTransaction.buildTransaction()
+            print("transactionRaw = \(String(describing: result?.transaction))")
+            
+        } catch {
+            print("error = \(error as Any)")
+        }
+    }
+    
+    func unspentOutputs(for txbuilder: BTCTransactionBuilder!) -> NSEnumerator! {
+        
+        let outputs = NSMutableArray()
+        
+        for item in self.unspentOutputs {
+            
+            print("item = \(item)")
+            
+            let txout = BTCTransactionOutput()
+            txout.value = BTCAmount((item as! NSDictionary).value(forKey: "value") as! Int64)
+            txout.script = BTCScript.init(hex: (item as! NSDictionary).value(forKey: "script") as! String)
+            txout.index = UInt32((item as! NSDictionary).value(forKey: "tx_output_n") as! Int)
+            txout.confirmations = UInt((item as! NSDictionary).value(forKey: "confirmations") as! Int)
+            let transactionHash = (item as! NSDictionary)["tx_hash"] as! String
+            txout.transactionHash = transactionHash.data(using: .utf8)
+            outputs.add(txout)
+            
+        }
+
+        return outputs.objectEnumerator()
         
     }
 
