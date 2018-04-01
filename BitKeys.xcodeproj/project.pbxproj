@@ -69,7 +69,6 @@
 		D0C56F4C1FCBFBC4004A5F47 = {
 			isa = PBXGroup;
 			children = (
-				D00512102069509900667865 /* DiceKeyCreatorViewController.swift */,
 				D0C56F571FCBFBC4004A5F47 /* BitKeys */,
 				D0C56F561FCBFBC4004A5F47 /* Products */,
 				E481ABCF6DB8348A90F6F327 /* Pods */,
@@ -88,6 +87,7 @@
 		D0C56F571FCBFBC4004A5F47 /* BitKeys */ = {
 			isa = PBXGroup;
 			children = (
+				D00512102069509900667865 /* DiceKeyCreatorViewController.swift */,
 				D0C663342062627C0061B2FF /* CoinbaseViewController.swift */,
 				D0C56F581FCBFBC4004A5F47 /* AppDelegate.swift */,
 				D0C56F5A1FCBFBC4004A5F47 /* ViewController.swift */,

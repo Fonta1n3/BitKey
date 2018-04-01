@@ -86,21 +86,31 @@ class TransactionBuilderViewController: UIViewController, BTCTransactionBuilderD
         //testnet address to send from
         let originAddressString = "mwsPvCKh8GusWcYD7TfrnJabiP8rjSYDKS"
         
+        //attempting to create a signature script
         let privateKey = BTCPrivateKeyAddress(string: privateKeyString)
         let key = BTCKey.init(privateKeyAddress: privateKey)
         let hash = BTCSHA256(privateKey?.data)
         let sig = key?.signature(forHash: hash! as Data)
         print("sig = \(sig?.hex())")
+        let sigScript = BTCScript.init(data: sig)
         
+        let input = BTCTransactionInput()
+        input.signatureScript = sigScript
+        let tx = BTCTransaction()
+        tx.addInput(input)
         
         let address = BTCAddress(string: "mxxky7EDvEVa4z9pwenveSMcj6L3CJ85di")
         let newTransaction = BTCTransactionBuilder()
         
+        
+        
         newTransaction.dataSource = self
-        newTransaction.shouldSign = true
+        newTransaction.shouldSign = false
         newTransaction.changeAddress = BTCAddress(string: self.btcAddress)
         newTransaction.outputs = [BTCTransactionOutput(value: BTCAmount(50000), address: address)]
         newTransaction.feeRate = BTCAmount(5000)
+        
+        
         var result:BTCTransactionBuilderResult? = nil
         do {
             result = try newTransaction.buildTransaction()
@@ -110,6 +120,8 @@ class TransactionBuilderViewController: UIViewController, BTCTransactionBuilderD
         } catch {
             print("error = \(error as Any)")
         }
+        
+        
     }
     
     func unspentOutputs(for txbuilder: BTCTransactionBuilder!) -> NSEnumerator! {
@@ -121,7 +133,6 @@ class TransactionBuilderViewController: UIViewController, BTCTransactionBuilderD
             print("item = \(item)")
             
             let txout = BTCTransactionOutput()
-            
             txout.value = BTCAmount((item as! NSDictionary).value(forKey: "value") as! Int64)
             txout.script = BTCScript.init(hex: (item as! NSDictionary).value(forKey: "script") as! String)
             txout.index = UInt32((item as! NSDictionary).value(forKey: "tx_output_n") as! Int)
