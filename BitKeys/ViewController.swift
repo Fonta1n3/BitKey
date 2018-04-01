@@ -63,7 +63,6 @@ class ViewController: UIViewController {
         let isReachable = flags.contains(.reachable)
         let needsConnection = flags.contains(.connectionRequired)
         self.connected = isReachable
-        print("self.connected = \(self.connected)")
         return (isReachable && !needsConnection)
     }
     
@@ -113,9 +112,12 @@ class ViewController: UIViewController {
                 let  privateKey2 = keys?.privateKeyAddress!.description
                 var privateKey3 = privateKey2?.components(separatedBy: " ")
                 privateKey = privateKey3![1].replacingOccurrences(of: ">", with: "")
-                let bitcoinAddress1 = keys?.address.description
-                var bitcoinAddress2 = bitcoinAddress1?.components(separatedBy: " ")
-                self.bitcoinAddress = bitcoinAddress2![1].replacingOccurrences(of: ">", with: "")
+                //let bitcoinAddress1 = keys?.address.description
+                //var bitcoinAddress2 = bitcoinAddress1?.components(separatedBy: " ")
+                //self.bitcoinAddress = bitcoinAddress2![1].replacingOccurrences(of: ">", with: "")
+                let segwitAddress = BTCScriptHashAddress.init(data: keys?.address.data)
+                let segwitAddress2 = (segwitAddress?.description)?.components(separatedBy: " ")
+                self.bitcoinAddress = segwitAddress2![1].replacingOccurrences(of: ">", with: "")
                 
                 return (privateKey, self.bitcoinAddress)
                 

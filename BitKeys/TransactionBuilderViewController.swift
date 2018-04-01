@@ -81,9 +81,21 @@ class TransactionBuilderViewController: UIViewController, BTCTransactionBuilderD
     
     
     func callBTCTransaction() {
+        //testnet private key to sign with
+        let privateKeyString = "cVci5ZPPF2JJbzbBL48j4uBBjuTQrxPU94pcGJTdvNsKEXxqYPXx"
+        //testnet address to send from
+        let originAddressString = "mwsPvCKh8GusWcYD7TfrnJabiP8rjSYDKS"
+        
+        let privateKey = BTCPrivateKeyAddress(string: privateKeyString)
+        let key = BTCKey.init(privateKeyAddress: privateKey)
+        let hash = BTCSHA256(privateKey?.data)
+        let sig = key?.signature(forHash: hash! as Data)
+        print("sig = \(sig?.hex())")
+        
         
         let address = BTCAddress(string: "mxxky7EDvEVa4z9pwenveSMcj6L3CJ85di")
         let newTransaction = BTCTransactionBuilder()
+        
         newTransaction.dataSource = self
         newTransaction.shouldSign = true
         newTransaction.changeAddress = BTCAddress(string: self.btcAddress)
@@ -92,7 +104,8 @@ class TransactionBuilderViewController: UIViewController, BTCTransactionBuilderD
         var result:BTCTransactionBuilderResult? = nil
         do {
             result = try newTransaction.buildTransaction()
-            print("transactionRaw = \(String(describing: result?.transaction))")
+            
+            print("transactionRaw = \(String(describing: result?.transaction.hex))")
             
         } catch {
             print("error = \(error as Any)")
@@ -108,6 +121,7 @@ class TransactionBuilderViewController: UIViewController, BTCTransactionBuilderD
             print("item = \(item)")
             
             let txout = BTCTransactionOutput()
+            
             txout.value = BTCAmount((item as! NSDictionary).value(forKey: "value") as! Int64)
             txout.script = BTCScript.init(hex: (item as! NSDictionary).value(forKey: "script") as! String)
             txout.index = UInt32((item as! NSDictionary).value(forKey: "tx_output_n") as! Int)

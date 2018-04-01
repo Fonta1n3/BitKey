@@ -435,8 +435,9 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Add to Address Book", comment: ""), style: .default, handler: { (action) in
                 
-                let address = self.addressToDisplay.text
-                UserDefaults.standard.set(address, forKey: "address")
+                //let address = self.addressToDisplay.text
+                print("self.addresses = \(self.addresses)")
+                UserDefaults.standard.set(self.addresses, forKey: "address")
                 
             }))
             
@@ -460,8 +461,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Bitcoin Address Text", comment: ""), style: .default, handler: { (action) in
                     
-                    let textToShare = [self.stringURL]
-                    let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
+                    let activityViewController = UIActivityViewController(activityItems: [self.addresses], applicationActivities: nil)
                     self.present(activityViewController, animated: true, completion: nil)
                     
                 }))
