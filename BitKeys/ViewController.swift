@@ -31,6 +31,7 @@ class ViewController: UIViewController {
     var privateKeyMode:Bool!
     var mayerMultipleButton = UIButton(type: .custom)
     var connected:Bool!
+    var diceButton = UIButton()
     
     
     override func viewDidLoad() {
@@ -70,6 +71,7 @@ class ViewController: UIViewController {
         
         addCheckAddressButton()
         addMayerMultipleButton()
+        addDiceButton()
         
         bitField = UITextView (frame:CGRect(x: view.center.x - (self.view.frame.width / 2), y: view.center.y - (self.view.frame.height / 2), width: self.view.frame.width, height: self.view.frame.height))
         bitField.isUserInteractionEnabled = false
@@ -109,12 +111,9 @@ class ViewController: UIViewController {
                 //use the bitcoin library to create the private key based of of the sha256 of the randmoness we created
                 let keys = BTCKey.init(privateKey: shaOfKey! as Data)
                 var privateKey:String!
-                let  privateKey2 = keys?.privateKeyAddress!.description
+                let privateKey2 = keys?.privateKeyAddress!.description
                 var privateKey3 = privateKey2?.components(separatedBy: " ")
                 privateKey = privateKey3![1].replacingOccurrences(of: ">", with: "")
-                //let bitcoinAddress1 = keys?.address.description
-                //var bitcoinAddress2 = bitcoinAddress1?.components(separatedBy: " ")
-                //self.bitcoinAddress = bitcoinAddress2![1].replacingOccurrences(of: ">", with: "")
                 let segwitAddress = BTCScriptHashAddress.init(data: keys?.address.data)
                 let segwitAddress2 = (segwitAddress?.description)?.components(separatedBy: " ")
                 self.bitcoinAddress = segwitAddress2![1].replacingOccurrences(of: ">", with: "")
@@ -137,6 +136,7 @@ class ViewController: UIViewController {
         //remove buttons when bitcoin gets dragged
         self.checkAddressButton.removeFromSuperview()
         self.mayerMultipleButton.removeFromSuperview()
+        self.diceButton.removeFromSuperview()
         
         //set up the drag ability and postion of the bitcoin
         let translation = gestureRecognizer.translation(in: view)
@@ -410,6 +410,23 @@ class ViewController: UIViewController {
             self.view.addSubview(self.mayerMultipleButton)
         }
         
+    }
+    
+    func addDiceButton() {
+        
+        DispatchQueue.main.async {
+            self.diceButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.maxY - 120, width: self.view.frame.width, height: 55))
+            self.diceButton.showsTouchWhenHighlighted = true
+            self.diceButton.backgroundColor = .black
+            self.diceButton.setTitle("Dice Key Creator", for: .normal)
+            self.diceButton.addTarget(self, action: #selector(self.goToDiceKeyCreator), for: .touchUpInside)
+            self.view.addSubview(self.diceButton)
+        }
+    }
+    
+    @objc func goToDiceKeyCreator() {
+        
+       self.performSegue(withIdentifier: "diceKeyCreator", sender: self)
     }
     
     @objc func goToMayerMultiple() {
