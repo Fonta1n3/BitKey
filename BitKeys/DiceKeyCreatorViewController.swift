@@ -30,6 +30,7 @@ class DiceKeyCreatorViewController: UIViewController {
     var privateKeyText:String!
     var bitcoinAddressButton = UIButton()
     var backUpButton = UIButton(type: .custom)
+    var randomBits = [String]() // array to hold randoms bits
     
     @IBOutlet var scrollView: UIScrollView!
     
@@ -46,7 +47,7 @@ class DiceKeyCreatorViewController: UIViewController {
     
     override func viewWillLayoutSubviews(){
         super.viewWillLayoutSubviews()
-        scrollView.contentSize = CGSize(width: 414, height: 1900)
+        scrollView.contentSize = CGSize(width: 414, height: 3000)
     }
     
     func isInternetAvailable() -> Bool {
@@ -85,7 +86,7 @@ class DiceKeyCreatorViewController: UIViewController {
             
             var zero = 0
             
-            for _ in 0..<20 {
+            for _ in 0..<30 {
                 
                 for _ in 0..<5 {
                     
@@ -164,6 +165,7 @@ class DiceKeyCreatorViewController: UIViewController {
                 }
             }
             
+            
         }
         
         if sender.tag == 1 && diceNumber == 0 {
@@ -175,6 +177,7 @@ class DiceKeyCreatorViewController: UIViewController {
             
             self.tappedIndex = sender.tag
             addDiceValue()
+            creatBitKey()
             
         } else if sender.tag == self.tappedIndex {
             
@@ -210,6 +213,73 @@ class DiceKeyCreatorViewController: UIViewController {
         
     }
     
+    func creatBitKey() {
+        
+        for dice in self.diceArray {
+            
+            let diceNumber = Int((dice.titleLabel?.text)!)
+            
+            if diceNumber != 0 {
+                
+                if dice.tag < self.tappedIndex {
+                    
+                    if diceNumber == 1 {
+                        
+                        self.randomBits.append("00")
+                        
+                    } else if diceNumber == 2 {
+                        
+                        self.randomBits.append("01")
+                        
+                    } else if diceNumber == 3 {
+                        
+                        self.randomBits.append("10")
+                        
+                    } else if diceNumber == 4 {
+                        
+                        self.randomBits.append("11")
+                        
+                    } else if diceNumber == 5 {
+                        
+                        self.randomBits.append("0")
+                        
+                    } else if diceNumber == 6 {
+                        
+                        self.randomBits.append("1")
+                    }
+                    
+                    print("randomBits = \(self.randomBits)")
+                    
+                    let joinedBits = randomBits.joined()
+                    
+                    var count = 0
+                    
+                    for (_, char) in joinedBits.enumerated() {
+                        
+                        //print("char = \(char)")
+                        count = count + 1
+                        
+                    }
+                    
+                    print("count = \(count)")
+                    
+                    if count == 256 || count > 256 {
+                        
+                        print("bitCount == 256")
+                        print("Your bitkey == \(joinedBits)")
+                        
+                    }
+                    
+                }
+                
+            }
+            
+        }
+        
+        self.randomBits.removeAll()
+            
+     }
+    
     func createKeys(baseSixNumber: String) -> (privateKeyAddress: String, publicKeyAddress: String) {
     
         if let newData = baseSixNumber.data(using: String.Encoding.utf8){
@@ -237,18 +307,7 @@ class DiceKeyCreatorViewController: UIViewController {
         var allDiceInputed:Bool! = true
         var numberArray = [String]()
         
-        for dice in self.diceArray {
-            
-            let diceNumber = Int((dice.titleLabel?.text)!)
-            numberArray.append(String(describing: diceNumber!))
-            print("count = \(numberArray.count)")
-            
-            if diceNumber == 0 {
-                
-                allDiceInputed = false
-                
-            }
-        }
+        
         
         if allDiceInputed == true {
             
@@ -277,13 +336,9 @@ class DiceKeyCreatorViewController: UIViewController {
                         
                         UIView.animate(withDuration: 0.5, animations: {
                             
-                            //self.imageView.alpha = 0
-                            //self.bitField.alpha = 0
                             
                         }, completion: { _ in
                             
-                           // self.imageView.removeFromSuperview()
-                            //self.bitField.removeFromSuperview()
                             self.createKeysButton.removeFromSuperview()
                             self.clearButton.removeFromSuperview()
                             self.view.addSubview(self.privateKeyQRView)
@@ -354,7 +409,7 @@ class DiceKeyCreatorViewController: UIViewController {
             }
             
         }
-        
+       
     }
     
     func clearDice() {
@@ -404,6 +459,10 @@ class DiceKeyCreatorViewController: UIViewController {
                 
                 self.present(alert, animated: true, completion: nil)
             }
+            
+        } else {
+            
+            self.dismiss(animated: false, completion: nil)
             
         }
         
