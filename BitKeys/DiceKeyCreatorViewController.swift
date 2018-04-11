@@ -8,6 +8,7 @@
 
 import UIKit
 import SystemConfiguration
+import BigInt
 
 class DiceKeyCreatorViewController: UIViewController {
     
@@ -288,6 +289,49 @@ class DiceKeyCreatorViewController: UIViewController {
                             alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, I'm sure", comment: ""), style: .default, handler: { (action) in
                                 
                                 //need to change below to actually show private key in bit form and other formats without the corebitcoin library
+                                
+                                self.privateKeyText = joinedBits
+                                self.upperLabel.text = "Bitcoin Private Key"
+                                self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y + ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: 100))
+                                self.myField.text = joinedBits
+                                self.myField.isEditable = false
+                                self.myField.isSelectable = true
+                                self.myField.font = .systemFont(ofSize: 24)
+                                self.view.addSubview(self.myField)
+                                self.addBackUpButton()
+                                self.addKeyToggleButton()
+                                
+                                self.percentageLabel.removeFromSuperview()
+                                self.createKeysButton.removeFromSuperview()
+                                self.clearButton.removeFromSuperview()
+                                for dice in self.diceArray {
+                                    dice.removeFromSuperview()
+                                }
+                                
+                                var power:Double! = 257
+                                var bitsArray = [Double]()
+                                
+                                for character in joinedBits {
+                                    
+                                    power = power - 1
+                                    let intString = String(character)
+                                    let int = Double(intString)!
+                                    let bitConverted = int * pow(2, power)
+                                    bitsArray.append(bitConverted)
+                                }
+                                
+                                print("bitsArray = \(bitsArray)")
+                                var sum:Double!
+                                sum = bitsArray.reduce(0, +)
+                                print("base10Number = \(sum)")
+                                
+                                let f:Float = Float(sum)
+                                let str = String(format: "%.0f", f)
+                                print("str = \(str)")
+                                
+                                
+                                
+                                /*
                                 let randomNumber = joinedBits
                                 self.privateKey = self.createKeys(baseSixNumber: randomNumber).privateKeyAddress
                                 self.bitcoinAddress = self.createKeys(baseSixNumber: randomNumber).publicKeyAddress
@@ -361,7 +405,7 @@ class DiceKeyCreatorViewController: UIViewController {
                                     }
                                     
                                 }
-                                
+                                */
                             }))
                             
                             alert.addAction(UIAlertAction(title: NSLocalizedString("No, let me check", comment: ""), style: .default, handler: { (action) in
@@ -383,6 +427,7 @@ class DiceKeyCreatorViewController: UIViewController {
         self.randomBits.removeAll()
             
      }
+    
     
     func createKeys(baseSixNumber: String) -> (privateKeyAddress: String, publicKeyAddress: String) {
         
@@ -691,3 +736,5 @@ extension Data {
         return (self.map { String(format: "%02X", $0) }).joined(separator: separator)
     }
 }
+
+

@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		631F99E7179C80B3B0E962E1 /* libPods-BitKeys.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6B7ACBBE3624198C10931574 /* libPods-BitKeys.a */; };
 		D00512112069509900667865 /* DiceKeyCreatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00512102069509900667865 /* DiceKeyCreatorViewController.swift */; };
+		D089BFA5207EBDEF0086243B /* SipHash.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D089BFA3207EBDEF0086243B /* SipHash.framework */; };
+		D089BFA6207EBDEF0086243B /* BigInt.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D089BFA4207EBDEF0086243B /* BigInt.framework */; };
 		D09FB1DC1FCBFDE000A9630F /* bitcoinIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */; };
 		D0B597852013E96E000767A7 /* ViewControllerBalanceChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B597842013E96E000767A7 /* ViewControllerBalanceChecker.swift */; };
 		D0C56F591FCBFBC4004A5F47 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C56F581FCBFBC4004A5F47 /* AppDelegate.swift */; };
@@ -28,6 +30,8 @@
 		89CBD468A5EF7493E5F477B6 /* Pods-BitKeys.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitKeys.release.xcconfig"; path = "Pods/Target Support Files/Pods-BitKeys/Pods-BitKeys.release.xcconfig"; sourceTree = "<group>"; };
 		C6342F80D31874B6ABC8D895 /* Pods-BitKeys.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitKeys.debug.xcconfig"; path = "Pods/Target Support Files/Pods-BitKeys/Pods-BitKeys.debug.xcconfig"; sourceTree = "<group>"; };
 		D00512102069509900667865 /* DiceKeyCreatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceKeyCreatorViewController.swift; sourceTree = "<group>"; };
+		D089BFA3207EBDEF0086243B /* SipHash.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SipHash.framework; path = Carthage/Build/iOS/SipHash.framework; sourceTree = "<group>"; };
+		D089BFA4207EBDEF0086243B /* BigInt.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BigInt.framework; path = Carthage/Build/iOS/BigInt.framework; sourceTree = "<group>"; };
 		D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bitcoinIcon.png; sourceTree = "<group>"; };
 		D09FB1DD1FCC002200A9630F /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Header.h; sourceTree = "<group>"; };
 		D0B597842013E96E000767A7 /* ViewControllerBalanceChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerBalanceChecker.swift; sourceTree = "<group>"; };
@@ -52,6 +56,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				631F99E7179C80B3B0E962E1 /* libPods-BitKeys.a in Frameworks */,
+				D089BFA5207EBDEF0086243B /* SipHash.framework in Frameworks */,
+				D089BFA6207EBDEF0086243B /* BigInt.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -61,6 +67,8 @@
 		A0C88E4F84D8B0DF84BC4A7B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D089BFA4207EBDEF0086243B /* BigInt.framework */,
+				D089BFA3207EBDEF0086243B /* SipHash.framework */,
 				6B7ACBBE3624198C10931574 /* libPods-BitKeys.a */,
 			);
 			name = Frameworks;
@@ -129,6 +137,7 @@
 				D0C56F531FCBFBC4004A5F47 /* Resources */,
 				577AE22B756C8A8F651E5094 /* [CP] Embed Pods Frameworks */,
 				4738A628959DF2CE8EB5D012 /* [CP] Copy Pods Resources */,
+				D089BFA7207EBE280086243B /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -233,6 +242,21 @@
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
+		};
+		D089BFA7207EBE280086243B /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Carthage/Build/iOS/BigInt.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/SipHash.framework",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/local/bin/carthage copy-frameworks";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -391,6 +415,10 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 69FR345CDA;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = BitKeys/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.fontaine.BitKeys1;
@@ -413,6 +441,10 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 69FR345CDA;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = BitKeys/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.fontaine.BitKeys1;
