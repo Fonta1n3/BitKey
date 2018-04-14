@@ -37,6 +37,7 @@ class DiceKeyCreatorViewController: UIViewController {
     var percentageLabel = UILabel()
     var base10Field = UITextView()
     var hexField = UITextView()
+    var WIFprivateKeyField = UITextView()
     
     @IBOutlet var scrollView: UIScrollView!
     
@@ -143,7 +144,7 @@ class DiceKeyCreatorViewController: UIViewController {
     
     override func viewWillLayoutSubviews(){
         super.viewWillLayoutSubviews()
-        scrollView.contentSize = CGSize(width: 414, height: 3000)
+        scrollView.contentSize = CGSize(width: self.view.frame.width, height: 3000)
     }
     
     func isInternetAvailable() -> Bool {
@@ -373,12 +374,12 @@ class DiceKeyCreatorViewController: UIViewController {
                                 
                                 self.privateKeyText = joinedBits
                                 self.upperLabel.text = "Bitcoin Private Key"
-                                self.bitField = UITextView (frame:CGRect(x: self.scrollView.center.x - ((self.scrollView.frame.width - 50)/2), y: self.scrollView.frame.minY + 150, width: self.scrollView.frame.width, height: 300))
+                                self.bitField = UITextView (frame:CGRect(x: self.scrollView.center.x - ((self.scrollView.frame.width - 50)/2), y: self.scrollView.frame.maxY - 450, width: self.scrollView.frame.width, height: 300))
                                 self.bitField.text = joinedBits
                                 self.bitField.isEditable = false
                                 self.bitField.isSelectable = true
                                 self.bitField.font = .systemFont(ofSize: 24)
-                                self.scrollView.addSubview(self.bitField)
+                               // self.scrollView.addSubview(self.bitField)
                                 
                                 self.addBackUpButton()
                                 self.addKeyToggleButton()
@@ -411,34 +412,36 @@ class DiceKeyCreatorViewController: UIViewController {
                                 sum = bitsArray.reduce(0, +)
                                 print("base10Number = \(sum)")
                                 
-                                self.base10Field = UITextView (frame:CGRect(x: self.scrollView.center.x - ((self.scrollView.frame.width - 50)/2), y: self.scrollView.frame.minY + 500, width: self.scrollView.frame.width, height: 150))
+                                self.base10Field = UITextView (frame:CGRect(x: self.scrollView.center.x - ((self.scrollView.frame.width - 50)/2), y: self.scrollView.frame.maxY - 600, width: self.scrollView.frame.width, height: 150))
                                 self.base10Field.text = String(sum)
                                 self.base10Field.isEditable = false
                                 self.base10Field.isSelectable = true
                                 self.base10Field.font = .systemFont(ofSize: 24)
                                 DispatchQueue.main.async {
-                                    self.scrollView.addSubview(self.base10Field)
+                                   // self.scrollView.addSubview(self.base10Field)
                                 }
                                 
                                 
                                 var bytes = Array(BigUInt(sum).serialize())
                                 
-                                print("bytes = \(bytes)")
+                                
                                 
                                 if bytes.count == 33 {
                                     
                                     bytes = [bytes.removeLast()]
                                 }
                                 
+                                print("bytes = \(bytes)")
+                                
                                 
                                 let hexString = bytes.map({String(format: "%02hhx", $0)}).joined(separator: "")
-                                self.hexField = UITextView (frame:CGRect(x: self.scrollView.center.x - ((self.scrollView.frame.width - 50)/2), y: self.scrollView.frame.minY + 650, width: self.scrollView.frame.width, height: 100))
+                                self.hexField = UITextView (frame:CGRect(x: self.scrollView.center.x - ((self.scrollView.frame.width - 50)/2), y: self.scrollView.frame.maxY - 750, width: self.scrollView.frame.width, height: 100))
                                 self.hexField.text = hexString
                                 self.hexField.isEditable = false
                                 self.hexField.isSelectable = true
                                 self.hexField.font = .systemFont(ofSize: 24)
                                 DispatchQueue.main.async {
-                                    self.scrollView.addSubview(self.hexField)
+                                    //self.scrollView.addSubview(self.hexField)
                                 }
                                 
                                 
@@ -456,6 +459,17 @@ class DiceKeyCreatorViewController: UIViewController {
                                     print("privateKey = \(privateKey!)")
                                     print("self.bitcoinAddress = \(self.bitcoinAddress)")
                                     
+                                    self.privateKeyQRCode = self.generateQrCode(key: privateKey)
+                                    self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
+                                    self.privateKeyQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 150, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
+                                    self.scrollView.addSubview(self.privateKeyQRView)
+                                    
+                                    self.WIFprivateKeyField.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 175 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 75)
+                                    self.WIFprivateKeyField.text = privateKey
+                                    self.WIFprivateKeyField.isEditable = false
+                                    self.WIFprivateKeyField.isSelectable = true
+                                    self.WIFprivateKeyField.font = .systemFont(ofSize: 24)
+                                    self.scrollView.addSubview(self.WIFprivateKeyField)
                                     
                                 }
                                 
