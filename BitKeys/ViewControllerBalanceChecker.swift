@@ -116,6 +116,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     self.addressToDisplay.text = self.stringURL
                 }
                 
+                self.addresses = stringURL
+                
                 self.avCaptureSession.stopRunning()
                 self.checkBalance(address: stringURL)
                 
@@ -421,6 +423,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     @objc func openAddressBook() {
         
         self.checkBalance(address: self.addresses)
+        self.avCaptureSession.stopRunning()
+        self.videoPreview.removeFromSuperview()
         self.addressToDisplay.removeFromSuperview()
         
     }
@@ -435,9 +439,13 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Add to Address Book", comment: ""), style: .default, handler: { (action) in
                 
-                //let address = self.addressToDisplay.text
-                print("self.addresses = \(self.addresses)")
+                
                 UserDefaults.standard.set(self.addresses, forKey: "address")
+                
+                DispatchQueue.main.async {
+                    
+                    self.displayAlert(title: "Address Saved", message: "")
+                }
                 
             }))
             
@@ -475,6 +483,14 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 
             
         }
+        
+    }
+    
+    func displayAlert(title: String, message: String) {
+        
+        let alertcontroller = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alertcontroller.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: nil))
+        self.present(alertcontroller, animated: true, completion: nil)
         
     }
     
