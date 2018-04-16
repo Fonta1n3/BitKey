@@ -23,12 +23,6 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sRl-Ti-QjQ">
-                                <rect key="frame" x="187.5" y="91" width="0.0" height="0.0"/>
-                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="27"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="QXb-zk-UyE">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                             </scrollView>
@@ -38,15 +32,12 @@
                             <constraint firstItem="QXb-zk-UyE" firstAttribute="top" secondItem="REf-Uw-MYU" secondAttribute="top" id="2l2-xS-zJs"/>
                             <constraint firstItem="QXb-zk-UyE" firstAttribute="leading" secondItem="Dfj-UQ-YoU" secondAttribute="leading" id="UZM-Zf-fx3"/>
                             <constraint firstItem="QXb-zk-UyE" firstAttribute="bottom" secondItem="Dfj-UQ-YoU" secondAttribute="bottom" id="Uxf-40-Bhj"/>
-                            <constraint firstItem="sRl-Ti-QjQ" firstAttribute="top" secondItem="Dfj-UQ-YoU" secondAttribute="top" constant="71" id="ZMG-iQ-Mdr"/>
-                            <constraint firstItem="sRl-Ti-QjQ" firstAttribute="centerX" secondItem="REf-Uw-MYU" secondAttribute="centerX" id="tyN-Cl-2BR"/>
                             <constraint firstItem="QXb-zk-UyE" firstAttribute="trailing" secondItem="Dfj-UQ-YoU" secondAttribute="trailing" id="yDq-o0-Vtd"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="Dfj-UQ-YoU"/>
                     </view>
                     <connections>
                         <outlet property="scrollView" destination="QXb-zk-UyE" id="f4K-YZ-wh5"/>
-                        <outlet property="upperLabel" destination="sRl-Ti-QjQ" id="ASW-lU-dKs"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ryq-D8-1ye" userLabel="First Responder" sceneMemberID="firstResponder"/>

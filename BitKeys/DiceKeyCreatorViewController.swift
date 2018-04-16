@@ -13,6 +13,7 @@ import BigInt
 class DiceKeyCreatorViewController: UIViewController {
     
     @IBOutlet var upperLabel: UILabel!
+    var privateKeyTitle: UILabel!
     var clearButton = UIButton()
     var diceButton = UIButton()
     var backButton = UIButton()
@@ -60,87 +61,7 @@ class DiceKeyCreatorViewController: UIViewController {
         addBackButton()
         addClearButton()
         
-        var tempBits = "0100000000000000000010000000000100000000000000000001101001010000001111011101111110100100010000111000010001000000000110000000000000000000000000100001001010000111011001100101000001110101100111010101000001000001010101100000010101010100100110001010100100101110"
-        /*
-        self.privateKeyText = tempBits
-        self.upperLabel.text = "Bitcoin Private Key"
-        self.bitField = UITextView (frame:CGRect(x: self.scrollView.center.x - ((self.scrollView.frame.width - 50)/2), y: self.scrollView.frame.minY + 150, width: self.scrollView.frame.width, height: 300))
-        self.bitField.text = tempBits
-        self.bitField.isEditable = false
-        self.bitField.isSelectable = true
-        self.bitField.font = .systemFont(ofSize: 24)
-        self.scrollView.addSubview(self.bitField)
-        
-        self.addBackUpButton()
-        self.addKeyToggleButton()
-        
-        self.percentageLabel.removeFromSuperview()
-        self.createKeysButton.removeFromSuperview()
-        self.clearButton.removeFromSuperview()
-        
-        for dice in self.diceArray {
-            dice.removeFromSuperview()
-        }
-        
-        
-        
-        var power:Double! = 0
-        var bitsArray = [BigInt]()
-        
-        //below should have joinedBits
-        for character in tempBits.reversed() {
-            
-            power = power + 1
-            let intString = String(character)
-            let int = Double(intString)!
-            let bitConverted = BigInt(int * pow(2, power))
-            bitsArray.append(bitConverted)
-        }
-        
-        print("bitsArray = \(bitsArray)")
-        var sum:BigInt!
-        sum = bitsArray.reduce(0, +)
-        print("base10Number = \(sum)")
-        
-        self.base10Field = UITextView (frame:CGRect(x: self.scrollView.center.x - ((self.scrollView.frame.width - 50)/2), y: self.scrollView.frame.minY + 500, width: self.scrollView.frame.width, height: 150))
-        self.base10Field.text = String(sum)
-        self.base10Field.isEditable = false
-        self.base10Field.isSelectable = true
-        self.base10Field.font = .systemFont(ofSize: 24)
-        self.scrollView.addSubview(self.base10Field)
-        
-        let bytes = Array(BigUInt(sum).serialize())
-        print("bytes = \(bytes)")
-        
-        
-        let hexString = bytes.map({String(format: "%02hhx", $0)}).joined(separator: "")
-        self.hexField = UITextView (frame:CGRect(x: self.scrollView.center.x - ((self.scrollView.frame.width - 50)/2), y: self.scrollView.frame.minY + 650, width: self.scrollView.frame.width, height: 100))
-        self.hexField.text = hexString
-        self.hexField.isEditable = false
-        self.hexField.isSelectable = true
-        self.hexField.font = .systemFont(ofSize: 24)
-        self.scrollView.addSubview(self.hexField)
-        
-        if let newData = hexString.data(using: String.Encoding.utf8){
-            
-            let keys = BTCKey.init(privateKey: newData as Data)
-            var privateKey:String!
-            let privateKey2 = keys?.privateKeyAddress!.description
-            var privateKey3 = privateKey2?.components(separatedBy: " ")
-            privateKey = privateKey3![1].replacingOccurrences(of: ">", with: "")
-            let segwitAddress = BTCScriptHashAddress.init(data: keys?.address.data)
-            let segwitAddress2 = (segwitAddress?.description)?.components(separatedBy: " ")
-            self.bitcoinAddress = segwitAddress2![1].replacingOccurrences(of: ">", with: "")
-            
-            print("privateKey = \(privateKey!)")
-            print("self.bitcoinAddress = \(self.bitcoinAddress)")
-            
-            
-        }
-        */
-        
-        
-    }
+     }
     
     override func viewWillLayoutSubviews(){
         super.viewWillLayoutSubviews()
@@ -188,9 +109,9 @@ class DiceKeyCreatorViewController: UIViewController {
                     
                     zero = zero + 1
                     self.diceButton = UIButton(frame: CGRect(x: xvalue, y: yvalue, width: 65, height: 65))
+                    self.diceButton.setImage(#imageLiteral(resourceName: "images-6.png"), for: .normal)
                     self.diceButton.tag = zero
                     self.diceButton.showsTouchWhenHighlighted = true
-                    self.diceButton.backgroundColor = .gray
                     self.diceButton.setTitle("\(0)", for: .normal)
                     self.diceButton.titleLabel?.textColor = UIColor.white
                     self.diceButton.addTarget(self, action: #selector(self.tapDice), for: .touchUpInside)
@@ -217,44 +138,51 @@ class DiceKeyCreatorViewController: UIViewController {
             if diceNumber == 0 {
                 DispatchQueue.main.async {
                     sender.setTitle("1", for: .normal)
-                    sender.backgroundColor = .black
+                    sender.setImage(#imageLiteral(resourceName: "one.png"), for: .normal)
+                    //sender.backgroundColor = .black
                 }
             } else if diceNumber == 1 {
                 DispatchQueue.main.async {
                     sender.setTitle("2", for: .normal)
-                    sender.backgroundColor = .black
+                    sender.setImage(#imageLiteral(resourceName: "two.png"), for: .normal)
+                    //sender.backgroundColor = .black
                 }
             } else if diceNumber == 2 {
                 DispatchQueue.main.async {
                     sender.setTitle("3", for: .normal)
-                    sender.backgroundColor = .black
+                    sender.setImage(#imageLiteral(resourceName: "three.png"), for: .normal)
+                    //sender.backgroundColor = .black
                 }
             } else if diceNumber == 3 {
                 DispatchQueue.main.async {
                     sender.setTitle("4", for: .normal)
-                    sender.backgroundColor = .black
+                    sender.setImage(#imageLiteral(resourceName: "four.png"), for: .normal)
+                    //sender.backgroundColor = .black
                 }
             } else if diceNumber == 4 {
                 DispatchQueue.main.async {
                     sender.setTitle("5", for: .normal)
-                    sender.backgroundColor = .black
+                    sender.setImage(#imageLiteral(resourceName: "five.png"), for: .normal)
+                    //sender.backgroundColor = .black
                 }
             } else if diceNumber == 5 {
                 DispatchQueue.main.async {
                     sender.setTitle("6", for: .normal)
-                    sender.backgroundColor = .black
+                    sender.setImage(#imageLiteral(resourceName: "six.png"), for: .normal)
+                    //sender.backgroundColor = .black
                 }
             } else if diceNumber == 6 {
                 DispatchQueue.main.async {
                     sender.setTitle("1", for: .normal)
-                    sender.backgroundColor = .black
+                    sender.setImage(#imageLiteral(resourceName: "one.png"), for: .normal)
+                    //sender.backgroundColor = .black
                 }
             }
             
             
         }
         
-        if self.connected == false {
+        //if self.connected == false {
             
             if sender.tag == 1 && diceNumber == 0 {
                 
@@ -306,12 +234,12 @@ class DiceKeyCreatorViewController: UIViewController {
                 
             }
             
-        } else {
+        /*} else {
             
             DispatchQueue.main.async {
                 self.displayAlert(title: "Turn on airplane mode to create private keys securely.", message: "The idea is to never let your Bitcoin private key touch the interent, secure keys are worth the effort.")
             }
-        }
+        }*/
         
         
         
@@ -352,19 +280,44 @@ class DiceKeyCreatorViewController: UIViewController {
                         self.randomBits.append("1")
                     }
                     
-                    let joinedBits = randomBits.joined()
+                    var joinedBits = randomBits.joined()
                     
                     self.bitCount = 0
                     self.percentageLabel.removeFromSuperview()
                     
-                    for (_, _) in joinedBits.enumerated() {
+                    for _ in joinedBits {
                         
                         self.bitCount = bitCount + 1
                     }
                     
                     self.addPercentageCompleteLabel()
                     
-                    if self.bitCount == 256 || self.bitCount > 256 {
+                    
+                    
+                    print("bitCount = \(self.bitCount!)")
+                    
+                    if self.bitCount > 255 {
+                        
+                        if self.bitCount == 257 {
+                            
+                            joinedBits.removeFirst()
+                            
+                        } 
+                        
+                        
+                        
+                        let parseBitResult = parseBinary(binary: joinedBits)
+                        
+                        var count = 0
+                        
+                        for _ in joinedBits {
+                            
+                            count = count + 1
+                            
+                        }
+                        
+                        print("bitCount after = \(count)")
+                        print("parseBitResult = \(String(describing: parseBitResult))")
                         
                         DispatchQueue.main.async {
                             
@@ -372,8 +325,15 @@ class DiceKeyCreatorViewController: UIViewController {
                             
                             alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, I'm sure", comment: ""), style: .default, handler: { (action) in
                                 
+                                self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 100, width: self.scrollView.frame.width, height: 50))
+                                self.privateKeyTitle.text = "Bitcoin Private Key"
+                                self.privateKeyTitle.font = .systemFont(ofSize: 32)
+                                self.privateKeyTitle.textColor = UIColor.black
+                                self.privateKeyTitle.textAlignment = .center
+                                self.scrollView.addSubview(self.privateKeyTitle)
+                                
                                 self.privateKeyText = joinedBits
-                                self.upperLabel.text = "Bitcoin Private Key"
+                                //self.upperLabel.text = "Bitcoin Private Key"
                                 self.bitField = UITextView (frame:CGRect(x: self.scrollView.center.x - ((self.scrollView.frame.width - 50)/2), y: self.scrollView.frame.maxY - 450, width: self.scrollView.frame.width, height: 300))
                                 self.bitField.text = joinedBits
                                 self.bitField.isEditable = false
@@ -393,7 +353,7 @@ class DiceKeyCreatorViewController: UIViewController {
                                 }
                                 
                                 
-                                
+                                /*
                                 var power:Double! = 0
                                 var bitsArray = [BigInt]()
                                 
@@ -408,12 +368,13 @@ class DiceKeyCreatorViewController: UIViewController {
                                 }
                                 
                                 print("bitsArray = \(bitsArray)")
+                                print("bitsArray count = \(bitsArray.count)")
                                 var sum:BigInt!
                                 sum = bitsArray.reduce(0, +)
                                 print("base10Number = \(sum)")
-                                
+                                */
                                 self.base10Field = UITextView (frame:CGRect(x: self.scrollView.center.x - ((self.scrollView.frame.width - 50)/2), y: self.scrollView.frame.maxY - 600, width: self.scrollView.frame.width, height: 150))
-                                self.base10Field.text = String(sum)
+                                self.base10Field.text = String(parseBitResult!)
                                 self.base10Field.isEditable = false
                                 self.base10Field.isSelectable = true
                                 self.base10Field.font = .systemFont(ofSize: 24)
@@ -422,7 +383,7 @@ class DiceKeyCreatorViewController: UIViewController {
                                 }
                                 
                                 
-                                var bytes = Array(BigUInt(sum).serialize())
+                                var bytes = Array(BigUInt(parseBitResult!).serialize())
                                 
                                 
                                 
@@ -432,6 +393,7 @@ class DiceKeyCreatorViewController: UIViewController {
                                 }
                                 
                                 print("bytes = \(bytes)")
+                                print("bytes count = \(bytes.count)")
                                 
                                 
                                 let hexString = bytes.map({String(format: "%02hhx", $0)}).joined(separator: "")
@@ -560,6 +522,9 @@ class DiceKeyCreatorViewController: UIViewController {
                             
                         }
                         
+                    } else {
+                        
+                        print("bitcount not 256")
                     }
                     
                 }
@@ -571,6 +536,21 @@ class DiceKeyCreatorViewController: UIViewController {
         self.randomBits.removeAll()
             
      }
+    
+    func parseBinary(binary: String) -> BigInt? {
+        
+        var result:BigInt = 0
+        
+        for digit in binary {
+            
+            switch(digit) {
+            case "0":result = result * 2
+            case "1":result = result * 2 + 1
+            default: return nil
+            }
+        }
+        return result
+    }
     
     
     func createKeys(baseSixNumber: String) -> (privateKeyAddress: String, publicKeyAddress: String) {

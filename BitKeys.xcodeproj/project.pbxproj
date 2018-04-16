@@ -9,6 +9,13 @@
 /* Begin PBXBuildFile section */
 		631F99E7179C80B3B0E962E1 /* libPods-BitKeys.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6B7ACBBE3624198C10931574 /* libPods-BitKeys.a */; };
 		D00512112069509900667865 /* DiceKeyCreatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00512102069509900667865 /* DiceKeyCreatorViewController.swift */; };
+		D00FF6A12083DA1000660D3C /* one.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF69B2083DA0F00660D3C /* one.png */; };
+		D00FF6A22083DA1000660D3C /* two.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF69C2083DA0F00660D3C /* two.png */; };
+		D00FF6A32083DA1000660D3C /* five.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF69D2083DA0F00660D3C /* five.png */; };
+		D00FF6A42083DA1000660D3C /* four.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF69E2083DA0F00660D3C /* four.png */; };
+		D00FF6A52083DA1000660D3C /* three.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF69F2083DA1000660D3C /* three.png */; };
+		D00FF6A62083DA1000660D3C /* six.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF6A02083DA1000660D3C /* six.png */; };
+		D00FF6A82083DAC900660D3C /* images-6.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF6A72083DAC900660D3C /* images-6.png */; };
 		D089BFA5207EBDEF0086243B /* SipHash.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D089BFA3207EBDEF0086243B /* SipHash.framework */; };
 		D089BFA6207EBDEF0086243B /* BigInt.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D089BFA4207EBDEF0086243B /* BigInt.framework */; };
 		D09FB1DC1FCBFDE000A9630F /* bitcoinIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */; };
@@ -30,6 +37,13 @@
 		89CBD468A5EF7493E5F477B6 /* Pods-BitKeys.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitKeys.release.xcconfig"; path = "Pods/Target Support Files/Pods-BitKeys/Pods-BitKeys.release.xcconfig"; sourceTree = "<group>"; };
 		C6342F80D31874B6ABC8D895 /* Pods-BitKeys.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitKeys.debug.xcconfig"; path = "Pods/Target Support Files/Pods-BitKeys/Pods-BitKeys.debug.xcconfig"; sourceTree = "<group>"; };
 		D00512102069509900667865 /* DiceKeyCreatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceKeyCreatorViewController.swift; sourceTree = "<group>"; };
+		D00FF69B2083DA0F00660D3C /* one.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = one.png; sourceTree = "<group>"; };
+		D00FF69C2083DA0F00660D3C /* two.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = two.png; sourceTree = "<group>"; };
+		D00FF69D2083DA0F00660D3C /* five.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = five.png; sourceTree = "<group>"; };
+		D00FF69E2083DA0F00660D3C /* four.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = four.png; sourceTree = "<group>"; };
+		D00FF69F2083DA1000660D3C /* three.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = three.png; sourceTree = "<group>"; };
+		D00FF6A02083DA1000660D3C /* six.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = six.png; sourceTree = "<group>"; };
+		D00FF6A72083DAC900660D3C /* images-6.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "images-6.png"; sourceTree = "<group>"; };
 		D089BFA3207EBDEF0086243B /* SipHash.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SipHash.framework; path = Carthage/Build/iOS/SipHash.framework; sourceTree = "<group>"; };
 		D089BFA4207EBDEF0086243B /* BigInt.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BigInt.framework; path = Carthage/Build/iOS/BigInt.framework; sourceTree = "<group>"; };
 		D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bitcoinIcon.png; sourceTree = "<group>"; };
@@ -74,6 +88,21 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		D00FF69A2083D9E400660D3C /* Pictures */ = {
+			isa = PBXGroup;
+			children = (
+				D00FF6A72083DAC900660D3C /* images-6.png */,
+				D00FF69B2083DA0F00660D3C /* one.png */,
+				D00FF69C2083DA0F00660D3C /* two.png */,
+				D00FF69F2083DA1000660D3C /* three.png */,
+				D00FF69E2083DA0F00660D3C /* four.png */,
+				D00FF69D2083DA0F00660D3C /* five.png */,
+				D00FF6A02083DA1000660D3C /* six.png */,
+			);
+			name = Pictures;
+			path = ..;
+			sourceTree = "<group>";
+		};
 		D0C56F4C1FCBFBC4004A5F47 = {
 			isa = PBXGroup;
 			children = (
@@ -111,6 +140,7 @@
 				D09FB1DD1FCC002200A9630F /* Header.h */,
 				D0EF966A1FCC07FB004A8E4E /* ObjectiveCHeader.m */,
 				D0EF96691FCC07FA004A8E4E /* BitKeys-Bridging-Header.h */,
+				D00FF69A2083D9E400660D3C /* Pictures */,
 			);
 			path = BitKeys;
 			sourceTree = "<group>";
@@ -188,10 +218,17 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D00FF6A22083DA1000660D3C /* two.png in Resources */,
 				D0C56F661FCBFBC4004A5F47 /* LaunchScreen.storyboard in Resources */,
 				D0C56F631FCBFBC4004A5F47 /* Assets.xcassets in Resources */,
+				D00FF6A52083DA1000660D3C /* three.png in Resources */,
+				D00FF6A62083DA1000660D3C /* six.png in Resources */,
 				D0C56F5E1FCBFBC4004A5F47 /* Main.storyboard in Resources */,
+				D00FF6A42083DA1000660D3C /* four.png in Resources */,
+				D00FF6A82083DAC900660D3C /* images-6.png in Resources */,
+				D00FF6A32083DA1000660D3C /* five.png in Resources */,
 				D09FB1DC1FCBFDE000A9630F /* bitcoinIcon.png in Resources */,
+				D00FF6A12083DA1000660D3C /* one.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
