@@ -32,6 +32,44 @@
 		D0F858A0202BD39C00560247 /* TransactionBuilderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F8589F202BD39C00560247 /* TransactionBuilderViewController.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		D0588FE020871B9000C55544 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0588F4820871B8F00C55544 /* CryptoSwift.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 754BE45519693E190098E6F3;
+			remoteInfo = CryptoSwift;
+		};
+		D0588FE220871B9000C55544 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0588F4820871B8F00C55544 /* CryptoSwift.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 754BE46019693E190098E6F3;
+			remoteInfo = Tests;
+		};
+		D0588FE720871B9000C55544 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0588FCE20871B9000C55544 /* HDWalletKit.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AEBA90D51FFA21ED003EA2BA;
+			remoteInfo = HDWalletKit;
+		};
+		D0588FE920871B9000C55544 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0588FCE20871B9000C55544 /* HDWalletKit.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AEBA90F01FFA2C6A003EA2BA;
+			remoteInfo = Example;
+		};
+		D0588FEB20871B9000C55544 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0588FCE20871B9000C55544 /* HDWalletKit.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AE90A0751FFA698D005ED7AF;
+			remoteInfo = HDWalletKitTests;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		6B7ACBBE3624198C10931574 /* libPods-BitKeys.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BitKeys.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		89CBD468A5EF7493E5F477B6 /* Pods-BitKeys.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitKeys.release.xcconfig"; path = "Pods/Target Support Files/Pods-BitKeys/Pods-BitKeys.release.xcconfig"; sourceTree = "<group>"; };
@@ -44,6 +82,151 @@
 		D00FF69F2083DA1000660D3C /* three.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = three.png; sourceTree = "<group>"; };
 		D00FF6A02083DA1000660D3C /* six.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = six.png; sourceTree = "<group>"; };
 		D00FF6A72083DAC900660D3C /* images-6.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "images-6.png"; sourceTree = "<group>"; };
+		D0588F3120871B8F00C55544 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		D0588F3220871B8F00C55544 /* Cartfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cartfile; sourceTree = "<group>"; };
+		D0588F3320871B8F00C55544 /* Cartfile.resolved */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cartfile.resolved; sourceTree = "<group>"; };
+		D0588F3620871B8F00C55544 /* .CryptoSwift.version */ = {isa = PBXFileReference; lastKnownFileType = text; path = .CryptoSwift.version; sourceTree = "<group>"; };
+		D0588F3820871B8F00C55544 /* CryptoSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CryptoSwift.framework; sourceTree = "<group>"; };
+		D0588F3920871B8F00C55544 /* CryptoSwift.framework.dSYM */ = {isa = PBXFileReference; lastKnownFileType = wrapper.dsym; path = CryptoSwift.framework.dSYM; sourceTree = "<group>"; };
+		D0588F3D20871B8F00C55544 /* CODEOWNERS */ = {isa = PBXFileReference; lastKnownFileType = text; path = CODEOWNERS; sourceTree = "<group>"; };
+		D0588F3E20871B8F00C55544 /* ISSUE_TEMPLATE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ISSUE_TEMPLATE.md; sourceTree = "<group>"; };
+		D0588F3F20871B8F00C55544 /* PULL_REQUEST_TEMPLATE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PULL_REQUEST_TEMPLATE.md; sourceTree = "<group>"; };
+		D0588F4020871B8F00C55544 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		D0588F4120871B8F00C55544 /* .swift-version */ = {isa = PBXFileReference; lastKnownFileType = text; path = ".swift-version"; sourceTree = "<group>"; };
+		D0588F4220871B8F00C55544 /* .travis.yml */ = {isa = PBXFileReference; lastKnownFileType = text; path = .travis.yml; sourceTree = "<group>"; };
+		D0588F4320871B8F00C55544 /* CHANGELOG */ = {isa = PBXFileReference; lastKnownFileType = text; path = CHANGELOG; sourceTree = "<group>"; };
+		D0588F4420871B8F00C55544 /* CODE_OF_CONDUCT.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CODE_OF_CONDUCT.md; sourceTree = "<group>"; };
+		D0588F4520871B8F00C55544 /* CONTRIBUTING.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CONTRIBUTING.md; sourceTree = "<group>"; };
+		D0588F4620871B8F00C55544 /* CryptoSwift.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = CryptoSwift.playground; sourceTree = "<group>"; };
+		D0588F4720871B8F00C55544 /* CryptoSwift.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = CryptoSwift.podspec; sourceTree = "<group>"; };
+		D0588F4820871B8F00C55544 /* CryptoSwift.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = CryptoSwift.xcodeproj; sourceTree = "<group>"; };
+		D0588F4B20871B8F00C55544 /* CryptoSwift.xcworkspace */ = {isa = PBXFileReference; lastKnownFileType = wrapper.workspace; path = CryptoSwift.xcworkspace; sourceTree = "<group>"; };
+		D0588F4C20871B8F00C55544 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		D0588F4D20871B8F00C55544 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
+		D0588F4E20871B8F00C55544 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		D0588F5020871B8F00C55544 /* build-framework.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "build-framework.sh"; sourceTree = "<group>"; };
+		D0588F5120871B8F00C55544 /* CI.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = CI.sh; sourceTree = "<group>"; };
+		D0588F5220871B8F00C55544 /* swiftformat.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = swiftformat.sh; sourceTree = "<group>"; };
+		D0588F5620871B8F00C55544 /* AEAD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AEAD.swift; sourceTree = "<group>"; };
+		D0588F5720871B8F00C55544 /* AEADChaCha20Poly1305.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AEADChaCha20Poly1305.swift; sourceTree = "<group>"; };
+		D0588F5820871B8F00C55544 /* AES.Cryptors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AES.Cryptors.swift; sourceTree = "<group>"; };
+		D0588F5920871B8F00C55544 /* AES.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AES.swift; sourceTree = "<group>"; };
+		D0588F5A20871B8F00C55544 /* Array+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Extension.swift"; sourceTree = "<group>"; };
+		D0588F5B20871B8F00C55544 /* Authenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
+		D0588F5C20871B8F00C55544 /* BatchedCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchedCollection.swift; sourceTree = "<group>"; };
+		D0588F5D20871B8F00C55544 /* Bit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bit.swift; sourceTree = "<group>"; };
+		D0588F5E20871B8F00C55544 /* BlockCipher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockCipher.swift; sourceTree = "<group>"; };
+		D0588F6020871B8F00C55544 /* BlockMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockMode.swift; sourceTree = "<group>"; };
+		D0588F6120871B8F00C55544 /* BlockModeOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockModeOptions.swift; sourceTree = "<group>"; };
+		D0588F6220871B8F00C55544 /* BlockModeWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockModeWorker.swift; sourceTree = "<group>"; };
+		D0588F6320871B8F00C55544 /* CBC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBC.swift; sourceTree = "<group>"; };
+		D0588F6420871B8F00C55544 /* CFB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CFB.swift; sourceTree = "<group>"; };
+		D0588F6520871B8F00C55544 /* CTR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CTR.swift; sourceTree = "<group>"; };
+		D0588F6620871B8F00C55544 /* ECB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ECB.swift; sourceTree = "<group>"; };
+		D0588F6720871B8F00C55544 /* OFB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OFB.swift; sourceTree = "<group>"; };
+		D0588F6820871B8F00C55544 /* PCBC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCBC.swift; sourceTree = "<group>"; };
+		D0588F6920871B8F00C55544 /* RandomAccessBlockModeWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomAccessBlockModeWorker.swift; sourceTree = "<group>"; };
+		D0588F6A20871B8F00C55544 /* Blowfish.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blowfish.swift; sourceTree = "<group>"; };
+		D0588F6B20871B8F00C55544 /* ChaCha20.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChaCha20.swift; sourceTree = "<group>"; };
+		D0588F6C20871B8F00C55544 /* Checksum.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Checksum.swift; sourceTree = "<group>"; };
+		D0588F6D20871B8F00C55544 /* Cipher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cipher.swift; sourceTree = "<group>"; };
+		D0588F6E20871B8F00C55544 /* CMAC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CMAC.swift; sourceTree = "<group>"; };
+		D0588F6F20871B8F00C55544 /* Collection+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Collection+Extension.swift"; sourceTree = "<group>"; };
+		D0588F7020871B8F00C55544 /* CompactMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompactMap.swift; sourceTree = "<group>"; };
+		D0588F7120871B8F00C55544 /* Cryptors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cryptors.swift; sourceTree = "<group>"; };
+		D0588F7220871B8F00C55544 /* Digest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Digest.swift; sourceTree = "<group>"; };
+		D0588F7320871B8F00C55544 /* DigestType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigestType.swift; sourceTree = "<group>"; };
+		D0588F7520871B8F00C55544 /* AES+Foundation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AES+Foundation.swift"; sourceTree = "<group>"; };
+		D0588F7620871B8F00C55544 /* Array+Foundation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Foundation.swift"; sourceTree = "<group>"; };
+		D0588F7720871B8F00C55544 /* Blowfish+Foundation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Blowfish+Foundation.swift"; sourceTree = "<group>"; };
+		D0588F7820871B8F00C55544 /* ChaCha20+Foundation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChaCha20+Foundation.swift"; sourceTree = "<group>"; };
+		D0588F7920871B8F00C55544 /* Data+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+Extension.swift"; sourceTree = "<group>"; };
+		D0588F7A20871B8F00C55544 /* HMAC+Foundation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HMAC+Foundation.swift"; sourceTree = "<group>"; };
+		D0588F7B20871B8F00C55544 /* Rabbit+Foundation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Rabbit+Foundation.swift"; sourceTree = "<group>"; };
+		D0588F7C20871B8F00C55544 /* String+FoundationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+FoundationExtension.swift"; sourceTree = "<group>"; };
+		D0588F7D20871B8F00C55544 /* Utils+Foundation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Utils+Foundation.swift"; sourceTree = "<group>"; };
+		D0588F7E20871B8F00C55544 /* Generics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Generics.swift; sourceTree = "<group>"; };
+		D0588F7F20871B8F00C55544 /* HKDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HKDF.swift; sourceTree = "<group>"; };
+		D0588F8020871B9000C55544 /* HMAC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HMAC.swift; sourceTree = "<group>"; };
+		D0588F8120871B9000C55544 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D0588F8220871B9000C55544 /* Int+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Int+Extension.swift"; sourceTree = "<group>"; };
+		D0588F8320871B9000C55544 /* MD5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MD5.swift; sourceTree = "<group>"; };
+		D0588F8420871B9000C55544 /* NoPadding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoPadding.swift; sourceTree = "<group>"; };
+		D0588F8520871B9000C55544 /* Operators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operators.swift; sourceTree = "<group>"; };
+		D0588F8620871B9000C55544 /* Padding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Padding.swift; sourceTree = "<group>"; };
+		D0588F8820871B9000C55544 /* PBKDF1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PBKDF1.swift; sourceTree = "<group>"; };
+		D0588F8920871B9000C55544 /* PBKDF2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PBKDF2.swift; sourceTree = "<group>"; };
+		D0588F8A20871B9000C55544 /* PKCS5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PKCS5.swift; sourceTree = "<group>"; };
+		D0588F8B20871B9000C55544 /* PKCS7.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PKCS7.swift; sourceTree = "<group>"; };
+		D0588F8C20871B9000C55544 /* PKCS7Padding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PKCS7Padding.swift; sourceTree = "<group>"; };
+		D0588F8D20871B9000C55544 /* Poly1305.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Poly1305.swift; sourceTree = "<group>"; };
+		D0588F8E20871B9000C55544 /* Rabbit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rabbit.swift; sourceTree = "<group>"; };
+		D0588F8F20871B9000C55544 /* RandomAccessCryptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomAccessCryptor.swift; sourceTree = "<group>"; };
+		D0588F9020871B9000C55544 /* RandomBytesSequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomBytesSequence.swift; sourceTree = "<group>"; };
+		D0588F9120871B9000C55544 /* SecureBytes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureBytes.swift; sourceTree = "<group>"; };
+		D0588F9220871B9000C55544 /* SHA1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SHA1.swift; sourceTree = "<group>"; };
+		D0588F9320871B9000C55544 /* SHA2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SHA2.swift; sourceTree = "<group>"; };
+		D0588F9420871B9000C55544 /* SHA3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SHA3.swift; sourceTree = "<group>"; };
+		D0588F9520871B9000C55544 /* String+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extension.swift"; sourceTree = "<group>"; };
+		D0588F9620871B9000C55544 /* UInt16+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UInt16+Extension.swift"; sourceTree = "<group>"; };
+		D0588F9720871B9000C55544 /* UInt32+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UInt32+Extension.swift"; sourceTree = "<group>"; };
+		D0588F9820871B9000C55544 /* UInt64+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UInt64+Extension.swift"; sourceTree = "<group>"; };
+		D0588F9920871B9000C55544 /* UInt8+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UInt8+Extension.swift"; sourceTree = "<group>"; };
+		D0588F9A20871B9000C55544 /* Updatable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updatable.swift; sourceTree = "<group>"; };
+		D0588F9B20871B9000C55544 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
+		D0588F9C20871B9000C55544 /* ZeroPadding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZeroPadding.swift; sourceTree = "<group>"; };
+		D0588F9D20871B9000C55544 /* CryptoSwift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CryptoSwift.h; sourceTree = "<group>"; };
+		D0588FA020871B9000C55544 /* Access.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Access.swift; sourceTree = "<group>"; };
+		D0588FA120871B9000C55544 /* AESTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AESTests.swift; sourceTree = "<group>"; };
+		D0588FA220871B9000C55544 /* BlowfishTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlowfishTests.swift; sourceTree = "<group>"; };
+		D0588FA320871B9000C55544 /* Bridging.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Bridging.h; sourceTree = "<group>"; };
+		D0588FA420871B9000C55544 /* ChaCha20Poly1305Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChaCha20Poly1305Tests.swift; sourceTree = "<group>"; };
+		D0588FA520871B9000C55544 /* ChaCha20Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChaCha20Tests.swift; sourceTree = "<group>"; };
+		D0588FA620871B9000C55544 /* CMACTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CMACTests.swift; sourceTree = "<group>"; };
+		D0588FA720871B9000C55544 /* DigestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigestTests.swift; sourceTree = "<group>"; };
+		D0588FA820871B9000C55544 /* Error+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Error+Extension.swift"; sourceTree = "<group>"; };
+		D0588FA920871B9000C55544 /* ExtensionsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionsTest.swift; sourceTree = "<group>"; };
+		D0588FAA20871B9000C55544 /* HKDFTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HKDFTests.swift; sourceTree = "<group>"; };
+		D0588FAB20871B9000C55544 /* HMACTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HMACTests.swift; sourceTree = "<group>"; };
+		D0588FAC20871B9000C55544 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D0588FAD20871B9000C55544 /* PaddingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaddingTests.swift; sourceTree = "<group>"; };
+		D0588FAE20871B9000C55544 /* PBKDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PBKDF.swift; sourceTree = "<group>"; };
+		D0588FAF20871B9000C55544 /* Poly1305Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Poly1305Tests.swift; sourceTree = "<group>"; };
+		D0588FB020871B9000C55544 /* RabbitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RabbitTests.swift; sourceTree = "<group>"; };
+		D0588FB120871B9000C55544 /* RandomBytesSequenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomBytesSequenceTests.swift; sourceTree = "<group>"; };
+		D0588FB220871B9000C55544 /* LinuxMain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinuxMain.swift; sourceTree = "<group>"; };
+		D0588FB420871B9000C55544 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		D0588FB520871B9000C55544 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D0588FB720871B9000C55544 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		D0588FB920871B9000C55544 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		D0588FBA20871B9000C55544 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D0588FBB20871B9000C55544 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		D0588FBD20871B9000C55544 /* Base58Encode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Base58Encode.swift; sourceTree = "<group>"; };
+		D0588FBE20871B9000C55544 /* Crypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crypto.swift; sourceTree = "<group>"; };
+		D0588FBF20871B9000C55544 /* DataConvertable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataConvertable.swift; sourceTree = "<group>"; };
+		D0588FC020871B9000C55544 /* HDPrivateKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HDPrivateKey.swift; sourceTree = "<group>"; };
+		D0588FC120871B9000C55544 /* HDPublicKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HDPublicKey.swift; sourceTree = "<group>"; };
+		D0588FC220871B9000C55544 /* HDWallet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HDWallet.swift; sourceTree = "<group>"; };
+		D0588FC320871B9000C55544 /* HDWalletKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HDWalletKit.h; sourceTree = "<group>"; };
+		D0588FC420871B9000C55544 /* HDWalletKit.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = HDWalletKit.modulemap; sourceTree = "<group>"; };
+		D0588FC520871B9000C55544 /* HDWalletKitError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HDWalletKitError.swift; sourceTree = "<group>"; };
+		D0588FC720871B9000C55544 /* SMP+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SMP+Extensions.swift"; sourceTree = "<group>"; };
+		D0588FC820871B9000C55544 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D0588FC920871B9000C55544 /* Internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Internal.h; sourceTree = "<group>"; };
+		D0588FCA20871B9000C55544 /* Internal.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Internal.m; sourceTree = "<group>"; };
+		D0588FCB20871B9000C55544 /* Mnemonic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mnemonic.swift; sourceTree = "<group>"; };
+		D0588FCC20871B9000C55544 /* Network.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Network.swift; sourceTree = "<group>"; };
+		D0588FCD20871B9000C55544 /* WordList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordList.swift; sourceTree = "<group>"; };
+		D0588FCE20871B9000C55544 /* HDWalletKit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = HDWalletKit.xcodeproj; sourceTree = "<group>"; };
+		D0588FD220871B9000C55544 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D0588FD520871B9000C55544 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		D0588FD620871B9000C55544 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		D0588FD720871B9000C55544 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		D0588FD920871B9000C55544 /* build_crypto.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build_crypto.sh; sourceTree = "<group>"; };
+		D0588FDA20871B9000C55544 /* build_crypto_impl.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build_crypto_impl.sh; sourceTree = "<group>"; };
+		D0588FDB20871B9000C55544 /* build_libraries.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build_libraries.sh; sourceTree = "<group>"; };
+		D0588FDC20871B9000C55544 /* build_secp256k1.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build_secp256k1.sh; sourceTree = "<group>"; };
+		D0588FDD20871B9000C55544 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		D089BFA3207EBDEF0086243B /* SipHash.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SipHash.framework; path = Carthage/Build/iOS/SipHash.framework; sourceTree = "<group>"; };
 		D089BFA4207EBDEF0086243B /* BigInt.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BigInt.framework; path = Carthage/Build/iOS/BigInt.framework; sourceTree = "<group>"; };
 		D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bitcoinIcon.png; sourceTree = "<group>"; };
@@ -81,6 +264,7 @@
 		A0C88E4F84D8B0DF84BC4A7B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D0588F3020871B8F00C55544 /* HDWalletKit */,
 				D089BFA4207EBDEF0086243B /* BigInt.framework */,
 				D089BFA3207EBDEF0086243B /* SipHash.framework */,
 				6B7ACBBE3624198C10931574 /* libPods-BitKeys.a */,
@@ -101,6 +285,354 @@
 			);
 			name = Pictures;
 			path = ..;
+			sourceTree = "<group>";
+		};
+		D0588F3020871B8F00C55544 /* HDWalletKit */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F3120871B8F00C55544 /* .gitignore */,
+				D0588F3220871B8F00C55544 /* Cartfile */,
+				D0588F3320871B8F00C55544 /* Cartfile.resolved */,
+				D0588F3420871B8F00C55544 /* Carthage */,
+				D0588FB320871B9000C55544 /* Example */,
+				D0588FBC20871B9000C55544 /* HDWalletKit */,
+				D0588FCE20871B9000C55544 /* HDWalletKit.xcodeproj */,
+				D0588FD120871B9000C55544 /* HDWalletKitTests */,
+				D0588FD320871B9000C55544 /* Libraries */,
+				D0588FD620871B9000C55544 /* LICENSE */,
+				D0588FD720871B9000C55544 /* README.md */,
+				D0588FD820871B9000C55544 /* script */,
+			);
+			name = HDWalletKit;
+			path = Carthage/Checkouts/HDWalletKit;
+			sourceTree = "<group>";
+		};
+		D0588F3420871B8F00C55544 /* Carthage */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F3520871B8F00C55544 /* Build */,
+				D0588F3A20871B8F00C55544 /* Checkouts */,
+			);
+			path = Carthage;
+			sourceTree = "<group>";
+		};
+		D0588F3520871B8F00C55544 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F3620871B8F00C55544 /* .CryptoSwift.version */,
+				D0588F3720871B8F00C55544 /* iOS */,
+			);
+			path = Build;
+			sourceTree = "<group>";
+		};
+		D0588F3720871B8F00C55544 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F3820871B8F00C55544 /* CryptoSwift.framework */,
+				D0588F3920871B8F00C55544 /* CryptoSwift.framework.dSYM */,
+			);
+			path = iOS;
+			sourceTree = "<group>";
+		};
+		D0588F3A20871B8F00C55544 /* Checkouts */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F3B20871B8F00C55544 /* CryptoSwift */,
+			);
+			path = Checkouts;
+			sourceTree = "<group>";
+		};
+		D0588F3B20871B8F00C55544 /* CryptoSwift */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F3C20871B8F00C55544 /* .github */,
+				D0588F4020871B8F00C55544 /* .gitignore */,
+				D0588F4120871B8F00C55544 /* .swift-version */,
+				D0588F4220871B8F00C55544 /* .travis.yml */,
+				D0588F4320871B8F00C55544 /* CHANGELOG */,
+				D0588F4420871B8F00C55544 /* CODE_OF_CONDUCT.md */,
+				D0588F4520871B8F00C55544 /* CONTRIBUTING.md */,
+				D0588F4620871B8F00C55544 /* CryptoSwift.playground */,
+				D0588F4720871B8F00C55544 /* CryptoSwift.podspec */,
+				D0588F4820871B8F00C55544 /* CryptoSwift.xcodeproj */,
+				D0588F4B20871B8F00C55544 /* CryptoSwift.xcworkspace */,
+				D0588F4C20871B8F00C55544 /* LICENSE */,
+				D0588F4D20871B8F00C55544 /* Package.swift */,
+				D0588F4E20871B8F00C55544 /* README.md */,
+				D0588F4F20871B8F00C55544 /* scripts */,
+				D0588F5320871B8F00C55544 /* Sources */,
+				D0588F9E20871B9000C55544 /* Tests */,
+			);
+			path = CryptoSwift;
+			sourceTree = "<group>";
+		};
+		D0588F3C20871B8F00C55544 /* .github */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F3D20871B8F00C55544 /* CODEOWNERS */,
+				D0588F3E20871B8F00C55544 /* ISSUE_TEMPLATE.md */,
+				D0588F3F20871B8F00C55544 /* PULL_REQUEST_TEMPLATE.md */,
+			);
+			path = .github;
+			sourceTree = "<group>";
+		};
+		D0588F4920871B8F00C55544 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D0588FE120871B9000C55544 /* CryptoSwift.framework */,
+				D0588FE320871B9000C55544 /* Tests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D0588F4F20871B8F00C55544 /* scripts */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F5020871B8F00C55544 /* build-framework.sh */,
+				D0588F5120871B8F00C55544 /* CI.sh */,
+				D0588F5220871B8F00C55544 /* swiftformat.sh */,
+			);
+			path = scripts;
+			sourceTree = "<group>";
+		};
+		D0588F5320871B8F00C55544 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F5420871B8F00C55544 /* CryptoSwift */,
+				D0588F9D20871B9000C55544 /* CryptoSwift.h */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		D0588F5420871B8F00C55544 /* CryptoSwift */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F5520871B8F00C55544 /* AEAD */,
+				D0588F5820871B8F00C55544 /* AES.Cryptors.swift */,
+				D0588F5920871B8F00C55544 /* AES.swift */,
+				D0588F5A20871B8F00C55544 /* Array+Extension.swift */,
+				D0588F5B20871B8F00C55544 /* Authenticator.swift */,
+				D0588F5C20871B8F00C55544 /* BatchedCollection.swift */,
+				D0588F5D20871B8F00C55544 /* Bit.swift */,
+				D0588F5E20871B8F00C55544 /* BlockCipher.swift */,
+				D0588F5F20871B8F00C55544 /* BlockMode */,
+				D0588F6A20871B8F00C55544 /* Blowfish.swift */,
+				D0588F6B20871B8F00C55544 /* ChaCha20.swift */,
+				D0588F6C20871B8F00C55544 /* Checksum.swift */,
+				D0588F6D20871B8F00C55544 /* Cipher.swift */,
+				D0588F6E20871B8F00C55544 /* CMAC.swift */,
+				D0588F6F20871B8F00C55544 /* Collection+Extension.swift */,
+				D0588F7020871B8F00C55544 /* CompactMap.swift */,
+				D0588F7120871B8F00C55544 /* Cryptors.swift */,
+				D0588F7220871B8F00C55544 /* Digest.swift */,
+				D0588F7320871B8F00C55544 /* DigestType.swift */,
+				D0588F7420871B8F00C55544 /* Foundation */,
+				D0588F7E20871B8F00C55544 /* Generics.swift */,
+				D0588F7F20871B8F00C55544 /* HKDF.swift */,
+				D0588F8020871B9000C55544 /* HMAC.swift */,
+				D0588F8120871B9000C55544 /* Info.plist */,
+				D0588F8220871B9000C55544 /* Int+Extension.swift */,
+				D0588F8320871B9000C55544 /* MD5.swift */,
+				D0588F8420871B9000C55544 /* NoPadding.swift */,
+				D0588F8520871B9000C55544 /* Operators.swift */,
+				D0588F8620871B9000C55544 /* Padding.swift */,
+				D0588F8720871B9000C55544 /* PKCS */,
+				D0588F8D20871B9000C55544 /* Poly1305.swift */,
+				D0588F8E20871B9000C55544 /* Rabbit.swift */,
+				D0588F8F20871B9000C55544 /* RandomAccessCryptor.swift */,
+				D0588F9020871B9000C55544 /* RandomBytesSequence.swift */,
+				D0588F9120871B9000C55544 /* SecureBytes.swift */,
+				D0588F9220871B9000C55544 /* SHA1.swift */,
+				D0588F9320871B9000C55544 /* SHA2.swift */,
+				D0588F9420871B9000C55544 /* SHA3.swift */,
+				D0588F9520871B9000C55544 /* String+Extension.swift */,
+				D0588F9620871B9000C55544 /* UInt16+Extension.swift */,
+				D0588F9720871B9000C55544 /* UInt32+Extension.swift */,
+				D0588F9820871B9000C55544 /* UInt64+Extension.swift */,
+				D0588F9920871B9000C55544 /* UInt8+Extension.swift */,
+				D0588F9A20871B9000C55544 /* Updatable.swift */,
+				D0588F9B20871B9000C55544 /* Utils.swift */,
+				D0588F9C20871B9000C55544 /* ZeroPadding.swift */,
+			);
+			path = CryptoSwift;
+			sourceTree = "<group>";
+		};
+		D0588F5520871B8F00C55544 /* AEAD */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F5620871B8F00C55544 /* AEAD.swift */,
+				D0588F5720871B8F00C55544 /* AEADChaCha20Poly1305.swift */,
+			);
+			path = AEAD;
+			sourceTree = "<group>";
+		};
+		D0588F5F20871B8F00C55544 /* BlockMode */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F6020871B8F00C55544 /* BlockMode.swift */,
+				D0588F6120871B8F00C55544 /* BlockModeOptions.swift */,
+				D0588F6220871B8F00C55544 /* BlockModeWorker.swift */,
+				D0588F6320871B8F00C55544 /* CBC.swift */,
+				D0588F6420871B8F00C55544 /* CFB.swift */,
+				D0588F6520871B8F00C55544 /* CTR.swift */,
+				D0588F6620871B8F00C55544 /* ECB.swift */,
+				D0588F6720871B8F00C55544 /* OFB.swift */,
+				D0588F6820871B8F00C55544 /* PCBC.swift */,
+				D0588F6920871B8F00C55544 /* RandomAccessBlockModeWorker.swift */,
+			);
+			path = BlockMode;
+			sourceTree = "<group>";
+		};
+		D0588F7420871B8F00C55544 /* Foundation */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F7520871B8F00C55544 /* AES+Foundation.swift */,
+				D0588F7620871B8F00C55544 /* Array+Foundation.swift */,
+				D0588F7720871B8F00C55544 /* Blowfish+Foundation.swift */,
+				D0588F7820871B8F00C55544 /* ChaCha20+Foundation.swift */,
+				D0588F7920871B8F00C55544 /* Data+Extension.swift */,
+				D0588F7A20871B8F00C55544 /* HMAC+Foundation.swift */,
+				D0588F7B20871B8F00C55544 /* Rabbit+Foundation.swift */,
+				D0588F7C20871B8F00C55544 /* String+FoundationExtension.swift */,
+				D0588F7D20871B8F00C55544 /* Utils+Foundation.swift */,
+			);
+			path = Foundation;
+			sourceTree = "<group>";
+		};
+		D0588F8720871B9000C55544 /* PKCS */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F8820871B9000C55544 /* PBKDF1.swift */,
+				D0588F8920871B9000C55544 /* PBKDF2.swift */,
+				D0588F8A20871B9000C55544 /* PKCS5.swift */,
+				D0588F8B20871B9000C55544 /* PKCS7.swift */,
+				D0588F8C20871B9000C55544 /* PKCS7Padding.swift */,
+			);
+			path = PKCS;
+			sourceTree = "<group>";
+		};
+		D0588F9E20871B9000C55544 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				D0588F9F20871B9000C55544 /* CryptoSwiftTests */,
+				D0588FB220871B9000C55544 /* LinuxMain.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		D0588F9F20871B9000C55544 /* CryptoSwiftTests */ = {
+			isa = PBXGroup;
+			children = (
+				D0588FA020871B9000C55544 /* Access.swift */,
+				D0588FA120871B9000C55544 /* AESTests.swift */,
+				D0588FA220871B9000C55544 /* BlowfishTests.swift */,
+				D0588FA320871B9000C55544 /* Bridging.h */,
+				D0588FA420871B9000C55544 /* ChaCha20Poly1305Tests.swift */,
+				D0588FA520871B9000C55544 /* ChaCha20Tests.swift */,
+				D0588FA620871B9000C55544 /* CMACTests.swift */,
+				D0588FA720871B9000C55544 /* DigestTests.swift */,
+				D0588FA820871B9000C55544 /* Error+Extension.swift */,
+				D0588FA920871B9000C55544 /* ExtensionsTest.swift */,
+				D0588FAA20871B9000C55544 /* HKDFTests.swift */,
+				D0588FAB20871B9000C55544 /* HMACTests.swift */,
+				D0588FAC20871B9000C55544 /* Info.plist */,
+				D0588FAD20871B9000C55544 /* PaddingTests.swift */,
+				D0588FAE20871B9000C55544 /* PBKDF.swift */,
+				D0588FAF20871B9000C55544 /* Poly1305Tests.swift */,
+				D0588FB020871B9000C55544 /* RabbitTests.swift */,
+				D0588FB120871B9000C55544 /* RandomBytesSequenceTests.swift */,
+			);
+			path = CryptoSwiftTests;
+			sourceTree = "<group>";
+		};
+		D0588FB320871B9000C55544 /* Example */ = {
+			isa = PBXGroup;
+			children = (
+				D0588FB420871B9000C55544 /* AppDelegate.swift */,
+				D0588FB520871B9000C55544 /* Assets.xcassets */,
+				D0588FB620871B9000C55544 /* LaunchScreen.storyboard */,
+				D0588FB820871B9000C55544 /* Main.storyboard */,
+				D0588FBA20871B9000C55544 /* Info.plist */,
+				D0588FBB20871B9000C55544 /* ViewController.swift */,
+			);
+			path = Example;
+			sourceTree = "<group>";
+		};
+		D0588FBC20871B9000C55544 /* HDWalletKit */ = {
+			isa = PBXGroup;
+			children = (
+				D0588FBD20871B9000C55544 /* Base58Encode.swift */,
+				D0588FBE20871B9000C55544 /* Crypto.swift */,
+				D0588FBF20871B9000C55544 /* DataConvertable.swift */,
+				D0588FC020871B9000C55544 /* HDPrivateKey.swift */,
+				D0588FC120871B9000C55544 /* HDPublicKey.swift */,
+				D0588FC220871B9000C55544 /* HDWallet.swift */,
+				D0588FC320871B9000C55544 /* HDWalletKit.h */,
+				D0588FC420871B9000C55544 /* HDWalletKit.modulemap */,
+				D0588FC520871B9000C55544 /* HDWalletKitError.swift */,
+				D0588FC620871B9000C55544 /* Helper */,
+				D0588FC820871B9000C55544 /* Info.plist */,
+				D0588FC920871B9000C55544 /* Internal.h */,
+				D0588FCA20871B9000C55544 /* Internal.m */,
+				D0588FCB20871B9000C55544 /* Mnemonic.swift */,
+				D0588FCC20871B9000C55544 /* Network.swift */,
+				D0588FCD20871B9000C55544 /* WordList.swift */,
+			);
+			path = HDWalletKit;
+			sourceTree = "<group>";
+		};
+		D0588FC620871B9000C55544 /* Helper */ = {
+			isa = PBXGroup;
+			children = (
+				D0588FC720871B9000C55544 /* SMP+Extensions.swift */,
+			);
+			path = Helper;
+			sourceTree = "<group>";
+		};
+		D0588FCF20871B9000C55544 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D0588FE820871B9000C55544 /* HDWalletKit.framework */,
+				D0588FEA20871B9000C55544 /* Example.app */,
+				D0588FEC20871B9000C55544 /* HDWalletKitTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D0588FD120871B9000C55544 /* HDWalletKitTests */ = {
+			isa = PBXGroup;
+			children = (
+				D0588FD220871B9000C55544 /* Info.plist */,
+			);
+			path = HDWalletKitTests;
+			sourceTree = "<group>";
+		};
+		D0588FD320871B9000C55544 /* Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				D0588FD420871B9000C55544 /* secp256k1 */,
+			);
+			path = Libraries;
+			sourceTree = "<group>";
+		};
+		D0588FD420871B9000C55544 /* secp256k1 */ = {
+			isa = PBXGroup;
+			children = (
+				D0588FD520871B9000C55544 /* module.modulemap */,
+			);
+			path = secp256k1;
+			sourceTree = "<group>";
+		};
+		D0588FD820871B9000C55544 /* script */ = {
+			isa = PBXGroup;
+			children = (
+				D0588FD920871B9000C55544 /* build_crypto.sh */,
+				D0588FDA20871B9000C55544 /* build_crypto_impl.sh */,
+				D0588FDB20871B9000C55544 /* build_libraries.sh */,
+				D0588FDC20871B9000C55544 /* build_secp256k1.sh */,
+				D0588FDD20871B9000C55544 /* README.md */,
+			);
+			path = script;
 			sourceTree = "<group>";
 		};
 		D0C56F4C1FCBFBC4004A5F47 = {
@@ -206,12 +738,60 @@
 			mainGroup = D0C56F4C1FCBFBC4004A5F47;
 			productRefGroup = D0C56F561FCBFBC4004A5F47 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = D0588F4920871B8F00C55544 /* Products */;
+					ProjectRef = D0588F4820871B8F00C55544 /* CryptoSwift.xcodeproj */;
+				},
+				{
+					ProductGroup = D0588FCF20871B9000C55544 /* Products */;
+					ProjectRef = D0588FCE20871B9000C55544 /* HDWalletKit.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				D0C56F541FCBFBC4004A5F47 /* BitKeys */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		D0588FE120871B9000C55544 /* CryptoSwift.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = CryptoSwift.framework;
+			remoteRef = D0588FE020871B9000C55544 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D0588FE320871B9000C55544 /* Tests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = Tests.xctest;
+			remoteRef = D0588FE220871B9000C55544 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D0588FE820871B9000C55544 /* HDWalletKit.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = HDWalletKit.framework;
+			remoteRef = D0588FE720871B9000C55544 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D0588FEA20871B9000C55544 /* Example.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = Example.app;
+			remoteRef = D0588FE920871B9000C55544 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D0588FEC20871B9000C55544 /* HDWalletKitTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = HDWalletKitTests.xctest;
+			remoteRef = D0588FEB20871B9000C55544 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		D0C56F531FCBFBC4004A5F47 /* Resources */ = {
@@ -317,6 +897,22 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
+		D0588FB620871B9000C55544 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D0588FB720871B9000C55544 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		D0588FB820871B9000C55544 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D0588FB920871B9000C55544 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
 		D0C56F5C1FCBFBC4004A5F47 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (

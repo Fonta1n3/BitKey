@@ -39,6 +39,13 @@ class DiceKeyCreatorViewController: UIViewController {
     var base10Field = UITextView()
     var hexField = UITextView()
     var WIFprivateKeyField = UITextView()
+    var WIFprivateKeyFieldLabel = UILabel()
+    var bitFieldLabel = UILabel()
+    var base10Label = UILabel()
+    var hexLabel = UILabel()
+    var joinedBits = String()
+    var parseBitResult = BigInt()
+    var hexString = String()
     
     @IBOutlet var scrollView: UIScrollView!
     
@@ -61,11 +68,199 @@ class DiceKeyCreatorViewController: UIViewController {
         addBackButton()
         addClearButton()
         
+        
+        
      }
     
     override func viewWillLayoutSubviews(){
         super.viewWillLayoutSubviews()
         scrollView.contentSize = CGSize(width: self.view.frame.width, height: 3000)
+    }
+    
+    
+    
+    func removeLabels() {
+        
+        DispatchQueue.main.async {
+            
+            self.privateKeyTitle.text = ""
+            self.WIFprivateKeyFieldLabel.text = ""
+            self.privateKeyTitle.removeFromSuperview()
+            self.privateKeyQRView.removeFromSuperview()
+            self.WIFprivateKeyFieldLabel.removeFromSuperview()
+            self.WIFprivateKeyField.removeFromSuperview()
+            self.bitFieldLabel.removeFromSuperview()
+            self.bitField.removeFromSuperview()
+            self.base10Label.removeFromSuperview()
+            self.base10Field.removeFromSuperview()
+            self.hexLabel.removeFromSuperview()
+            self.hexField.removeFromSuperview()
+        }
+        
+        
+    }
+    
+    func showAddress() {
+        
+        DispatchQueue.main.async {
+            
+            self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 60, width: self.scrollView.frame.width, height: 50))
+            self.privateKeyTitle.text = "Bitcoin Address"
+            self.privateKeyTitle.font = .systemFont(ofSize: 32)
+            self.privateKeyTitle.textColor = UIColor.black
+            self.privateKeyTitle.textAlignment = .center
+            self.scrollView.addSubview(self.privateKeyTitle)
+            
+            self.privateKeyQRCode = self.generateQrCode(key: self.bitcoinAddress)
+            self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
+            self.privateKeyQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 120, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
+            self.scrollView.addSubview(self.privateKeyQRView)
+            
+            self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 145 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+            self.WIFprivateKeyFieldLabel.text = "Address Format:"
+            self.WIFprivateKeyFieldLabel.font = .systemFont(ofSize: 12)
+            self.WIFprivateKeyFieldLabel.textColor = UIColor.black
+            self.WIFprivateKeyFieldLabel.textAlignment = .left
+            self.scrollView.addSubview(self.WIFprivateKeyFieldLabel)
+            
+            self.WIFprivateKeyField.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 145 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 75)
+            self.WIFprivateKeyField.text = self.bitcoinAddress
+            self.WIFprivateKeyField.isEditable = false
+            self.WIFprivateKeyField.isSelectable = true
+            self.WIFprivateKeyField.font = .systemFont(ofSize: 24)
+            self.scrollView.addSubview(self.WIFprivateKeyField)
+            
+        }
+        
+        
+        /*
+        self.bitFieldLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 240 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+        self.bitFieldLabel.text = "Bit Format:"
+        self.bitFieldLabel.font = .systemFont(ofSize: 12)
+        self.bitFieldLabel.textColor = UIColor.black
+        self.bitFieldLabel.textAlignment = .left
+        DispatchQueue.main.async {
+            self.scrollView.addSubview(self.bitFieldLabel)
+        }
+        
+        self.bitField = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 240 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 300))
+        self.bitField.text = joinedBits
+        self.bitField.isEditable = false
+        self.bitField.isSelectable = true
+        self.bitField.font = .systemFont(ofSize: 24)
+        self.scrollView.addSubview(self.bitField)
+        */
+        /*
+        self.base10Label = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 550 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+        self.base10Label.text = "Decimal Format:"
+        self.base10Label.font = .systemFont(ofSize: 12)
+        self.base10Label.textColor = UIColor.black
+        self.base10Label.textAlignment = .left
+        self.scrollView.addSubview(self.base10Label)
+        */
+        /*
+        self.base10Field = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 550 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 150))
+        self.base10Field.text = String(parseBitResult!)
+        self.base10Field.isEditable = false
+        self.base10Field.isSelectable = true
+        self.base10Field.font = .systemFont(ofSize: 24)
+        self.scrollView.addSubview(self.base10Field)
+        */
+        /*
+        self.hexLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 660 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+        self.hexLabel.text = "Hexadecimal Format:"
+        self.hexLabel.font = .systemFont(ofSize: 12)
+        self.hexLabel.textColor = UIColor.black
+        self.hexLabel.textAlignment = .left
+        self.scrollView.addSubview(self.hexLabel)
+        */
+        /*
+        self.hexField = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 660 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 100))
+        self.hexField.text = string
+        self.hexField.isEditable = false
+        self.hexField.isSelectable = true
+        self.hexField.font = .systemFont(ofSize: 24)
+        self.scrollView.addSubview(self.hexField)
+        */
+    }
+    
+    func showPrivateKey() {
+        
+        DispatchQueue.main.async {
+            
+            //self.scrollView.scrollsToTop = true
+            self.scrollView.setContentOffset(.zero, animated: false)
+            
+            self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 60, width: self.scrollView.frame.width, height: 50))
+            self.privateKeyTitle.text = "Bitcoin Private Key"
+            self.privateKeyTitle.font = .systemFont(ofSize: 32)
+            self.privateKeyTitle.textColor = UIColor.black
+            self.privateKeyTitle.textAlignment = .center
+            self.scrollView.addSubview(self.privateKeyTitle)
+            
+            self.privateKeyQRCode = self.generateQrCode(key: self.privateKey)
+            self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
+            self.privateKeyQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 120, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
+            self.scrollView.addSubview(self.privateKeyQRView)
+            
+            self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 145 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+            self.WIFprivateKeyFieldLabel.text = "WIF Format:"
+            self.WIFprivateKeyFieldLabel.font = .systemFont(ofSize: 12)
+            self.WIFprivateKeyFieldLabel.textColor = UIColor.black
+            self.WIFprivateKeyFieldLabel.textAlignment = .left
+            self.scrollView.addSubview(self.WIFprivateKeyFieldLabel)
+            
+            self.WIFprivateKeyField.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 145 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 75)
+            self.WIFprivateKeyField.text = self.privateKey
+            self.WIFprivateKeyField.isEditable = false
+            self.WIFprivateKeyField.isSelectable = true
+            self.WIFprivateKeyField.font = .systemFont(ofSize: 24)
+            self.scrollView.addSubview(self.WIFprivateKeyField)
+            
+            self.bitFieldLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 240 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+            self.bitFieldLabel.text = "Bit Format:"
+            self.bitFieldLabel.font = .systemFont(ofSize: 12)
+            self.bitFieldLabel.textColor = UIColor.black
+            self.bitFieldLabel.textAlignment = .left
+            self.scrollView.addSubview(self.bitFieldLabel)
+            
+            self.bitField = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 240 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 300))
+            self.bitField.text = self.joinedBits
+            self.bitField.isEditable = false
+            self.bitField.isSelectable = true
+            self.bitField.font = .systemFont(ofSize: 24)
+            self.scrollView.addSubview(self.bitField)
+            
+            self.base10Label = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 550 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+            self.base10Label.text = "Decimal Format:"
+            self.base10Label.font = .systemFont(ofSize: 12)
+            self.base10Label.textColor = UIColor.black
+            self.base10Label.textAlignment = .left
+            self.scrollView.addSubview(self.base10Label)
+            
+            self.base10Field = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 550 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 150))
+            self.base10Field.text = String(self.parseBitResult)
+            self.base10Field.isEditable = false
+            self.base10Field.isSelectable = true
+            self.base10Field.font = .systemFont(ofSize: 24)
+            self.scrollView.addSubview(self.base10Field)
+            
+            self.hexLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 660 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+            self.hexLabel.text = "Hexadecimal Format:"
+            self.hexLabel.font = .systemFont(ofSize: 12)
+            self.hexLabel.textColor = UIColor.black
+            self.hexLabel.textAlignment = .left
+            self.scrollView.addSubview(self.hexLabel)
+            
+            self.hexField = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 660 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 100))
+            self.hexField.text = self.hexString
+            self.hexField.isEditable = false
+            self.hexField.isSelectable = true
+            self.hexField.font = .systemFont(ofSize: 24)
+            self.scrollView.addSubview(self.hexField)
+            
+        }
+        
     }
     
     func isInternetAvailable() -> Bool {
@@ -131,55 +326,53 @@ class DiceKeyCreatorViewController: UIViewController {
         
         self.isInternetAvailable()
         
-        let diceNumber = Int((sender.titleLabel?.text)!)
+        let diceNumber = Int((sender.titleLabel?.text)!)!
         
         func addDiceValue() {
-           
-            if diceNumber == 0 {
+            
+            switch diceNumber {
+                
+            case 0:
                 DispatchQueue.main.async {
                     sender.setTitle("1", for: .normal)
                     sender.setImage(#imageLiteral(resourceName: "one.png"), for: .normal)
-                    //sender.backgroundColor = .black
                 }
-            } else if diceNumber == 1 {
+            case 1:
                 DispatchQueue.main.async {
                     sender.setTitle("2", for: .normal)
                     sender.setImage(#imageLiteral(resourceName: "two.png"), for: .normal)
-                    //sender.backgroundColor = .black
                 }
-            } else if diceNumber == 2 {
+            case 2:
                 DispatchQueue.main.async {
                     sender.setTitle("3", for: .normal)
                     sender.setImage(#imageLiteral(resourceName: "three.png"), for: .normal)
-                    //sender.backgroundColor = .black
                 }
-            } else if diceNumber == 3 {
+            case 3:
                 DispatchQueue.main.async {
                     sender.setTitle("4", for: .normal)
                     sender.setImage(#imageLiteral(resourceName: "four.png"), for: .normal)
-                    //sender.backgroundColor = .black
                 }
-            } else if diceNumber == 4 {
+            case 4:
                 DispatchQueue.main.async {
                     sender.setTitle("5", for: .normal)
                     sender.setImage(#imageLiteral(resourceName: "five.png"), for: .normal)
-                    //sender.backgroundColor = .black
                 }
-            } else if diceNumber == 5 {
+            case 5:
                 DispatchQueue.main.async {
                     sender.setTitle("6", for: .normal)
                     sender.setImage(#imageLiteral(resourceName: "six.png"), for: .normal)
-                    //sender.backgroundColor = .black
                 }
-            } else if diceNumber == 6 {
+            case 6:
                 DispatchQueue.main.async {
                     sender.setTitle("1", for: .normal)
                     sender.setImage(#imageLiteral(resourceName: "one.png"), for: .normal)
-                    //sender.backgroundColor = .black
                 }
+            default:
+                break
+                
+                
             }
-            
-            
+           
         }
         
         //if self.connected == false {
@@ -249,75 +442,44 @@ class DiceKeyCreatorViewController: UIViewController {
         
         for dice in self.diceArray {
             
-            let diceNumber = Int((dice.titleLabel?.text)!)
+            let diceNumber = Int((dice.titleLabel?.text)!)!
             
             if diceNumber != 0 {
                 
                 if dice.tag < self.tappedIndex {
                     
-                    if diceNumber == 1 {
+                    switch diceNumber {
                         
+                    case 1:
                         self.randomBits.append("00")
-                        
-                    } else if diceNumber == 2 {
-                        
+                    case 2:
                         self.randomBits.append("01")
-                        
-                    } else if diceNumber == 3 {
-                        
+                    case 3:
                         self.randomBits.append("10")
-                        
-                    } else if diceNumber == 4 {
-                        
+                    case 4:
                         self.randomBits.append("11")
-                        
-                    } else if diceNumber == 5 {
-                        
+                    case 5:
                         self.randomBits.append("0")
-                        
-                    } else if diceNumber == 6 {
-                        
+                    case 6:
                         self.randomBits.append("1")
+                    default: break
+                        
                     }
                     
-                    var joinedBits = randomBits.joined()
+                    self.joinedBits = randomBits.joined()
                     
                     self.bitCount = 0
                     self.percentageLabel.removeFromSuperview()
                     
-                    for _ in joinedBits {
-                        
+                    for _ in self.joinedBits {
                         self.bitCount = bitCount + 1
                     }
                     
                     self.addPercentageCompleteLabel()
                     
-                    
-                    
                     print("bitCount = \(self.bitCount!)")
                     
                     if self.bitCount > 255 {
-                        
-                        if self.bitCount == 257 {
-                            
-                            joinedBits.removeFirst()
-                            
-                        } 
-                        
-                        
-                        
-                        let parseBitResult = parseBinary(binary: joinedBits)
-                        
-                        var count = 0
-                        
-                        for _ in joinedBits {
-                            
-                            count = count + 1
-                            
-                        }
-                        
-                        print("bitCount after = \(count)")
-                        print("parseBitResult = \(String(describing: parseBitResult))")
                         
                         DispatchQueue.main.async {
                             
@@ -325,193 +487,53 @@ class DiceKeyCreatorViewController: UIViewController {
                             
                             alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, I'm sure", comment: ""), style: .default, handler: { (action) in
                                 
-                                self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 100, width: self.scrollView.frame.width, height: 50))
-                                self.privateKeyTitle.text = "Bitcoin Private Key"
-                                self.privateKeyTitle.font = .systemFont(ofSize: 32)
-                                self.privateKeyTitle.textColor = UIColor.black
-                                self.privateKeyTitle.textAlignment = .center
-                                self.scrollView.addSubview(self.privateKeyTitle)
+                                if self.bitCount == 257 {
+                                    self.joinedBits.removeLast()
+                                }
                                 
-                                self.privateKeyText = joinedBits
-                                //self.upperLabel.text = "Bitcoin Private Key"
-                                self.bitField = UITextView (frame:CGRect(x: self.scrollView.center.x - ((self.scrollView.frame.width - 50)/2), y: self.scrollView.frame.maxY - 450, width: self.scrollView.frame.width, height: 300))
-                                self.bitField.text = joinedBits
-                                self.bitField.isEditable = false
-                                self.bitField.isSelectable = true
-                                self.bitField.font = .systemFont(ofSize: 24)
-                               // self.scrollView.addSubview(self.bitField)
+                                self.parseBitResult = self.parseBinary(binary: self.joinedBits)!
+                                
+                                var count = 0
+                                for _ in self.joinedBits {
+                                    count = count + 1
+                                }
+                                
+                                print("bitCount after = \(count)")
+                                print("parseBitResult = \(String(describing: self.parseBitResult))")
                                 
                                 self.addBackUpButton()
                                 self.addKeyToggleButton()
-                                
                                 self.percentageLabel.removeFromSuperview()
-                                self.createKeysButton.removeFromSuperview()
                                 self.clearButton.removeFromSuperview()
                                 
                                 for dice in self.diceArray {
                                     dice.removeFromSuperview()
                                 }
+                                self.diceArray.removeAll()
+                                self.tappedIndex = 0
                                 
+                                self.hexString = String(self.parseBitResult, radix: 16)
+                                print("hexString = \(self.hexString)")
                                 
-                                /*
-                                var power:Double! = 0
-                                var bitsArray = [BigInt]()
+                                let data = BigUInt(self.parseBitResult).serialize()
                                 
-                                //below should have joinedBits
-                                for character in joinedBits.reversed() {
-                                    
-                                    power = power + 1
-                                    let intString = String(character)
-                                    let int = Double(intString)!
-                                    let bitConverted = BigInt(int * pow(2, power))
-                                    bitsArray.append(bitConverted)
-                                }
+                                let keys = BTCKey.init(privateKey: data as Data!)
+                                let privateKey2 = keys?.privateKeyAddress!.description
+                                var privateKey3 = privateKey2?.components(separatedBy: " ")
+                                self.privateKey = privateKey3![1].replacingOccurrences(of: ">", with: "")
+                                let segwitAddress = BTCScriptHashAddress.init(data: keys?.address.data)
+                                let segwitAddress2 = (segwitAddress?.description)?.components(separatedBy: " ")
+                                self.bitcoinAddress = segwitAddress2![1].replacingOccurrences(of: ">", with: "")
                                 
-                                print("bitsArray = \(bitsArray)")
-                                print("bitsArray count = \(bitsArray.count)")
-                                var sum:BigInt!
-                                sum = bitsArray.reduce(0, +)
-                                print("base10Number = \(sum)")
-                                */
-                                self.base10Field = UITextView (frame:CGRect(x: self.scrollView.center.x - ((self.scrollView.frame.width - 50)/2), y: self.scrollView.frame.maxY - 600, width: self.scrollView.frame.width, height: 150))
-                                self.base10Field.text = String(parseBitResult!)
-                                self.base10Field.isEditable = false
-                                self.base10Field.isSelectable = true
-                                self.base10Field.font = .systemFont(ofSize: 24)
+                                print("privateKey = \(self.privateKey)")
+                                print("self.bitcoinAddress = \(self.bitcoinAddress)")
+                                
+                                keys?.clear()
+                                
                                 DispatchQueue.main.async {
-                                   // self.scrollView.addSubview(self.base10Field)
+                                    self.showPrivateKey()
                                 }
                                 
-                                
-                                var bytes = Array(BigUInt(parseBitResult!).serialize())
-                                
-                                
-                                
-                                if bytes.count == 33 {
-                                    
-                                    bytes = [bytes.removeLast()]
-                                }
-                                
-                                print("bytes = \(bytes)")
-                                print("bytes count = \(bytes.count)")
-                                
-                                
-                                let hexString = bytes.map({String(format: "%02hhx", $0)}).joined(separator: "")
-                                self.hexField = UITextView (frame:CGRect(x: self.scrollView.center.x - ((self.scrollView.frame.width - 50)/2), y: self.scrollView.frame.maxY - 750, width: self.scrollView.frame.width, height: 100))
-                                self.hexField.text = hexString
-                                self.hexField.isEditable = false
-                                self.hexField.isSelectable = true
-                                self.hexField.font = .systemFont(ofSize: 24)
-                                DispatchQueue.main.async {
-                                    //self.scrollView.addSubview(self.hexField)
-                                }
-                                
-                                
-                                if let newData = hexString.data(using: String.Encoding.utf8){
-                                    
-                                    let keys = BTCKey.init(privateKey: newData as Data)
-                                    var privateKey:String!
-                                    let privateKey2 = keys?.privateKeyAddress!.description
-                                    var privateKey3 = privateKey2?.components(separatedBy: " ")
-                                    privateKey = privateKey3![1].replacingOccurrences(of: ">", with: "")
-                                    let segwitAddress = BTCScriptHashAddress.init(data: keys?.address.data)
-                                    let segwitAddress2 = (segwitAddress?.description)?.components(separatedBy: " ")
-                                    self.bitcoinAddress = segwitAddress2![1].replacingOccurrences(of: ">", with: "")
-                                    
-                                    print("privateKey = \(privateKey!)")
-                                    print("self.bitcoinAddress = \(self.bitcoinAddress)")
-                                    
-                                    self.privateKeyQRCode = self.generateQrCode(key: privateKey)
-                                    self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
-                                    self.privateKeyQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 150, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
-                                    self.scrollView.addSubview(self.privateKeyQRView)
-                                    
-                                    self.WIFprivateKeyField.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 175 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 75)
-                                    self.WIFprivateKeyField.text = privateKey
-                                    self.WIFprivateKeyField.isEditable = false
-                                    self.WIFprivateKeyField.isSelectable = true
-                                    self.WIFprivateKeyField.font = .systemFont(ofSize: 24)
-                                    self.scrollView.addSubview(self.WIFprivateKeyField)
-                                    
-                                }
-                                
-                                
-                                
-                                /*
-                                let randomNumber = joinedBits
-                                self.privateKey = self.createKeys(baseSixNumber: randomNumber).privateKeyAddress
-                                self.bitcoinAddress = self.createKeys(baseSixNumber: randomNumber).publicKeyAddress
-                                
-                                if self.privateKey != "" {
-                                    
-                                    for dice in self.diceArray {
-                                        dice.removeFromSuperview()
-                                    }
-                                    
-                                    self.privateKeyText = self.privateKey
-                                    self.privateKeyQRCode = self.generateQrCode(key: self.privateKey)
-                                    self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
-                                    self.privateKeyQRView.center = self.view.center
-                                    self.privateKeyQRView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y - ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: self.view.frame.width - 50)
-                                    self.privateKeyQRView.alpha = 0
-                                    
-                                    UIView.animate(withDuration: 0.5, animations: {
-                                        
-                                        
-                                    }, completion: { _ in
-                                        
-                                        self.createKeysButton.removeFromSuperview()
-                                        self.clearButton.removeFromSuperview()
-                                        self.view.addSubview(self.privateKeyQRView)
-                                        
-                                        UIView.animate(withDuration: 0.5, animations: {
-                                            
-                                            self.privateKeyQRView.alpha = 1
-                                            
-                                        }, completion: { _ in
-                                            
-                                            self.upperLabel.text = "Bitcoin Private Key"
-                                            self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y + ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: 100))
-                                            self.myField.text = self.privateKey
-                                            self.myField.isEditable = false
-                                            self.myField.isSelectable = true
-                                            self.myField.font = .systemFont(ofSize: 24)
-                                            self.view.addSubview(self.myField)
-                                            self.addBackUpButton()
-                                            self.addKeyToggleButton()
-                                            
-                                        })
-                                        
-                                    })
-                                    
-                                } else {
-                                    
-                                    DispatchQueue.main.async {
-                                        
-                                        let alert = UIAlertController(title: "There was an error", message: "Please try again.", preferredStyle: UIAlertControllerStyle.alert)
-                                        
-                                        alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .destructive, handler: { (action) in
-                                            
-                                            self.privateKeyQRCode = nil
-                                            self.privateKeyImage = nil
-                                            self.privateKeyQRView.image = nil
-                                            self.upperLabel.text = ""
-                                            self.myField.text = ""
-                                            self.imageView.removeFromSuperview()
-                                            self.imageView = nil
-                                            self.bitcoinAddress = ""
-                                            self.backUpButton.removeFromSuperview()
-                                            self.bitcoinAddressButton.removeFromSuperview()
-                                            self.privateKeyText = ""
-                                            self.clearDice()
-                                            
-                                        }))
-                                        
-                                        self.present(alert, animated: true, completion: nil)
-                                    }
-                                    
-                                }
-                                */
                             }))
                             
                             alert.addAction(UIAlertAction(title: NSLocalizedString("No, let me check", comment: ""), style: .default, handler: { (action) in
@@ -553,41 +575,6 @@ class DiceKeyCreatorViewController: UIViewController {
     }
     
     
-    func createKeys(baseSixNumber: String) -> (privateKeyAddress: String, publicKeyAddress: String) {
-        
-        if self.bitCount == 256 || self.bitCount > 256 {
-            
-            if let newData = baseSixNumber.data(using: String.Encoding.utf8){
-                
-                let shaOfKey = BTCSHA256(newData)
-                let keys = BTCKey.init(privateKey: shaOfKey! as Data)
-                let privateKey2 = keys?.privateKeyAddress!.description
-                let privateKey3 = privateKey2?.components(separatedBy: " ")
-                let privateKey = privateKey3![1].replacingOccurrences(of: ">", with: "")
-                let segwitAddress = BTCScriptHashAddress.init(data: keys?.address.data)
-                let segwitAddress2 = (segwitAddress?.description)?.components(separatedBy: " ")
-                let bitcoinAddress = segwitAddress2![1].replacingOccurrences(of: ">", with: "")
-                return (privateKey, bitcoinAddress)
-                
-            } else {
-                
-                return ("", "")
-                
-            }
-            
-        } else {
-            
-            displayAlert(title: "Not enough bits to create a secure private key.", message: "Please keep rolling and adding your dice until youv'e got enough bits for a secure private key.")
-            
-            return ("", "")
-        }
-    
-        
-        
-    }
-    
-    
-    
     func clearDice() {
         
         for dice in self.diceArray {
@@ -615,7 +602,7 @@ class DiceKeyCreatorViewController: UIViewController {
                 let alert = UIAlertController(title: "Have you saved this Private Key?", message: "Ensure you have saved this before going back if you'd like to use this Private Key in the future.", preferredStyle: UIAlertControllerStyle.alert)
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("I saved it, go back", comment: ""), style: .destructive, handler: { (action) in
-                    
+                    /*
                     self.privateKeyQRCode = nil
                     self.privateKey = ""
                     self.bitcoinAddress = ""
@@ -626,6 +613,7 @@ class DiceKeyCreatorViewController: UIViewController {
                     self.bitField.text = ""
                     self.backUpButton.removeFromSuperview()
                     self.privateKeyText = ""
+                    */
                     self.dismiss(animated: false, completion: nil)
                     
                 }))
@@ -652,11 +640,9 @@ class DiceKeyCreatorViewController: UIViewController {
             
             DispatchQueue.main.async {
                 
-                self.upperLabel.text = "Bitcoin Address"
-                self.bitField.text = self.bitcoinAddress
-                self.privateKeyQRCode = self.generateQrCode(key: self.bitcoinAddress)
-                self.privateKeyQRView.image = self.privateKeyQRCode!
+               self.removeLabels()
                 self.bitcoinAddressButton.setTitle("Show Private Key", for: .normal)
+                self.showAddress()
                 self.privateKeyMode = false
                 
             }
@@ -665,11 +651,9 @@ class DiceKeyCreatorViewController: UIViewController {
             
             DispatchQueue.main.async {
                 
-                self.upperLabel.text = "Bitcoin Private Key"
-                self.bitField.text = self.privateKeyText
-                self.privateKeyQRCode = self.generateQrCode(key: self.privateKeyText)
-                self.privateKeyQRView.image = self.privateKeyQRCode!
+                self.removeLabels()
                 self.bitcoinAddressButton.setTitle("Show Address", for: .normal)
+                self.showPrivateKey()
                 self.privateKeyMode = true
                 
             }
