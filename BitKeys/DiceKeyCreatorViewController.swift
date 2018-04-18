@@ -375,7 +375,7 @@ class DiceKeyCreatorViewController: UIViewController {
            
         }
         
-        //if self.connected == false {
+        if self.connected == false {
             
             if sender.tag == 1 && diceNumber == 0 {
                 
@@ -427,12 +427,12 @@ class DiceKeyCreatorViewController: UIViewController {
                 
             }
             
-        /*} else {
+        } else {
             
             DispatchQueue.main.async {
                 self.displayAlert(title: "Turn on airplane mode to create private keys securely.", message: "The idea is to never let your Bitcoin private key touch the interent, secure keys are worth the effort.")
             }
-        }*/
+        }
         
         
         
@@ -524,6 +524,7 @@ class DiceKeyCreatorViewController: UIViewController {
                                 let segwitAddress = BTCScriptHashAddress.init(data: keys?.address.data)
                                 let segwitAddress2 = (segwitAddress?.description)?.components(separatedBy: " ")
                                 self.bitcoinAddress = segwitAddress2![1].replacingOccurrences(of: ">", with: "")
+                                self.privateKeyText = self.privateKey
                                 
                                 print("privateKey = \(self.privateKey)")
                                 print("self.bitcoinAddress = \(self.bitcoinAddress)")
