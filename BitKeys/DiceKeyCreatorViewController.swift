@@ -104,6 +104,8 @@ class DiceKeyCreatorViewController: UIViewController {
         
         DispatchQueue.main.async {
             
+            self.scrollView.setContentOffset(.zero, animated: false)
+            
             self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 60, width: self.scrollView.frame.width, height: 50))
             self.privateKeyTitle.text = "Bitcoin Address"
             self.privateKeyTitle.font = .systemFont(ofSize: 32)
@@ -188,7 +190,6 @@ class DiceKeyCreatorViewController: UIViewController {
         
         DispatchQueue.main.async {
             
-            //self.scrollView.scrollsToTop = true
             self.scrollView.setContentOffset(.zero, animated: false)
             
             self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 60, width: self.scrollView.frame.width, height: 50))
@@ -262,6 +263,8 @@ class DiceKeyCreatorViewController: UIViewController {
         }
         
     }
+    
+    
     
     func isInternetAvailable() -> Bool {
         
@@ -517,14 +520,16 @@ class DiceKeyCreatorViewController: UIViewController {
                                 
                                 let data = BigUInt(self.parseBitResult).serialize()
                                 
-                                let keys = BTCKey.init(privateKey: data as Data!)
+                                let keys = BTCKey.init(privateKey: data)
                                 let privateKey2 = keys?.privateKeyAddress!.description
                                 var privateKey3 = privateKey2?.components(separatedBy: " ")
                                 self.privateKey = privateKey3![1].replacingOccurrences(of: ">", with: "")
-                                let segwitAddress = BTCScriptHashAddress.init(data: keys?.address.data)
-                                let segwitAddress2 = (segwitAddress?.description)?.components(separatedBy: " ")
-                                self.bitcoinAddress = segwitAddress2![1].replacingOccurrences(of: ">", with: "")
+                                let address = keys?.address.description
+                                let address2 = (address?.description)?.components(separatedBy: " ")
+                                self.bitcoinAddress = address2![1].replacingOccurrences(of: ">", with: "")
+                                
                                 self.privateKeyText = self.privateKey
+                                
                                 
                                 print("privateKey = \(self.privateKey)")
                                 print("self.bitcoinAddress = \(self.bitcoinAddress)")

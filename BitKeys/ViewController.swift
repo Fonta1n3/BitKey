@@ -114,10 +114,12 @@ class ViewController: UIViewController {
                 let privateKey2 = keys?.privateKeyAddress!.description
                 var privateKey3 = privateKey2?.components(separatedBy: " ")
                 privateKey = privateKey3![1].replacingOccurrences(of: ">", with: "")
-                let segwitAddress = BTCScriptHashAddress.init(data: keys?.address.data)
+                let segwitAddress = keys?.address.description
                 let segwitAddress2 = (segwitAddress?.description)?.components(separatedBy: " ")
                 self.bitcoinAddress = segwitAddress2![1].replacingOccurrences(of: ">", with: "")
                 
+                print("privatekey = \(privateKey)")
+                print("address = \(self.bitcoinAddress)")
                 return (privateKey, self.bitcoinAddress)
                 
             } else {
