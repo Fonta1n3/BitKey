@@ -7,19 +7,24 @@
 //
 
 import UIKit
-
+//import Signer
 
 class TransactionBuilderViewController: UIViewController, BTCTransactionBuilderDataSource {
     
     var unspentOutputs = NSMutableArray()
     let btcAddress = "mo7WCetPLw6yMkT7MdzYfQ1L4eWqAuT2j7"
+    var json = NSMutableDictionary()
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
         print("TransactionBuilderViewController")
-        parseAddress(address: btcAddress)
+        //parseAddress(address: btcAddress)
+        
+        makeHTTPPostRequest()
+        
+        //print(HelloGreetings("gopher"))
         
     }
 
@@ -146,5 +151,169 @@ class TransactionBuilderViewController: UIViewController, BTCTransactionBuilderD
         return outputs.objectEnumerator()
         
     }
+    
+    func makeHTTPPostRequest() {
+        
+        let addressToPay = "mwsPvCKh8GusWcYD7TfrnJabiP8rjSYDKS"
+        let addressToRecieve = "mxxky7EDvEVa4z9pwenveSMcj6L3CJ85di"
+        let privateKey = "cVci5ZPPF2JJbzbBL48j4uBBjuTQrxPU94pcGJTdvNsKEXxqYPXx"
+        let amount = "1"
+        var url:URL!
+        url = URL(string: "http://api.blockcypher.com/v1/btc/test3/txs/new")
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+        request.httpBody = "{\"inputs\": [{\"addresses\": [\"\(addressToPay)\"]}], \"outputs\": [{\"addresses\": [\"\(addressToRecieve)\"], \"value\": \(amount)}]}".data(using: .utf8)
+        
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) -> Void in
+            
+            do {
+                
+                if error != nil {
+                    
+                    print(error as Any)
+                    
+                    
+                } else {
+                    
+                    if let urlContent = data {
+                        
+                        do {
+                            
+                            let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
+                            
+                            print("jsonAddressResult = \(jsonAddressResult)")
+                            
+                            if let toSignCheck = jsonAddressResult["tosign"] as? NSArray {
+                                
+                                print("toSignCheck = \(toSignCheck[0])")
+                                let privateKey = BTCPrivateKeyAddress(string: privateKey)
+                                let key = BTCKey.init(privateKeyAddress: privateKey)
+                                let publicKey = key?.publicKey
+                                let publicKeyString = BTCHexFromData(publicKey as Data!)
+                                print("prvKey = \(String(describing: key?.privateKey.hex()))")
+                                
+                                self.json = jsonAddressResult.mutableCopy() as! NSMutableDictionary
+                                
+                               self.json["signatures"] = ["304402207cb6309e2a2d990f9d6cf41c1bfc3a601b04356e7926e004090f8190ea772e110220443710020585e70a53916ab21045a4a346ec36dc78bd56404835a063be99a151"]
+                                self.json["pubkeys"] = ["\(String(describing: publicKeyString!))"]
+                                
+                                print("json = \(self.json)")
+                                
+                                self.postTransaction()
+                                
+                                
+                                
+                                
+                            }
+                            
+                            
+                            
+                        } catch {
+                            
+                            print("JSon processing failed")
+                            
+                        }
+                    }
+                    
+                    
+                }
+            }
+        }
+        
+        
+        
+        /*
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            
+            print("response = \(String(describing: response))")
+            
+            print("data = \(data?.hex())")
+            
+            
+            let b58 = BTCBase58StringWithData(data)
+            print("b58 = \(b58)")
+            
+            //let BTCinput:BTCTransactionInput = BTCTransactionInput.init(data: data)
+            //BTCinput.signatureScript = BTCScript.in
+            
+            let privateKey = BTCPrivateKeyAddress(string: privateKey)
+            let key = BTCKey.init(privateKeyAddress: privateKey)
+            let sig = key?.signature(forHash: data! as Data)
+            let sigHex = sig?.hex()
+            print("signedTransaction = \(String(describing: sigHex))")
+            
+            print("prvKey = \(key?.privateKey.hex())")
+            
+            //let NSerror = NSErrorPointer(error as! AutoreleasingUnsafeMutablePointer<NSError?>)
+            
+            
+            
+            
+            //let sign = SignerSign(key?.privateKey as Data!, data, error)
+            
+        }
+        */
+        task.resume()
+    }
+    
+    func postTransaction() {
+        
+        let jsonData = try? JSONSerialization.data(withJSONObject: self.json)
+        
+        var url:URL!
+        url = URL(string: "http://api.blockcypher.com/v1/btc/test3/txs/send")
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+        request.httpBody = jsonData
+        
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) -> Void in
+            
+            do {
+                
+                if error != nil {
+                    
+                    print(error as Any)
+                    
+                    
+                } else {
+                    
+                    if let urlContent = data {
+                        
+                        do {
+                            
+                            let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
+                            
+                            print("jsonAddressResult = \(jsonAddressResult)")
+                            
+                            //check if tosign was consumed.. get TX hash
+                            if let txCheck = jsonAddressResult["tx"] as? NSDictionary {
+                                
+                                print("txCheck = \(txCheck)")
+                                
+                                if let hashCheck = txCheck["hash"] as? String {
+                                    
+                                    print("hashCheck = \(hashCheck)")
+                                    
+                                }
+                                
+                            }
+                            
+                        } catch {
+                            
+                            print("JSon processing failed")
+                            
+                        }
+                    }
+                    
+                }
+            }
+    }
+        task.resume()
+
+}
 
 }

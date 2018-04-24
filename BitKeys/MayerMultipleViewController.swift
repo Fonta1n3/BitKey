@@ -33,6 +33,14 @@ class MayerMultipleViewController: UIViewController {
         self.dismiss(animated: false, completion: nil)
     }
     
+    func displayAlert(title: String, message: String) {
+        
+        let alertcontroller = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alertcontroller.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: nil))
+        self.present(alertcontroller, animated: true, completion: nil)
+        
+    }
+    
 
     func getMayerMultiple() {
         
@@ -46,6 +54,9 @@ class MayerMultipleViewController: UIViewController {
                 if error != nil {
                     
                     print(error as Any)
+                    DispatchQueue.main.async {
+                        self.displayAlert(title: "No internet connection.", message: "You need internet to check the price.")
+                    }
                     
                     
                 } else {
@@ -79,7 +90,9 @@ class MayerMultipleViewController: UIViewController {
                                         if error != nil {
                                             
                                             print(error as Any)
-                                            
+                                            DispatchQueue.main.async {
+                                                self.displayAlert(title: "No internet connection.", message: "You need internet to check the price.")
+                                            }
                                             
                                         } else {
                                             
@@ -136,6 +149,9 @@ class MayerMultipleViewController: UIViewController {
                                                 } catch {
                                                     
                                                     print("JSon processing failed")
+                                                    DispatchQueue.main.async {
+                                                        self.displayAlert(title: "Error, please try again.", message: "")
+                                                    }
                                                 }
                                             }
                                             
@@ -151,6 +167,9 @@ class MayerMultipleViewController: UIViewController {
                         } catch {
                             
                             print("JSon processing failed")
+                            DispatchQueue.main.async {
+                                self.displayAlert(title: "Error, please try again.", message: "")
+                            }
                             
                         }
                     }

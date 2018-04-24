@@ -32,7 +32,7 @@ class DiceKeyCreatorViewController: UIViewController {
     var privateKeyText:String!
     var bitcoinAddressButton = UIButton()
     var backUpButton = UIButton(type: .custom)
-    var randomBits = [String]() // array to hold randoms bits
+    var randomBits = [String]()
     var hideExplanation:Bool!
     var bitCount:Int! = 0
     var percentageLabel = UILabel()
@@ -49,6 +49,7 @@ class DiceKeyCreatorViewController: UIViewController {
     
     @IBOutlet var scrollView: UIScrollView!
     
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask { return UIInterfaceOrientationMask.portrait }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -68,16 +69,12 @@ class DiceKeyCreatorViewController: UIViewController {
         addBackButton()
         addClearButton()
         
-        
-        
      }
     
     override func viewWillLayoutSubviews(){
         super.viewWillLayoutSubviews()
-        scrollView.contentSize = CGSize(width: self.view.frame.width, height: 3000)
+        scrollView.contentSize = CGSize(width: 414, height: 3700)
     }
-    
-    
     
     func removeLabels() {
         
@@ -96,7 +93,6 @@ class DiceKeyCreatorViewController: UIViewController {
             self.hexLabel.removeFromSuperview()
             self.hexField.removeFromSuperview()
         }
-        
         
     }
     
@@ -134,56 +130,6 @@ class DiceKeyCreatorViewController: UIViewController {
             
         }
         
-        
-        /*
-        self.bitFieldLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 240 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
-        self.bitFieldLabel.text = "Bit Format:"
-        self.bitFieldLabel.font = .systemFont(ofSize: 12)
-        self.bitFieldLabel.textColor = UIColor.black
-        self.bitFieldLabel.textAlignment = .left
-        DispatchQueue.main.async {
-            self.scrollView.addSubview(self.bitFieldLabel)
-        }
-        
-        self.bitField = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 240 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 300))
-        self.bitField.text = joinedBits
-        self.bitField.isEditable = false
-        self.bitField.isSelectable = true
-        self.bitField.font = .systemFont(ofSize: 24)
-        self.scrollView.addSubview(self.bitField)
-        */
-        /*
-        self.base10Label = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 550 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
-        self.base10Label.text = "Decimal Format:"
-        self.base10Label.font = .systemFont(ofSize: 12)
-        self.base10Label.textColor = UIColor.black
-        self.base10Label.textAlignment = .left
-        self.scrollView.addSubview(self.base10Label)
-        */
-        /*
-        self.base10Field = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 550 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 150))
-        self.base10Field.text = String(parseBitResult!)
-        self.base10Field.isEditable = false
-        self.base10Field.isSelectable = true
-        self.base10Field.font = .systemFont(ofSize: 24)
-        self.scrollView.addSubview(self.base10Field)
-        */
-        /*
-        self.hexLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 660 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
-        self.hexLabel.text = "Hexadecimal Format:"
-        self.hexLabel.font = .systemFont(ofSize: 12)
-        self.hexLabel.textColor = UIColor.black
-        self.hexLabel.textAlignment = .left
-        self.scrollView.addSubview(self.hexLabel)
-        */
-        /*
-        self.hexField = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 660 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 100))
-        self.hexField.text = string
-        self.hexField.isEditable = false
-        self.hexField.isSelectable = true
-        self.hexField.font = .systemFont(ofSize: 24)
-        self.scrollView.addSubview(self.hexField)
-        */
     }
     
     func showPrivateKey() {
@@ -295,33 +241,32 @@ class DiceKeyCreatorViewController: UIViewController {
         
         self.isInternetAvailable()
         
+        var xvalue = 25;
+        var yvalue = 60
+        var zero = 0
         
-            var xvalue = 25;
-            var yvalue = 60
-            
-            var zero = 0
-            
-            for _ in 0..<30 {
+        for _ in 0..<40 {
                 
-                for _ in 0..<5 {
-                    
-                    zero = zero + 1
-                    self.diceButton = UIButton(frame: CGRect(x: xvalue, y: yvalue, width: 65, height: 65))
-                    self.diceButton.setImage(#imageLiteral(resourceName: "images-6.png"), for: .normal)
-                    self.diceButton.tag = zero
-                    self.diceButton.showsTouchWhenHighlighted = true
-                    self.diceButton.setTitle("\(0)", for: .normal)
-                    self.diceButton.titleLabel?.textColor = UIColor.white
-                    self.diceButton.addTarget(self, action: #selector(self.tapDice), for: .touchUpInside)
-                    self.diceArray.append(self.diceButton)
-                    self.scrollView.addSubview(self.diceButton)
-                    xvalue = xvalue + 75
-                }
-                xvalue=25;
-                yvalue = yvalue + 90
+            for _ in 0..<5 {
+                
+                zero = zero + 1
+                self.diceButton = UIButton(frame: CGRect(x: xvalue, y: yvalue, width: 65, height: 65))
+                self.diceButton.setImage(#imageLiteral(resourceName: "images-6.png"), for: .normal)
+                self.diceButton.tag = zero
+                self.diceButton.showsTouchWhenHighlighted = true
+                self.diceButton.setTitle("\(0)", for: .normal)
+                self.diceButton.titleLabel?.textColor = UIColor.white
+                self.diceButton.addTarget(self, action: #selector(self.tapDice), for: .touchUpInside)
+                self.diceArray.append(self.diceButton)
+                self.scrollView.addSubview(self.diceButton)
+                xvalue = xvalue + 75
             }
+            
+            xvalue = 25
+            yvalue = yvalue + 90
+            
+        }
        
-        
     }
     
 
@@ -519,7 +464,6 @@ class DiceKeyCreatorViewController: UIViewController {
                                 print("hexString = \(self.hexString)")
                                 
                                 let data = BigUInt(self.parseBitResult).serialize()
-                                
                                 let keys = BTCKey.init(privateKey: data)
                                 let privateKey2 = keys?.privateKeyAddress!.description
                                 var privateKey3 = privateKey2?.components(separatedBy: " ")
@@ -527,9 +471,7 @@ class DiceKeyCreatorViewController: UIViewController {
                                 let address = keys?.address.description
                                 let address2 = (address?.description)?.components(separatedBy: " ")
                                 self.bitcoinAddress = address2![1].replacingOccurrences(of: ">", with: "")
-                                
                                 self.privateKeyText = self.privateKey
-                                
                                 
                                 print("privateKey = \(self.privateKey)")
                                 print("self.bitcoinAddress = \(self.bitcoinAddress)")
@@ -608,18 +550,7 @@ class DiceKeyCreatorViewController: UIViewController {
                 let alert = UIAlertController(title: "Have you saved this Private Key?", message: "Ensure you have saved this before going back if you'd like to use this Private Key in the future.", preferredStyle: UIAlertControllerStyle.alert)
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("I saved it, go back", comment: ""), style: .destructive, handler: { (action) in
-                    /*
-                    self.privateKeyQRCode = nil
-                    self.privateKey = ""
-                    self.bitcoinAddress = ""
-                    self.clearDice()
-                    self.privateKeyImage = nil
-                    self.privateKeyQRView.image = nil
-                    self.upperLabel.text = ""
-                    self.bitField.text = ""
-                    self.backUpButton.removeFromSuperview()
-                    self.privateKeyText = ""
-                    */
+                    
                     self.dismiss(animated: false, completion: nil)
                     
                 }))
@@ -646,7 +577,7 @@ class DiceKeyCreatorViewController: UIViewController {
             
             DispatchQueue.main.async {
                 
-               self.removeLabels()
+                self.removeLabels()
                 self.bitcoinAddressButton.setTitle("Show Private Key", for: .normal)
                 self.showAddress()
                 self.privateKeyMode = false
