@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		631F99E7179C80B3B0E962E1 /* libPods-BitKeys.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6B7ACBBE3624198C10931574 /* libPods-BitKeys.a */; };
 		D00512112069509900667865 /* DiceKeyCreatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00512102069509900667865 /* DiceKeyCreatorViewController.swift */; };
+		D00B614E208FD46A00CE73A8 /* Signer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00B614D208FD46A00CE73A8 /* Signer.framework */; };
 		D00FF6A12083DA1000660D3C /* one.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF69B2083DA0F00660D3C /* one.png */; };
 		D00FF6A22083DA1000660D3C /* two.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF69C2083DA0F00660D3C /* two.png */; };
 		D00FF6A32083DA1000660D3C /* five.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF69D2083DA0F00660D3C /* five.png */; };
@@ -75,6 +76,7 @@
 		89CBD468A5EF7493E5F477B6 /* Pods-BitKeys.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitKeys.release.xcconfig"; path = "Pods/Target Support Files/Pods-BitKeys/Pods-BitKeys.release.xcconfig"; sourceTree = "<group>"; };
 		C6342F80D31874B6ABC8D895 /* Pods-BitKeys.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitKeys.debug.xcconfig"; path = "Pods/Target Support Files/Pods-BitKeys/Pods-BitKeys.debug.xcconfig"; sourceTree = "<group>"; };
 		D00512102069509900667865 /* DiceKeyCreatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceKeyCreatorViewController.swift; sourceTree = "<group>"; };
+		D00B614D208FD46A00CE73A8 /* Signer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Signer.framework; sourceTree = "<group>"; };
 		D00FF69B2083DA0F00660D3C /* one.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = one.png; sourceTree = "<group>"; };
 		D00FF69C2083DA0F00660D3C /* two.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = two.png; sourceTree = "<group>"; };
 		D00FF69D2083DA0F00660D3C /* five.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = five.png; sourceTree = "<group>"; };
@@ -253,6 +255,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				631F99E7179C80B3B0E962E1 /* libPods-BitKeys.a in Frameworks */,
+				D00B614E208FD46A00CE73A8 /* Signer.framework in Frameworks */,
 				D089BFA5207EBDEF0086243B /* SipHash.framework in Frameworks */,
 				D089BFA6207EBDEF0086243B /* BigInt.framework in Frameworks */,
 			);
@@ -264,6 +267,7 @@
 		A0C88E4F84D8B0DF84BC4A7B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D00B614D208FD46A00CE73A8 /* Signer.framework */,
 				D0588F3020871B8F00C55544 /* HDWalletKit */,
 				D089BFA4207EBDEF0086243B /* BigInt.framework */,
 				D089BFA3207EBDEF0086243B /* SipHash.framework */,

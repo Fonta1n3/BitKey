@@ -7,13 +7,15 @@
 //
 
 import UIKit
-//import Signer
+import Signer
 
 class TransactionBuilderViewController: UIViewController, BTCTransactionBuilderDataSource {
     
     var unspentOutputs = NSMutableArray()
     let btcAddress = "mo7WCetPLw6yMkT7MdzYfQ1L4eWqAuT2j7"
     var json = NSMutableDictionary()
+    var transactionToBeSigned = String()
+    var privateKeyToSign = String()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -157,7 +159,7 @@ class TransactionBuilderViewController: UIViewController, BTCTransactionBuilderD
         let addressToPay = "mwsPvCKh8GusWcYD7TfrnJabiP8rjSYDKS"
         let addressToRecieve = "mxxky7EDvEVa4z9pwenveSMcj6L3CJ85di"
         let privateKey = "cVci5ZPPF2JJbzbBL48j4uBBjuTQrxPU94pcGJTdvNsKEXxqYPXx"
-        let amount = "1"
+        let amount = "4"
         var url:URL!
         url = URL(string: "http://api.blockcypher.com/v1/btc/test3/txs/new")
         
@@ -188,15 +190,25 @@ class TransactionBuilderViewController: UIViewController, BTCTransactionBuilderD
                             if let toSignCheck = jsonAddressResult["tosign"] as? NSArray {
                                 
                                 print("toSignCheck = \(toSignCheck[0])")
+                                self.transactionToBeSigned = toSignCheck[0] as! String
                                 let privateKey = BTCPrivateKeyAddress(string: privateKey)
                                 let key = BTCKey.init(privateKeyAddress: privateKey)
                                 let publicKey = key?.publicKey
                                 let publicKeyString = BTCHexFromData(publicKey as Data!)
                                 print("prvKey = \(String(describing: key?.privateKey.hex()))")
                                 
+                                self.privateKeyToSign = (key?.privateKey.hex())!
+                                
                                 self.json = jsonAddressResult.mutableCopy() as! NSMutableDictionary
                                 
-                               self.json["signatures"] = ["304402207cb6309e2a2d990f9d6cf41c1bfc3a601b04356e7926e004090f8190ea772e110220443710020585e70a53916ab21045a4a346ec36dc78bd56404835a063be99a151"]
+                                SignerGetSignature(self.privateKeyToSign, self.transactionToBeSigned)
+                                
+                                let signature = Signer.signature()
+                                
+                                
+                                
+                                
+                                self.json["signatures"] = ["\(String(describing: signature!))"]
                                 self.json["pubkeys"] = ["\(String(describing: publicKeyString!))"]
                                 
                                 print("json = \(self.json)")

@@ -1,2 +1,4 @@
 github "attaswift/BigInt" "v3.0.2"
 github "attaswift/SipHash" "v1.2.0"
+github "krzyzanowskim/CryptoSwift" "0.9.0"
+github "yuzushioh/HDWalletKit" "1.0.0"

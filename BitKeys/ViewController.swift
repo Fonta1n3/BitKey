@@ -142,42 +142,51 @@ class ViewController: UIViewController {
         //calcukate ripemd160 of the sha256 of a public key
         //the p2sh redeemScript in always 22 bytes. it starts with a OP_0 followed by a cononical push of the key hash
         
+        /*Let's assume the following Public Key:  publicKey = 03fac6879502c4c939cfaadc45999c7ed7366203ad523ab83ad5502c71621a85bb
+         
+         *ripemd160(sha256(publicKey)) = 7646c030f7e75b80f0a31cdcab731e6f424f22b2 - hash
+         
+         *Add version to hash = 00147646c030f7e75b80f0a31cdcab731e6f424f22b2 - redeemScript
+         
+         *ripemd160(sha256(redeemScript)) = 188ba16284702258959d8bb63bb9a5d979b57875 - hash
+         
+         *sha256(sha256(redeemScript)) = 55c304447c41caee29f1d7c9779a3a8e9dd00ea7905e286e733049d12e1b479f - hash-for-checksum
+         
+         --so far so good (I assume)--
+         
+         *4 byte checksum = 55c30444 - checksum
+         
+         *'05' + hash + checksum = 05188ba16284702258959d8bb63bb9a5d979b5787555c30444 - this is the part I get wrong I think*/
+        
         
         let sha = BTCSHA256(keys?.compressedPublicKey as Data!)
-        
         let ripeMD160 = BTCRIPEMD160(sha as Data!)
-        
+        //add 0014 to the ripemd
         let ripeMD160Hex = BTCHexFromData(ripeMD160 as Data!)
+        let ripeMD160HexPlus5 = "0014" + ripeMD160Hex!
+        print("redeemScript = \(ripeMD160HexPlus5)")
+        let shaOfRS = BTCSHA256(BTCDataFromHex(ripeMD160HexPlus5))
+        let rmd160 = BTCRIPEMD160(shaOfRS as Data!)
+        let doubleHashRDS = BTCSHA256(BTCSHA256(rmd160 as Data!) as Data!)
+        print("doubleHashRDS = \(doubleHashRDS?.hex())")
         
-        //let ripeMD160HexPlus5 = "05" + ripeMD160Hex!
-        
-        //print("ripeMD160HexPlus5 = \(ripeMD160HexPlus5)")
-        
-        let data2 = BTCBase58StringWithData(BTCDataFromHex(ripeMD160Hex))
-        
-        
-        //let script2 = BTCBase58StringWithData(data2 as Data!)
-        
+        var arr = [String]()
+        for (index, c) in (doubleHashRDS?.hex().enumerated())! {
+            
+            if index < 8 {
+             arr.append(String(c))
+            }
+            
+        }
+        let fourbytechecksum = arr.joined()
+        print("fourbytechecksum = \(fourbytechecksum)")
+        let rmd160Hex = rmd160?.hex()
+        let x = "05" + rmd160Hex! + fourbytechecksum
+        let data2 = BTCBase58StringWithData(BTCDataFromHex(x))
         print("segwit = \(String(describing: data2))")
        
         
         
-        
-       // let p2sh = BTCScriptHashAddress.init(data: script?.data)
-       // print("p2sh = \(p2sh)")
-        
-        
-        
-        //let p2shAddress = BTCScriptHashAddress(data: BTCHash160(script?.data)! as Data)
-        //print("p2shAddress = \(String(describing: p2shAddress))")
-        
-        /*
-        let p2shFromcompressedPubKeyAddress = BTCScriptHashAddress(data: compressedPubKeyAddress)
-        print("p2shFromcompressedPubKeyAddress = \(String(describing: p2shFromcompressedPubKeyAddress))")
-        
-        let p2shFromUncompressedPubKeyAddress = BTCScriptHashAddress(data: uncompressedPubKeyAddress)
-        print("p2shFromUncompressedPubKeyAddress = \(String(describing: p2shFromUncompressedPubKeyAddress))")
-        */
         return (privateKey, self.bitcoinAddress)
         
     }
