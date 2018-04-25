@@ -159,28 +159,21 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         self.avCaptureSession.startRunning()
         
     }
-    /*
-    func displayBalance() {
-        
-        DispatchQueue.main.async {
-            self.videoPreview.removeFromSuperview()
-            let balanceLabel = UILabel()
-            balanceLabel.text = self.balance
-            balanceLabel.center = self.view.center
-            self.view.addSubview(balanceLabel)
-            
-        }
-        
-        
-    }
-    */
     
-
     func checkBalance(address: String) {
         print("checkBalance")
         
         var url:NSURL!
-        url = NSURL(string: "https://blockchain.info/rawaddr/\(address)")
+        
+        if address.count == 64 {
+            
+            url = NSURL(string: "https://testnet.blockchain.info/rawtx/\(address)")
+            
+        } else {
+            
+            url = NSURL(string: "https://blockchain.info/rawaddr/\(address)")
+            
+        }
         
         let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
             
@@ -200,8 +193,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
                             
                             print("jsonAddressResult = \(jsonAddressResult)")
-                            
-                            //var finalBalance = String()
                             
                             if let finalBalanceCheck = jsonAddressResult["final_balance"] as? Double {
                                 
@@ -236,10 +227,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                         self.getExchangeRates()
                                         
                                     }
-                                
                             }
-                            
-                           
                             
                         } catch {
                             
@@ -247,8 +235,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             
                         }
                     }
-                    
-                    
                 }
             }
         }
@@ -279,6 +265,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             let jsonQuoteResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
                             
                             if let exchangeCheck = jsonQuoteResult["bpi"] as? NSDictionary {
+                                
+                                print("exchangeCheck = \(exchangeCheck)")
                                 
                                 if let usdCheck = exchangeCheck["USD"] as? NSDictionary {
                                     

@@ -33,6 +33,7 @@ class ViewController: UIViewController {
     var mayerMultipleButton = UIButton(type: .custom)
     var connected:Bool!
     var diceButton = UIButton()
+    var transactionsButton = UIButton()
     var parseBitResult = BigInt()
     var bitArray = [String]()
     var zero = 0
@@ -75,6 +76,7 @@ class ViewController: UIViewController {
         addCheckAddressButton()
         addMayerMultipleButton()
         addDiceButton()
+        addTransactionsButton()
         
         bitField = UITextView (frame:CGRect(x: view.center.x - (self.view.frame.width / 2), y: view.center.y - (self.view.frame.height / 2), width: self.view.frame.width, height: self.view.frame.height))
         bitField.isUserInteractionEnabled = false
@@ -219,6 +221,7 @@ class ViewController: UIViewController {
         self.checkAddressButton.removeFromSuperview()
         self.mayerMultipleButton.removeFromSuperview()
         self.diceButton.removeFromSuperview()
+        self.transactionsButton.removeFromSuperview()
         
         //set up the drag ability and postion of the bitcoin
         let translation = gestureRecognizer.translation(in: view)
@@ -503,7 +506,7 @@ class ViewController: UIViewController {
             self.checkAddressButton.showsTouchWhenHighlighted = true
             self.checkAddressButton.backgroundColor = .black
             self.checkAddressButton.setTitle("Check Balance", for: .normal)
-            self.checkAddressButton.addTarget(self, action: #selector(self.goToCheckAddress), for: .touchUpInside)
+            self.checkAddressButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.checkAddressButton)
         }
         
@@ -516,8 +519,21 @@ class ViewController: UIViewController {
             self.mayerMultipleButton.showsTouchWhenHighlighted = true
             self.mayerMultipleButton.backgroundColor = .black
             self.mayerMultipleButton.setTitle("Price Check", for: .normal)
-            self.mayerMultipleButton.addTarget(self, action: #selector(self.goToMayerMultiple), for: .touchUpInside)
+            self.mayerMultipleButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.mayerMultipleButton)
+        }
+        
+    }
+    
+    func addTransactionsButton() {
+        
+        DispatchQueue.main.async {
+            self.transactionsButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.minY + 65, width: self.view.frame.width, height: 55))
+            self.transactionsButton.showsTouchWhenHighlighted = true
+            self.transactionsButton.backgroundColor = .black
+            self.transactionsButton.setTitle("Send / Receive", for: .normal)
+            self.transactionsButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+            self.view.addSubview(self.transactionsButton)
         }
         
     }
@@ -529,20 +545,48 @@ class ViewController: UIViewController {
             self.diceButton.showsTouchWhenHighlighted = true
             self.diceButton.backgroundColor = .black
             self.diceButton.setTitle("Dice Key Creator", for: .normal)
-            self.diceButton.addTarget(self, action: #selector(self.goToDiceKeyCreator), for: .touchUpInside)
+            self.diceButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.diceButton)
         }
     }
     
-    @objc func goToDiceKeyCreator() {
+    @objc func goTo(sender: UIButton) {
         
-       self.performSegue(withIdentifier: "diceKeyCreator", sender: self)
+        switch sender {
+            
+        case self.diceButton:
+            
+            self.performSegue(withIdentifier: "diceKeyCreator", sender: self)
+            
+        case self.mayerMultipleButton:
+            
+            self.performSegue(withIdentifier: "goToMayerMultiple", sender: self)
+            
+        case self.transactionsButton:
+            
+            self.performSegue(withIdentifier: "transaction", sender: self)
+            
+        case self.checkAddressButton:
+            
+            self.performSegue(withIdentifier: "checkAddress", sender: self)
+            
+        default:
+            break
+        }
+        
+       
     }
     
     @objc func goToMayerMultiple() {
         
         self.performSegue(withIdentifier: "goToMayerMultiple", sender: self)
     }
+    
+    @objc func goToTransaction() {
+        
+        self.performSegue(withIdentifier: "transaction", sender: self)
+    }
+    
     
     @objc func goToCheckAddress() {
         
