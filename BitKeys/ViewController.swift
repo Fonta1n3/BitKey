@@ -531,7 +531,7 @@ class ViewController: UIViewController {
             self.transactionsButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.minY + 65, width: self.view.frame.width, height: 55))
             self.transactionsButton.showsTouchWhenHighlighted = true
             self.transactionsButton.backgroundColor = .black
-            self.transactionsButton.setTitle("Send / Receive", for: .normal)
+            self.transactionsButton.setTitle("Send", for: .normal)
             self.transactionsButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.transactionsButton)
         }
