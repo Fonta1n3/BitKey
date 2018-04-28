@@ -109,6 +109,7 @@ class ViewController: UIViewController {
                 
         print("privatekey = \(privateKey)")
         print("address = \(self.bitcoinAddress)")
+        
         /*
         keys?.isPublicKeyCompressed = true
         let publickey = keys?.publicKey
@@ -291,14 +292,14 @@ class ViewController: UIViewController {
         let joinedArray = shuffledArray.joined()
         
         //converts even numbers to 0 and odd numbers to 1 for a geeky computer bit look and is purely aesthetic
-        let twoToZero = joinedArray.replacingOccurrences(of: "2", with: "0")
-        let fourToZero = twoToZero.replacingOccurrences(of: "4", with: "0")
-        let sixToZero = fourToZero.replacingOccurrences(of: "6", with: "0")
-        let eightToZero = sixToZero.replacingOccurrences(of: "8", with: "0")
-        let threeToOne = eightToZero.replacingOccurrences(of: "3", with: "1")
-        let fiveToOne = threeToOne.replacingOccurrences(of: "5", with: "1")
-        let sevenToOne = fiveToOne.replacingOccurrences(of: "7", with: "1")
-        let nineToOne = sevenToOne.replacingOccurrences(of: "9", with: "1")
+        let twoToZero = joinedArray.replacingOccurrences(of: "2", with: "10")
+        let fourToZero = twoToZero.replacingOccurrences(of: "4", with: "100")
+        let sixToZero = fourToZero.replacingOccurrences(of: "6", with: "110")
+        let eightToZero = sixToZero.replacingOccurrences(of: "8", with: "1000")
+        let threeToOne = eightToZero.replacingOccurrences(of: "3", with: "11")
+        let fiveToOne = threeToOne.replacingOccurrences(of: "5", with: "101")
+        let sevenToOne = fiveToOne.replacingOccurrences(of: "7", with: "111")
+        let nineToOne = sevenToOne.replacingOccurrences(of: "9", with: "1001")
         
         //displays random bits as user drags bitcoin and creates randomness
         bitField.text = nineToOne

@@ -33,7 +33,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     var amount = ""
     var backButton = UIButton()
     var currecny = String()
-    var amountInBTC = Float()
+    var amountInBTC = Double()
     var satoshiAmount = Int()
     var connected:Bool!
     var preference = "high"
@@ -45,6 +45,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     var setFeeMode = Bool()
     var transactionView = UITextView()
     var refreshButton = UIButton()
+    var exchangeRate = Double()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -149,6 +150,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Manually Set", comment: ""), style: .default, handler: { (action) in
                 
+                self.preference = ""
                 self.manuallySetFee = true
                 self.addFeeAmount()
                 self.amountToSend.becomeFirstResponder()
@@ -303,27 +305,17 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         if getReceivingAddressMode {
           
-            self.addressToDisplay.placeholder = "Receiving Address"
+            self.addressToDisplay.placeholder = "Scan or Type Receiving Address"
             
         } else if getPayerAddressMode {
             
-            self.addressToDisplay.placeholder = "Debit Address"
+            self.addressToDisplay.placeholder = "Scan or Type Debit Address"
             
         } else if getSignatureMode {
             
-            self.addressToDisplay.placeholder = "Private Key to sign"
+            self.addressToDisplay.placeholder = "Scan or Type Private Key to sign"
             
-            DispatchQueue.main.async {
-                
-                let alert = UIAlertController(title: NSLocalizedString("Turn Airplane Mode On", comment: ""), message: "We need to scan your Private Key so that we can create a signature to sign your transaction with, you may enable airplane mode during this operation for maximum security. We NEVER save your Private Keys, the signature is created locally and the internet is not needed at all, we do need the internet however to broadcast your transaction to the Bitcoin network and actually send the Bitcoin.", preferredStyle: UIAlertControllerStyle.alert)
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
-                    
-                }))
-                
-                self.present(alert, animated: true, completion: nil)
-                
-            }
+            
             
         }
         
@@ -373,28 +365,29 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 
             }
             
-            getSatsAndBTCs()
+            //getSatsAndBTCs()
         }
     }
     
     func getSatsAndBTCs() {
+        print("getSatsAndBTCs")
         
         if self.currecny == "BTC" {
             
-            self.amountInBTC = Float(self.amount)!
+            self.amountInBTC = Double(self.amount)!
             self.satoshiAmount = Int(self.amountInBTC * 100000000)
             
         } else if self.currecny == "SAT" {
             
             self.satoshiAmount = Int(self.amount)!
             print("self.satoshiAmount = \(self.satoshiAmount)")
-            self.amountInBTC = Float(Float(self.amount)! / 100000000)
+            self.amountInBTC = Double(self.amount)! / 100000000
             
             
         }
         
-        let noNotationBTC = self.amountInBTC.avoidNotation
-        let noNotationSatoshi = Int(Float(self.satoshiAmount).avoidNotation)?.withCommas()
+        let noNotationBTC = self.amountInBTC
+        let noNotationSatoshi = Float(self.satoshiAmount).avoidNotation
         
         DispatchQueue.main.async {
             
@@ -402,11 +395,11 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             
             if self.fees != nil {
                 
-                message = "You would like to send \(noNotationBTC) Bitcoin, equal to \(noNotationSatoshi!) Satoshis with a miner fee of \(self.fees!) Satoshis."
+                message = "You would like to send \(noNotationBTC) Bitcoin, equal to \(noNotationSatoshi) Satoshis with a miner fee of \(self.fees!) Satoshis."
                 
             } else {
                 
-                message = "You would like to send \(noNotationBTC) Bitcoin, equal to \(noNotationSatoshi!) Satoshis with a \(self.preference) miner fee preference."
+                message = "You would like to send \(noNotationBTC) Bitcoin, equal to \(noNotationSatoshi) Satoshis with a \(self.preference) miner fee preference."
             }
             
             let alert = UIAlertController(title: NSLocalizedString("Please Confirm", comment: ""), message: message, preferredStyle: UIAlertControllerStyle.actionSheet)
@@ -463,26 +456,47 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                     if let rateCheck = exchangeRateCheck["rate_float"] as? Float {
                                         
                                         print("rateCheck = \(rateCheck) \(self.currecny)")
-                                            
-                                        self.amountInBTC = Float(self.amount)! / rateCheck
+                                        
+                                        self.exchangeRate = Double(rateCheck)
+                                        self.amountInBTC = Double(self.amount)! / Double(rateCheck)
                                         self.satoshiAmount = Int(self.amountInBTC * 100000000)
+                                        let roundedBtcAmount = round(100000000 * self.amountInBTC) / 100000000
                                         
                                         DispatchQueue.main.async {
+                                            
+                                            var message = String()
+                                            
+                                            if self.fees != nil {
                                                 
-                                            let alert = UIAlertController(title: NSLocalizedString("Please Confirm", comment: ""), message: "You would like to send \(self.amount) \(self.currecny) which is equal to \(self.amountInBTC) Bitcoin and equal to \(self.satoshiAmount.withCommas()) Satoshis", preferredStyle: UIAlertControllerStyle.actionSheet)
+                                                //let feeInFiat = self.exchangeRate / (Double(self.fees) * 100000000)
+                                                //print("feeInFiat = \(feeInFiat)")
+                                                //let roundedFiatFeeAmount = round(1000 * feeInFiat) / 1000
+                                                
+                                                let feeInFiat = self.exchangeRate * (Double(self.fees) / 100000000)
+                                                print("feeInFiat = \(feeInFiat)")
+                                                let roundedFiatFeeAmount = round(100 * feeInFiat) / 100
+                                                print("roundedFiatFeeAmount = \(roundedFiatFeeAmount)")
+                                                
+                                                message = "You would like to send \(self.amount) \(self.currecny) which is equal to \(roundedBtcAmount) Bitcoin or \(self.satoshiAmount.withCommas()) Satoshis, with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currecny)"
+                                                
+                                            } else if self.preference != "" {
+                                                
+                                                message = "You would like to send \(self.amount) \(self.currecny) which is equal to \(roundedBtcAmount) Bitcoin or \(self.satoshiAmount.withCommas()) Satoshis, with a \(self.preference) miner fee preference."
+                                            }
+                                                
+                                            let alert = UIAlertController(title: NSLocalizedString("Please Confirm", comment: ""), message: message, preferredStyle: UIAlertControllerStyle.actionSheet)
                                                 
                                             alert.addAction(UIAlertAction(title: NSLocalizedString("Yes", comment: ""), style: .default, handler: { (action) in
                                                     
                                                 self.amountToSend.removeFromSuperview()
-                                                //self.addQRScannerView()
-                                                //self.addTextInput()
-                                                //self.scanQRCode()
                                                 self.addScanner()
                                                 
                                             }))
                                                 
                                             alert.addAction(UIAlertAction(title: NSLocalizedString("No", comment: ""), style: .cancel, handler: { (action) in
-                                                    
+                                                
+                                                self.dismiss(animated: false, completion: nil)
+                                                
                                             }))
                                                 
                                             self.present(alert, animated: true, completion: nil)
@@ -581,7 +595,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                     DispatchQueue.main.async {
                         
-                        let alert = UIAlertController(title: NSLocalizedString("Scan Succesful", comment: ""), message: "Sending payment to \(self.recievingAddress)", preferredStyle: UIAlertControllerStyle.actionSheet)
+                        let alert = UIAlertController(title: NSLocalizedString("Address Scan Succesful", comment: ""), message: "Sending payment to \(self.recievingAddress)", preferredStyle: UIAlertControllerStyle.actionSheet)
                         
                         alert.addAction(UIAlertAction(title: NSLocalizedString("Scan Debit Address", comment: ""), style: .default, handler: { (action) in
                             
@@ -639,7 +653,25 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             
             self.removeScanner()
             
-            let alert = UIAlertController(title: NSLocalizedString("Please confirm your transaction before sending.", comment: ""), message: "From: \(self.sendingFromAddress)\nTo: \(self.recievingAddress)\nAmount: \(self.amount) \(self.currecny) with a miner fee of \(self.fees!) Satoshis", preferredStyle: UIAlertControllerStyle.actionSheet)
+            var message = String()
+            
+            if self.currecny != "BTC" && self.currecny != "SAT" {
+                
+                //calculate miner fee in users currency
+                //self.exchangeRate
+                let feeInFiat = self.exchangeRate * (Double(self.fees) / 100000000)
+                let roundedFiatFeeAmount = round(100 * feeInFiat) / 100
+                let roundedFiatToSendAmount = (round(100 * Double(self.amount)!) / 100).withCommas()
+                
+                
+                message = "From: \(self.sendingFromAddress)\nTo: \(self.recievingAddress)\nAmount: \(roundedFiatToSendAmount) \(self.currecny) with a miner fee of \(self.fees!.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currecny)"
+                
+            } else {
+                
+                message = "From: \(self.sendingFromAddress)\nTo: \(self.recievingAddress)\nAmount: \(self.amount) \(self.currecny) with a miner fee of \(self.fees!.withCommas()) Satoshis"
+            }
+            
+            let alert = UIAlertController(title: NSLocalizedString("Please confirm your transaction before sending.", comment: ""), message: message, preferredStyle: UIAlertControllerStyle.actionSheet)
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Send", comment: ""), style: .default, handler: { (action) in
                 
@@ -915,22 +947,36 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                 
                                 DispatchQueue.main.async {
                                     
-                                    let alert = UIAlertController(title: NSLocalizedString("Scan Successful.", comment: ""), message: "You are sending Bitcoin from address \(self.sendingFromAddress)", preferredStyle: UIAlertControllerStyle.actionSheet)
+                                    let alert = UIAlertController(title: NSLocalizedString("Turn Airplane Mode On", comment: ""), message: "We need to scan your Private Key so that we can create a signature to sign your transaction with, you may enable airplane mode during this operation for maximum security, this is optional. We NEVER save your Private Keys, the signature is created locally and the internet is not used at all, however we will need the interent after you sign the transaction in order to send the bitcoins.", preferredStyle: UIAlertControllerStyle.alert)
                                     
-                                    alert.addAction(UIAlertAction(title: NSLocalizedString("Scan Private Key", comment: ""), style: .default, handler: { (action) in
+                                    alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
                                         
-                                        self.addScanner()
-                                        
-                                    }))
-                                    
-                                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                                        
-                                        self.dismiss(animated: false, completion: nil)
+                                        DispatchQueue.main.async {
+                                            
+                                            let alert = UIAlertController(title: NSLocalizedString("Address Scan Successful.", comment: ""), message: "You are debiting Bitcoin address \(self.sendingFromAddress)", preferredStyle: UIAlertControllerStyle.actionSheet)
+                                            
+                                            alert.addAction(UIAlertAction(title: NSLocalizedString("Scan Private Key", comment: ""), style: .default, handler: { (action) in
+                                                
+                                                self.addScanner()
+                                                
+                                            }))
+                                            
+                                            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                                
+                                                self.dismiss(animated: false, completion: nil)
+                                                
+                                            }))
+                                            
+                                            self.present(alert, animated: true, completion: nil)
+                                        }
                                         
                                     }))
                                     
                                     self.present(alert, animated: true, completion: nil)
+                                    
                                 }
+                                
+                                
                                 
                             }
                             
