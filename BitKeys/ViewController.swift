@@ -37,12 +37,14 @@ class ViewController: UIViewController {
     var parseBitResult = BigInt()
     var bitArray = [String]()
     var zero = 0
+    let segwit = SegwitAddrCoder()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         privateKeyMode = true
         showBitcoin()
+        
         
     }
     
@@ -109,6 +111,37 @@ class ViewController: UIViewController {
                 
         print("privatekey = \(privateKey)")
         print("address = \(self.bitcoinAddress)")
+        
+        //ripemd160(sha256(compressed_pub_key))
+        //bc for mainnet and tb for testnet
+        
+        let compressedPKData = BTCRIPEMD160(BTCSHA256(keys?.compressedPublicKeyAddress.data) as Data!) as Data!
+        print("compressedPKData = \(String(describing: compressedPKData?.hex()))")
+        var segwitBech32:String!
+        
+        do {
+        
+        segwitBech32 = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+            
+            print("segwitBech32 = \(segwitBech32)")
+            
+            do {
+                
+                let testBech32 = try segwit.decode(hrp: "bc", addr: segwitBech32)
+                print("testBech32 = \(testBech32.program.hex())")
+                
+            } catch {
+                
+                
+            }
+            
+        } catch {
+            
+            
+        }
+        
+        
+        
         
         /*
         keys?.isPublicKeyCompressed = true
@@ -747,6 +780,11 @@ class ViewController: UIViewController {
         
     }
     
+    
+    
+    
+    
+    
 }
 
 extension MutableCollection {
@@ -771,4 +809,6 @@ extension Sequence {
         return result
     }
 }
+
+
 

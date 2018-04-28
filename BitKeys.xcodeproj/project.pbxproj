@@ -17,6 +17,9 @@
 		D00FF6A52083DA1000660D3C /* three.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF69F2083DA1000660D3C /* three.png */; };
 		D00FF6A62083DA1000660D3C /* six.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF6A02083DA1000660D3C /* six.png */; };
 		D00FF6A82083DAC900660D3C /* images-6.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF6A72083DAC900660D3C /* images-6.png */; };
+		D055011D2094FE79001C35F0 /* BitKeysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055011C2094FE79001C35F0 /* BitKeysTests.swift */; };
+		D055012720950E9F001C35F0 /* SegwitAddrCoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055012620950E9F001C35F0 /* SegwitAddrCoder.swift */; };
+		D055012B2095134C001C35F0 /* Bech32.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055012A2095134C001C35F0 /* Bech32.swift */; };
 		D089BFA5207EBDEF0086243B /* SipHash.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D089BFA3207EBDEF0086243B /* SipHash.framework */; };
 		D089BFA6207EBDEF0086243B /* BigInt.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D089BFA4207EBDEF0086243B /* BigInt.framework */; };
 		D09FB1DC1FCBFDE000A9630F /* bitcoinIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */; };
@@ -34,6 +37,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		D055011F2094FE79001C35F0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0C56F4D1FCBFBC4004A5F47 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D0C56F541FCBFBC4004A5F47;
+			remoteInfo = BitKeys;
+		};
 		D0588FE020871B9000C55544 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D0588F4820871B8F00C55544 /* CryptoSwift.xcodeproj */;
@@ -84,6 +94,11 @@
 		D00FF69F2083DA1000660D3C /* three.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = three.png; sourceTree = "<group>"; };
 		D00FF6A02083DA1000660D3C /* six.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = six.png; sourceTree = "<group>"; };
 		D00FF6A72083DAC900660D3C /* images-6.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "images-6.png"; sourceTree = "<group>"; };
+		D055011A2094FE79001C35F0 /* BitKeysTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BitKeysTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D055011C2094FE79001C35F0 /* BitKeysTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitKeysTests.swift; sourceTree = "<group>"; };
+		D055011E2094FE79001C35F0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D055012620950E9F001C35F0 /* SegwitAddrCoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegwitAddrCoder.swift; sourceTree = "<group>"; };
+		D055012A2095134C001C35F0 /* Bech32.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bech32.swift; sourceTree = "<group>"; };
 		D0588F3120871B8F00C55544 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		D0588F3220871B8F00C55544 /* Cartfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cartfile; sourceTree = "<group>"; };
 		D0588F3320871B8F00C55544 /* Cartfile.resolved */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cartfile.resolved; sourceTree = "<group>"; };
@@ -250,6 +265,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		D05501172094FE79001C35F0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D0C56F521FCBFBC4004A5F47 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -289,6 +311,15 @@
 			);
 			name = Pictures;
 			path = ..;
+			sourceTree = "<group>";
+		};
+		D055011B2094FE79001C35F0 /* BitKeysTests */ = {
+			isa = PBXGroup;
+			children = (
+				D055011C2094FE79001C35F0 /* BitKeysTests.swift */,
+				D055011E2094FE79001C35F0 /* Info.plist */,
+			);
+			path = BitKeysTests;
 			sourceTree = "<group>";
 		};
 		D0588F3020871B8F00C55544 /* HDWalletKit */ = {
@@ -643,6 +674,7 @@
 			isa = PBXGroup;
 			children = (
 				D0C56F571FCBFBC4004A5F47 /* BitKeys */,
+				D055011B2094FE79001C35F0 /* BitKeysTests */,
 				D0C56F561FCBFBC4004A5F47 /* Products */,
 				E481ABCF6DB8348A90F6F327 /* Pods */,
 				A0C88E4F84D8B0DF84BC4A7B /* Frameworks */,
@@ -653,6 +685,7 @@
 			isa = PBXGroup;
 			children = (
 				D0C56F551FCBFBC4004A5F47 /* BitKeys.app */,
+				D055011A2094FE79001C35F0 /* BitKeysTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -660,10 +693,12 @@
 		D0C56F571FCBFBC4004A5F47 /* BitKeys */ = {
 			isa = PBXGroup;
 			children = (
+				D055012620950E9F001C35F0 /* SegwitAddrCoder.swift */,
 				D00512102069509900667865 /* DiceKeyCreatorViewController.swift */,
 				D0C663342062627C0061B2FF /* CoinbaseViewController.swift */,
 				D0C56F581FCBFBC4004A5F47 /* AppDelegate.swift */,
 				D0C56F5A1FCBFBC4004A5F47 /* ViewController.swift */,
+				D055012A2095134C001C35F0 /* Bech32.swift */,
 				D0C56F5C1FCBFBC4004A5F47 /* Main.storyboard */,
 				D0F8589F202BD39C00560247 /* TransactionBuilderViewController.swift */,
 				D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */,
@@ -693,6 +728,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		D05501192094FE79001C35F0 /* BitKeysTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D05501212094FE79001C35F0 /* Build configuration list for PBXNativeTarget "BitKeysTests" */;
+			buildPhases = (
+				D05501162094FE79001C35F0 /* Sources */,
+				D05501172094FE79001C35F0 /* Frameworks */,
+				D05501182094FE79001C35F0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D05501202094FE79001C35F0 /* PBXTargetDependency */,
+			);
+			name = BitKeysTests;
+			productName = BitKeysTests;
+			productReference = D055011A2094FE79001C35F0 /* BitKeysTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		D0C56F541FCBFBC4004A5F47 /* BitKeys */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D0C56F6A1FCBFBC4004A5F47 /* Build configuration list for PBXNativeTarget "BitKeys" */;
@@ -724,6 +777,11 @@
 				LastUpgradeCheck = 0910;
 				ORGANIZATIONNAME = Fontaine;
 				TargetAttributes = {
+					D05501192094FE79001C35F0 = {
+						CreatedOnToolsVersion = 9.1;
+						ProvisioningStyle = Automatic;
+						TestTargetID = D0C56F541FCBFBC4004A5F47;
+					};
 					D0C56F541FCBFBC4004A5F47 = {
 						CreatedOnToolsVersion = 9.1;
 						LastSwiftMigration = 0910;
@@ -755,6 +813,7 @@
 			projectRoot = "";
 			targets = (
 				D0C56F541FCBFBC4004A5F47 /* BitKeys */,
+				D05501192094FE79001C35F0 /* BitKeysTests */,
 			);
 		};
 /* End PBXProject section */
@@ -798,6 +857,13 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
+		D05501182094FE79001C35F0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D0C56F531FCBFBC4004A5F47 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -882,6 +948,14 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		D05501162094FE79001C35F0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D055011D2094FE79001C35F0 /* BitKeysTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D0C56F511FCBFBC4004A5F47 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -891,14 +965,24 @@
 				D0C663352062627C0061B2FF /* CoinbaseViewController.swift in Sources */,
 				D00512112069509900667865 /* DiceKeyCreatorViewController.swift in Sources */,
 				D0C56F5B1FCBFBC4004A5F47 /* ViewController.swift in Sources */,
+				D055012720950E9F001C35F0 /* SegwitAddrCoder.swift in Sources */,
 				D0F858A0202BD39C00560247 /* TransactionBuilderViewController.swift in Sources */,
 				D0C56F611FCBFBC4004A5F47 /* BitKeys.xcdatamodeld in Sources */,
+				D055012B2095134C001C35F0 /* Bech32.swift in Sources */,
 				D0E8115C20615E23000DBBE8 /* MayerMultipleViewController.swift in Sources */,
 				D0C56F591FCBFBC4004A5F47 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D05501202094FE79001C35F0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D0C56F541FCBFBC4004A5F47 /* BitKeys */;
+			targetProxy = D055011F2094FE79001C35F0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		D0588FB620871B9000C55544 /* LaunchScreen.storyboard */ = {
@@ -936,6 +1020,40 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		D05501222094FE79001C35F0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = S9W9BN93GG;
+				INFOPLIST_FILE = BitKeysTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.fontaine.BitKeysTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BitKeys.app/BitKeys";
+			};
+			name = Debug;
+		};
+		D05501232094FE79001C35F0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = S9W9BN93GG;
+				INFOPLIST_FILE = BitKeysTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.fontaine.BitKeysTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BitKeys.app/BitKeys";
+			};
+			name = Release;
+		};
 		D0C56F681FCBFBC4004A5F47 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1103,6 +1221,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		D05501212094FE79001C35F0 /* Build configuration list for PBXNativeTarget "BitKeysTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D05501222094FE79001C35F0 /* Debug */,
+				D05501232094FE79001C35F0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		D0C56F501FCBFBC4004A5F47 /* Build configuration list for PBXProject "BitKeys" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
