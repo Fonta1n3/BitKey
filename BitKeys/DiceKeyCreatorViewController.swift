@@ -46,6 +46,7 @@ class DiceKeyCreatorViewController: UIViewController {
     var joinedBits = String()
     var parseBitResult = BigInt()
     var hexString = String()
+    let segwit = SegwitAddrCoder()
     
     @IBOutlet var scrollView: UIScrollView!
     
@@ -464,19 +465,44 @@ class DiceKeyCreatorViewController: UIViewController {
                                 print("hexString = \(self.hexString)")
                                 
                                 let data = BigUInt(self.parseBitResult).serialize()
-                                let keys = BTCKey.init(privateKey: data)
-                                let privateKey2 = keys?.privateKeyAddress!.description
-                                var privateKey3 = privateKey2?.components(separatedBy: " ")
-                                self.privateKey = privateKey3![1].replacingOccurrences(of: ">", with: "")
-                                let address = keys?.address.description
-                                let address2 = (address?.description)?.components(separatedBy: " ")
-                                self.bitcoinAddress = address2![1].replacingOccurrences(of: ">", with: "")
-                                self.privateKeyText = self.privateKey
+                                let mnemonic = BTCMnemonic.init(entropy: data, password: "", wordListType: BTCMnemonicWordListType.english)
+                                print("mnemonic = \(String(describing: mnemonic?.words))")
+                                let extendedKey = mnemonic?.keychain
+                                let keychain = extendedKey
+                                print("keychainPrivKey = \(String(describing: keychain?.extendedPrivateKey))")
+                                //save pubkey to create future addresses
+                                print("keychainPubKey = \(String(describing: keychain?.extendedPublicKey))")
+                                let privateKeyHD = keychain?.key.privateKeyAddress
+                                let addressHD = keychain?.key.address
+                                print("privateKeyHD = \(String(describing: privateKeyHD))")
+                                print("addressHD = \(String(describing: addressHD))")
                                 
-                                print("privateKey = \(self.privateKey)")
-                                print("self.bitcoinAddress = \(self.bitcoinAddress)")
+                                //var privateKeyWIF:String!
+                                var legacyAddress:String!
+                                let privateKey2 = privateKeyHD!.description
+                                var privateKey3 = privateKey2.components(separatedBy: " ")
+                                self.privateKey = privateKey3[1].replacingOccurrences(of: ">", with: "")
+                                let legacyAddress1 = addressHD!.description
+                                let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                                legacyAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
                                 
-                                keys?.clear()
+                                let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain?.key.compressedPublicKeyAddress.data) as Data!) as Data!
+                                print("compressedPKData = \(String(describing: compressedPKData?.hex()))")
+                                
+                                do {
+                                    //bc for mainnet and tb for testnet
+                                    self.bitcoinAddress = try self.segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                                    print("segwitBech32 = \(self.bitcoinAddress)")
+                                    
+                                } catch {
+                                    
+                                    self.displayAlert(title: "Error", message: "Please try again.")
+                                    
+                                }
+                                print("privatekey = \(self.privateKey)")
+                                print("address = \(self.bitcoinAddress)")
+                                
+                                keychain?.key.clear()
                                 
                                 DispatchQueue.main.async {
                                     self.showPrivateKey()

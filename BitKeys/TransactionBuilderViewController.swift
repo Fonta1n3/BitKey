@@ -916,6 +916,9 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 if error != nil {
                     
                     print(error as Any)
+                    DispatchQueue.main.async {
+                        self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                    }
                     
                 } else {
                     
@@ -927,63 +930,71 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                             
                             print("jsonAddressResult = \(jsonAddressResult)")
                             
-                            if let toSignCheck = jsonAddressResult["tosign"] as? NSArray {
+                            if let error = jsonAddressResult["errors"] as? NSArray {
                                 
-                                print("toSignCheck = \(toSignCheck[0])")
-                                self.transactionToBeSigned = toSignCheck[0] as! String
-                                self.json = jsonAddressResult.mutableCopy() as! NSMutableDictionary
-                                self.removeScanner()
+                                DispatchQueue.main.async {
+                                    self.displayAlert(title: "Error", message: "\(error)")
+                                }
                                 
-                                if self.setFeeMode == false {
+                            } else {
+                                
+                                if let toSignCheck = jsonAddressResult["tosign"] as? NSArray {
                                     
-                                    if let sizeCheck = (jsonAddressResult["tx"] as? NSDictionary)?["fees"] as? NSInteger {
+                                    print("toSignCheck = \(toSignCheck[0])")
+                                    self.transactionToBeSigned = toSignCheck[0] as! String
+                                    self.json = jsonAddressResult.mutableCopy() as! NSMutableDictionary
+                                    self.removeScanner()
+                                    
+                                    if self.setFeeMode == false {
                                         
-                                        print("sizeCheck = \(sizeCheck)")
-                                        //self.totalSize = sizeCheck + 100
-                                        self.fees = sizeCheck
+                                        if let sizeCheck = (jsonAddressResult["tx"] as? NSDictionary)?["fees"] as? NSInteger {
+                                            
+                                            print("sizeCheck = \(sizeCheck)")
+                                            //self.totalSize = sizeCheck + 100
+                                            self.fees = sizeCheck
+                                            
+                                        }
+                                    }
+                                    
+                                    DispatchQueue.main.async {
+                                        
+                                        let alert = UIAlertController(title: NSLocalizedString("Turn Airplane Mode On", comment: ""), message: "We need to scan your Private Key so that we can create a signature to sign your transaction with, you may enable airplane mode during this operation for maximum security, this is optional. We NEVER save your Private Keys, the signature is created locally and the internet is not used at all, however we will need the interent after you sign the transaction in order to send the bitcoins.", preferredStyle: UIAlertControllerStyle.alert)
+                                        
+                                        alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
+                                            
+                                            DispatchQueue.main.async {
+                                                
+                                                let alert = UIAlertController(title: NSLocalizedString("Address Scan Successful.", comment: ""), message: "You are debiting Bitcoin address \(self.sendingFromAddress)", preferredStyle: UIAlertControllerStyle.actionSheet)
+                                                
+                                                alert.addAction(UIAlertAction(title: NSLocalizedString("Scan Private Key", comment: ""), style: .default, handler: { (action) in
+                                                    
+                                                    self.addScanner()
+                                                    
+                                                }))
+                                                
+                                                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                                    
+                                                    self.dismiss(animated: false, completion: nil)
+                                                    
+                                                }))
+                                                
+                                                self.present(alert, animated: true, completion: nil)
+                                            }
+                                            
+                                        }))
+                                        
+                                        self.present(alert, animated: true, completion: nil)
                                         
                                     }
                                 }
-                                
-                                DispatchQueue.main.async {
-                                    
-                                    let alert = UIAlertController(title: NSLocalizedString("Turn Airplane Mode On", comment: ""), message: "We need to scan your Private Key so that we can create a signature to sign your transaction with, you may enable airplane mode during this operation for maximum security, this is optional. We NEVER save your Private Keys, the signature is created locally and the internet is not used at all, however we will need the interent after you sign the transaction in order to send the bitcoins.", preferredStyle: UIAlertControllerStyle.alert)
-                                    
-                                    alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
-                                        
-                                        DispatchQueue.main.async {
-                                            
-                                            let alert = UIAlertController(title: NSLocalizedString("Address Scan Successful.", comment: ""), message: "You are debiting Bitcoin address \(self.sendingFromAddress)", preferredStyle: UIAlertControllerStyle.actionSheet)
-                                            
-                                            alert.addAction(UIAlertAction(title: NSLocalizedString("Scan Private Key", comment: ""), style: .default, handler: { (action) in
-                                                
-                                                self.addScanner()
-                                                
-                                            }))
-                                            
-                                            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                                                
-                                                self.dismiss(animated: false, completion: nil)
-                                                
-                                            }))
-                                            
-                                            self.present(alert, animated: true, completion: nil)
-                                        }
-                                        
-                                    }))
-                                    
-                                    self.present(alert, animated: true, completion: nil)
-                                    
-                                }
-                                
-                                
-                                
                             }
                             
                         } catch {
                             
                             print("JSon processing failed")
-                            
+                            DispatchQueue.main.async {
+                                self.displayAlert(title: "Error", message: "Please try again.")
+                            }
                         }
                     }
                 }
@@ -1013,7 +1024,9 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 if error != nil {
                     
                     print(error as Any)
-                    
+                    DispatchQueue.main.async {
+                        self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                    }
                     
                 } else {
                     
@@ -1025,44 +1038,58 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                             
                             print("jsonAddressResult = \(jsonAddressResult)")
                             
-                            //check if tosign was consumed.. get TX hash
-                            if let txCheck = jsonAddressResult["tx"] as? NSDictionary {
+                            if let error = jsonAddressResult["errors"] as? NSArray {
                                 
-                                print("txCheck = \(txCheck)")
+                                DispatchQueue.main.async {
+                                    self.displayAlert(title: "Error", message: "\(error)")
+                                }
                                 
-                                if let hashCheck = txCheck["hash"] as? String {
+                            } else {
+                                
+                                //check if tosign was consumed.. get TX hash
+                                if let txCheck = jsonAddressResult["tx"] as? NSDictionary {
                                     
-                                    print("hashCheck = \(hashCheck)")
-                                    self.transactionID = hashCheck
-                                    self.removeScanner()
+                                    print("txCheck = \(txCheck)")
                                     
-                                    DispatchQueue.main.async {
+                                    if let hashCheck = txCheck["hash"] as? String {
                                         
-                                        let alert = UIAlertController(title: NSLocalizedString("Transaction Sent", comment: ""), message: "Transaction ID: \(hashCheck)", preferredStyle: UIAlertControllerStyle.actionSheet)
+                                        print("hashCheck = \(hashCheck)")
+                                        self.transactionID = hashCheck
+                                        self.removeScanner()
                                         
-                                        alert.addAction(UIAlertAction(title: NSLocalizedString("Copy to Clipboard", comment: ""), style: .default, handler: { (action) in
-                                            UIPasteboard.general.string = hashCheck
-                                            self.dismiss(animated: false, completion: nil)
-                                        }))
-                                        
-                                        alert.addAction(UIAlertAction(title: NSLocalizedString("See Transaction", comment: ""), style: .default, handler: { (action) in
-                                            self.getTransaction()
-                                        }))
-                                        
-                                        alert.addAction(UIAlertAction(title: NSLocalizedString("Done", comment: ""), style: .cancel, handler: { (action) in
-                                            self.dismiss(animated: false, completion: nil)
-                                        }))
-                                        
-                                        self.present(alert, animated: true, completion: nil)
-                                        
+                                        DispatchQueue.main.async {
+                                            
+                                            let alert = UIAlertController(title: NSLocalizedString("Transaction Sent", comment: ""), message: "Transaction ID: \(hashCheck)", preferredStyle: UIAlertControllerStyle.actionSheet)
+                                            
+                                            alert.addAction(UIAlertAction(title: NSLocalizedString("Copy to Clipboard", comment: ""), style: .default, handler: { (action) in
+                                                UIPasteboard.general.string = hashCheck
+                                                self.dismiss(animated: false, completion: nil)
+                                            }))
+                                            
+                                            alert.addAction(UIAlertAction(title: NSLocalizedString("See Transaction", comment: ""), style: .default, handler: { (action) in
+                                                self.getTransaction()
+                                            }))
+                                            
+                                            alert.addAction(UIAlertAction(title: NSLocalizedString("Done", comment: ""), style: .cancel, handler: { (action) in
+                                                self.dismiss(animated: false, completion: nil)
+                                            }))
+                                            
+                                            self.present(alert, animated: true, completion: nil)
+                                            
+                                        }
                                     }
                                 }
+                                
                             }
+                            
+                           
                             
                         } catch {
                             
                             print("JSon processing failed")
-                            
+                            DispatchQueue.main.async {
+                                self.displayAlert(title: "Error", message: "Please try again.")
+                            }
                         }
                     }
                     
