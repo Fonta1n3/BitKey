@@ -139,144 +139,35 @@ class ViewController: UIViewController {
             
             
         }
+        //keychainPrivKey = Optional("xprv9wp39VgWmjaVfVaFYcGsSqKKjgoGKQX4XArdpq83o1BH7oxS1bRg5XmH1P1QbiH7c8hCBbSmqp6ZA4s7KZefGMt83JTZRKSMX245UT5crki")
+        
+        //let words = ["useful", "bonus", "bird", "program", "tuna", "august", "salad", "water", "knock", "tree", "salute", "jealous", "yard", "wave", "weird", "unusual", "mesh", "clip", "digital", "window", "tooth", "left", "escape", "rude"]
         
         
+        let mnemonic = BTCMnemonic.init(entropy: data, password: "", wordListType: BTCMnemonicWordListType.english)
+        print("mnemonic = \(String(describing: mnemonic?.words))")
+        let extendedKey = mnemonic?.keychain
+        let keychain = extendedKey
+        print("keychainPrivKey = \(String(describing: keychain?.extendedPrivateKey))")
+        print("keychainPubKey = \(String(describing: keychain?.extendedPublicKey))")
+        let root = keychain?.chainCode.hex()
+        print("root = \(String(describing: root))")
+        let privateKeyHD = keychain?.key.privateKeyAddress
+        let addressHD = keychain?.key.address
+        print("privateKeyHD = \(String(describing: privateKeyHD))")
+        print("addressHD = \(String(describing: addressHD))")
         
-        
+        //below to import word phrase and create master private key
         /*
-        keys?.isPublicKeyCompressed = true
-        let publickey = keys?.publicKey
-        print("publickey = \(String(describing: publickey))")
-        let compressedPublicKey = keys?.compressedPublicKey.hex()
-        print("compressedPublicKey = \(String(describing: compressedPublicKey))")
-        let uncompressedPubKey = keys?.uncompressedPublicKey.hex()
-        print("uncompressedPubKey = \(String(describing: uncompressedPubKey))")
-        let compressedPubKeyAddress = keys?.compressedPublicKeyAddress.data
-        print("compressedPubKeyAddress = \(String(describing: keys?.compressedPublicKeyAddress.description))")
-        let uncompressedPubKeyAddress = keys?.uncompressedPublicKeyAddress.data
-        print("uncompressedPubKeyAddress = \(String(describing: keys?.uncompressedPublicKeyAddress.description))")
-        let derPrivateKey = keys?.derPrivateKey.hex()
-        print("derPrivateKey = \(String(describing: derPrivateKey))")
-        let curvePoint = keys?.curvePoint.description
-        print("curvePoint = \(String(describing: curvePoint))")
-        let privateKeyRaw = keys?.privateKey.hex()
-        print("privateKeyRaw = \(String(describing: privateKeyRaw))")
-        let wif = keys?.wif
-        print("wif = \(String(describing: wif))")
+        let words = ["surprise", "visual", "honey", "setup", "solid", "style", "critic", "flavor", "spring", "vehicle", "frozen", "pond", "misery", "kiwi", "erupt", "slush", "smart", "keen", "hazard", "jazz", "office", "transfer", "spider", "predict"]
         
-        
-        //let script = BTCScript.init(publicKeys: [publickey as Any], signaturesRequired: 1)
-        let script = BTCScript.init(address: keys?.address)
-        print("scriptRaw = \(String(describing: script))")
-        let p2sh = script?.scriptHashAddress
-        print("p2sh = \(String(describing: p2sh))")
-        let scriptHash = script?.scriptHash
-        print("scriptHash = \(String(describing: scriptHash))")
-        let scriptHex = scriptHash?.scriptHashAddress
-        print("scriptHex = \(String(describing: scriptHex))")
+        let testInputMnemonic = BTCMnemonic.init(words: words, password: "", wordListType: BTCMnemonicWordListType.english)
+        let extendedKeyInput = testInputMnemonic?.keychain
+        print("keychainPrivKey = \(String(describing: extendedKeyInput?.extendedPrivateKey))")
         */
-        //calcukate ripemd160 of the sha256 of a public key
-        //the p2sh redeemScript in always 22 bytes. it starts with a OP_0 followed by a cononical push of the key hash
-        
-        /*Let's assume the following Public Key:  publicKey = 03fac6879502c4c939cfaadc45999c7ed7366203ad523ab83ad5502c71621a85bb
-         
-         *ripemd160(sha256(publicKey)) = 7646c030f7e75b80f0a31cdcab731e6f424f22b2 - hash
-         
-         *Add version to hash = 00147646c030f7e75b80f0a31cdcab731e6f424f22b2 - redeemScript
-         
-         *ripemd160(sha256(redeemScript)) = 188ba16284702258959d8bb63bb9a5d979b57875 - hash
-         
-         *sha256(sha256(redeemScript)) = 55c304447c41caee29f1d7c9779a3a8e9dd00ea7905e286e733049d12e1b479f - hash-for-checksum
-         
-         --so far so good (I assume)--
-         
-         *4 byte checksum = 55c30444 - checksum
-         
-         *'05' + hash + checksum = 05188ba16284702258959d8bb63bb9a5d979b5787555c30444 - this is the part I get wrong I think
-         
- 
-        
-        let pubkey = keys?.publicKey
-        let sha256pk = BTCSHA256(pubkey as Data!)
-        let rmdsha256pk = BTCRIPEMD160(sha256pk as Data!)
-        let redeemScript = "0014" + BTCBase58StringWithData(rmdsha256pk as Data!)
-        let sha256redeemScript = BTCSHA256(BTCDataFromHex(redeemScript))
-        let ripeMDsha256redeemScript = BTCRIPEMD160(sha256redeemScript as Data!)
-        let doubleSha = BTCSHA256(BTCSHA256(ripeMDsha256redeemScript as Data!) as Data!)
-        
-        var arr = [String]()
-        for (index, c) in (doubleSha?.hex().enumerated())! {
-            
-            if index < 8 {
-                arr.append(String(c))
-            }
-            
-        }
-        let fourbytechecksum = arr.joined()
-        
-        let rmd160Hex = ripeMDsha256redeemScript?.hex()
-        let x = "05" + rmd160Hex! + fourbytechecksum
-        let data2 = BTCBase58StringWithData(BTCDataFromHex(x))
-        print("segwit = \(String(describing: data2))")
-        */
-        
-        //try this to creat segwit address
-        /*var btc = require('bitcore-lib')
-         var oldAddress = btc.Address.fromString("1Ek9S3QNnutPV7GhtzR8Lr8yKPhxnUP8iw") // here's the old address
-         var oldHash = oldAddress.hashBuffer
-         var segwitP2PKH = Buffer.concat([new Buffer("0014","hex"), oldHash]) // 0x00 + 0x14 (pushdata 20 bytes) + old pubkeyhash
-         var p2shHash = btc.crypto.Hash.sha256ripemd160(segwitP2PKH)
-         var p2shAddress = btc.Address.fromScriptHash(p2shHash)
-         var newAddress = p2shAddress.toString()
-         // 36ghjA1KSAB1jDYD2RdiexEcY7r6XjmDQk*/
-        //let oldAddress = keys?.address
-        //let oldHash = oldAddress?.hash
-        
-        //let p2shHash = BTCRIPEMD160(BTCSHA256(BTCDataFromHex(segwitP2PKH)) as Data!) as Data!
-        //let hashAddress = BTCScriptHashAddress.init(data: p2shHash as Data!)
-        //print("hashAddress = \(String(describing: hashAddress))")
-        
-        //let sha = BTCSHA256(keys?.compressedPublicKey as Data!)
-        //let ripeMD160 = BTCRIPEMD160(sha as Data!)
-        //let ripeMD160Hex = BTCHexFromData(ripeMD160 as Data!)
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        //print("redeemScript = \(ripeMD160HexPlus5)")
-        //let shaOfRS = BTCSHA256(BTCDataFromHex(ripeMD160HexPlus5))
-        //let rmd160 = BTCRIPEMD160(shaOfRS as Data!)
-        //let p2shAddress = BTCScript.init(data: rmd160 as Data!)
-        //print("p2shAddress = \(String(describing: p2shAddress?.description))")
-        //let segwitAddress33 = BTCBase58StringWithData(rmd160 as Data!)
-        //print("segwitAddress33 = \(String(describing: segwitAddress33))")
-        /*
-        let doubleHashRDS = BTCSHA256(BTCSHA256(rmd160 as Data!) as Data!)
-        print("doubleHashRDS = \(doubleHashRDS?.hex())")
-        
-        var arr = [String]()
-        for (index, c) in (doubleHashRDS?.hex().enumerated())! {
-            
-            if index < 8 {
-             arr.append(String(c))
-            }
-            
-        }
-        let fourbytechecksum = arr.joined()
-        print("fourbytechecksum = \(fourbytechecksum)")
-        let rmd160Hex = rmd160?.hex()
-        let x = "05" + rmd160Hex! + fourbytechecksum
-        let data2 = BTCBase58StringWithData(BTCDataFromHex(x))
-        print("segwit = \(String(describing: data2))")
-       */
-        
-        
         return (privateKey, self.bitcoinAddress)
+        
+        
         
     }
     

@@ -1,3 +1,2 @@
 
 github "attaswift/BigInt" ~> 3.0
-github "yuzushioh/HDWalletKit"
