@@ -1,13 +1,25 @@
 # BitSense
 
-A simple and reliable app that allows you to send Bitcoin payments (your private key never has to touch the internet), create secure Private Keys and Addresses for cold storage use. A bitaddress.org inspired app for your iPhone. I maximize offline functionality, never require a log in, or any data from you, no servers involved. Sign transactions locally in airplane mode. Check balances, transaction IDs and save addresses. Get the price of BTC in muliple currencies and the Mayer Multiple. Privacy first. Your keys your responsibility. You decide how to save them. Allows the user to roll dice to create Private Keys in order to create the most secure keys possible, simply input the dice rolls manually into the app and the dice rolls are then converted into bits until we have a 256 bit number.
+-Works offline for key creation and sigining transactions.
+-No log ins, no sign ups, simple, fast reliable.
+-Bech32 compatible. Native SegWit Addresses, also provides legacy address so you can choose what you want to use.
+-BIP39 compatible, import BIP39 mnemonic recovery phrases.
+-Allows anyone to create the most mathematically secure private keys possible by using dice or just simply move the bitcoin around with your finger to create randmoness that way.
+-Check balances, prices.
+-Check the Mayer Multiple.
+-Open sourced.
+-Copy paste and build it yourself if you know how to use xcode.
+
 
 This app is a work in progress and I made it as a project to learn more about Bitcoin and becasue all the other apps are too complicated and don't keep the principles of Bitcoin at heart.
 
 With this app you can send transactions by scanning or inputting the addresses, then you can go into airplane mode to scan your private key to sign the transaction. WE NEVER SAVE YOUR PRIVATE KEYS as you can see in the code.
 
 If the app has helped you and you'd like to donate some BTC please feel free at:
-1N7dsrM8jF1APbX8w5TNXggqFVWUkN5TaH
+
+bc1q2jatx64utedqdg4fqx3cnw9z4x3sltug69nq8e
+
+18j1RKLCPUFLyJdCdU1hEBgHVCX9M1sMsB
 
 ## Getting Started
 

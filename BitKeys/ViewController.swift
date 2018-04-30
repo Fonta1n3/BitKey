@@ -57,20 +57,40 @@ class ViewController: UIViewController, UITextFieldDelegate {
     var wordArray = [String]()
     var importAction = UIButton()
     var listArray = [String]()
+    var hideExplanation:Bool!
+    var diceArray = [UIButton]()
+    var tappedIndex = Int()
+    var randomBits = [String]()
+    var percentageLabel = UILabel()
+    var joinedBits = String()
+    var bitCount:Int! = 0
+    var clearButton = UIButton()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        if UserDefaults.standard.object(forKey: "hideExplanation") != nil {
+            
+            self.hideExplanation = UserDefaults.standard.bool(forKey: "hideExplanation")
+            
+        } else {
+            
+            self.hideExplanation = false
+            
+        }
+        
         inputMnemonic.delegate = self
         privateKeyMode = true
         showBitcoin()
+        
+        print("width  = \(view.frame.width)")
         
     }
     
     override func viewWillLayoutSubviews(){
         super.viewWillLayoutSubviews()
         
-        scrollView.contentSize = CGSize(width: self.view.frame.width, height: 3700)
+        self.scrollView.contentSize = CGSize(width: self.view.frame.width, height: 3700)
         
     }
     
@@ -131,7 +151,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
         let addressHD = keychain.key.address
         print("privateKeyHD = \(String(describing: privateKeyHD))")
         print("addressHD = \(String(describing: addressHD))")
-        
         let privateKey2 = privateKeyHD!.description
         var privateKey3 = privateKey2.components(separatedBy: " ")
         self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
@@ -139,7 +158,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
         self.legacyAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
         
-        let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain.key.compressedPublicKeyAddress.data) as Data!) as Data!
+        let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain.key.compressedPublicKey as Data!) as Data!) as Data!
         
         do {
             //bc for mainnet and tb for testnet
@@ -151,11 +170,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.displayAlert(title: "Error", message: "Please try again.")
             return("", "", "")
         }
+        
         print("privatekey = \(self.privateKeyWIF)")
         print("address = \(self.bitcoinAddress)")
-        
-        
-        
         keychain.key.clear()
         
         return (self.privateKeyWIF, self.legacyAddress, self.bitcoinAddress)
@@ -170,17 +187,11 @@ class ViewController: UIViewController, UITextFieldDelegate {
         let formatMnemonic1 = self.words.replacingOccurrences(of: "[", with: "")
         let formatMnemonic2 = formatMnemonic1.replacingOccurrences(of: "]", with: "")
         self.recoveryPhrase = formatMnemonic2.replacingOccurrences(of: ",", with: "")
-        print("mnemonic = \(String(describing: mnemonic?.words))")
         let extendedKey = mnemonic?.keychain
         let keychain = extendedKey
-        print("keychainPrivKey = \(String(describing: keychain?.extendedPrivateKey))")
         //save pubkey to create future addresses
-        print("keychainPubKey = \(String(describing: keychain?.extendedPublicKey))")
         let privateKeyHD = keychain?.key.privateKeyAddress
         let addressHD = keychain?.key.address
-        print("privateKeyHD = \(String(describing: privateKeyHD))")
-        print("addressHD = \(String(describing: addressHD))")
-        
         let privateKey2 = privateKeyHD!.description
         var privateKey3 = privateKey2.components(separatedBy: " ")
         self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
@@ -188,7 +199,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
         self.legacyAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
         
-        let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain?.key.compressedPublicKeyAddress.data) as Data!) as Data!
+        let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain?.key.compressedPublicKey as Data!) as Data!) as Data!
         
         do {
             //bc for mainnet and tb for testnet
@@ -202,14 +213,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
         }
         print("privatekey = \(self.privateKeyWIF)")
         print("address = \(self.bitcoinAddress)")
-        
-        
-        
         keychain?.key.clear()
         
         return (self.privateKeyWIF, self.bitcoinAddress)
-        
-        
         
     }
     
@@ -224,14 +230,12 @@ class ViewController: UIViewController, UITextFieldDelegate {
             }
         }
         
-        
         self.imageView.removeFromSuperview()
         self.checkAddressButton.removeFromSuperview()
         self.mayerMultipleButton.removeFromSuperview()
         self.diceButton.removeFromSuperview()
         self.transactionsButton.removeFromSuperview()
         self.importButton.removeFromSuperview()
-        
         
         self.inputMnemonic.frame = CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 100, width: self.view.frame.width - 10, height: 50)
         self.inputMnemonic.textAlignment = .center
@@ -250,46 +254,24 @@ class ViewController: UIViewController, UITextFieldDelegate {
         self.outputMnemonic.font = UIFont.systemFont(ofSize: 22, weight: .regular)
         self.outputMnemonic.returnKeyType = UIReturnKeyType.done
         self.view.addSubview(self.outputMnemonic)
-        
         self.addBackButton()
-        
         self.addImportActionButton()
         
-        
-        
     }
-    
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        print("textFieldDidEndEditing")
-        if textField == self.inputMnemonic {
-           
-            //let words = self.inputMnemonic.text?.split(separator: " ")
-            //print("words = \(String(describing: words))")
-            //let testInputMnemonic = BTCMnemonic.init(words: words, password: "", wordListType: BTCMnemonicWordListType.english)
-            //let extendedKeyInput = testInputMnemonic?.keychain
-            //print("keychainPrivKey = \(String(describing: extendedKeyInput?.extendedPrivateKey))")
-            
-            
-        }
-    }
-    
-    
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         print("textFieldShouldReturn")
+        
         self.wordArray.append(self.inputMnemonic.text!)
-        print("self.wordArray = \(self.wordArray)")
         self.listArray.append(self.inputMnemonic.text! + "  ")
         self.outputMnemonic.text = self.listArray.joined()
         self.inputMnemonic.text = ""
-        //self.inputMnemonic.becomeFirstResponder()
-        //self.view.endEditing(true)
+        
         return false
     }
     
     func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
         print("textFieldShouldEndEditing")
-        //addressToDisplay.resignFirstResponder()
         return true
     }
     
@@ -371,10 +353,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 if self.zero == 256 {
                     
                     let bits = self.bitArray.joined()
-                    print("bits = \(bits)")
                     
                     self.parseBitResult = self.parseBinary(binary: bits)!
-                    print("self.parseBitResult = \(self.parseBitResult)")
                     
                     UIView.animate(withDuration: 0.5, animations: {
                         
@@ -382,8 +362,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
                         
                     }, completion: { _ in
                         
-                        //if self.connected == false {
-                            print("count = \(bits.count)")
+                        if self.connected == false {
+                            
                             self.privateKeyWIF = self.createPrivateKey(userRandomness: self.parseBitResult).privateKeyAddress
                             
                             if self.privateKeyWIF != "" {
@@ -421,13 +401,13 @@ class ViewController: UIViewController, UITextFieldDelegate {
                                 
                             }
                             
-                        /*} else {
+                        } else {
                             DispatchQueue.main.async {
                                 self.zero = 0
                                 self.bitArray.removeAll()
                                 self.displayAlert(title: "Your devices connection may not be secure.", message: "You should only create private keys offline. Please enable airplane mode, turn off wifi and try again.")
                             }
-                        }*/
+                        }
                         
                     })
                     
@@ -606,9 +586,17 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.button.showsTouchWhenHighlighted = true
             self.button.backgroundColor = .black
             self.button.setTitle("Back", for: .normal)
-            self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
+            self.button.addTarget(self, action: #selector(self.back), for: .touchUpInside)
             self.view.addSubview(self.button)
         }
+    }
+    
+    @objc func back() {
+        
+        self.inputMnemonic.resignFirstResponder()
+        self.inputMnemonic.removeFromSuperview()
+        self.importButton.removeFromSuperview()
+        self.showBitcoin()
     }
     
     @objc func getAddress() {
@@ -661,8 +649,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 self.privateKeyMode = true
                 
             }
-            
-            
         }
     }
     
@@ -674,6 +660,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("I saved it, go back", comment: ""), style: .destructive, handler: { (action) in
                 
+                self.privateKeyQRView.image != nil
                 self.privateKeyQRCode = nil
                 self.privateKeyImage = nil
                 self.privateKeyQRView.image = nil
@@ -698,8 +685,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
             self.present(alert, animated: true, completion: nil)
         }
-        
-        
     }
     
     func generateQrCode(key: String) -> UIImage? {
@@ -715,6 +700,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             privateKeyImage = UIImage(cgImage: cgImage!)
             return privateKeyImage
         }
+        
         return nil
         
     }
@@ -801,7 +787,16 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
         case self.diceButton:
             
-            self.performSegue(withIdentifier: "diceKeyCreator", sender: self)
+            self.view.addSubview(self.scrollView)
+            self.imageView.removeFromSuperview()
+            self.checkAddressButton.removeFromSuperview()
+            self.mayerMultipleButton.removeFromSuperview()
+            self.diceButton.removeFromSuperview()
+            self.transactionsButton.removeFromSuperview()
+            self.importButton.removeFromSuperview()
+            self.showDice()
+            self.addBackButton()
+            self.addClearButton()
             
         case self.mayerMultipleButton:
             
@@ -876,7 +871,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Private Key Text", comment: ""), style: .default, handler: { (action) in
                     
-                    //let textToShare = [self.privateKeyText]
                     let activityViewController = UIActivityViewController(activityItems: [self.privateKeyText], applicationActivities: nil)
                     self.present(activityViewController, animated: true, completion: nil)
                     
@@ -1045,17 +1039,333 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     func rotateAnimation(imageView:UIImageView,duration: CFTimeInterval = 2.0) {
         
-        let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
-        rotateAnimation.fromValue = 0.0
-        rotateAnimation.toValue = CGFloat(.pi * 2.0)
-        rotateAnimation.duration = duration
-        rotateAnimation.repeatCount = Float.greatestFiniteMagnitude;
-        imageView.layer.add(rotateAnimation, forKey: nil)
+        DispatchQueue.main.async {
+            let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
+            rotateAnimation.fromValue = 0.0
+            rotateAnimation.toValue = CGFloat(.pi * 2.0)
+            rotateAnimation.duration = duration
+            rotateAnimation.repeatCount = Float.greatestFiniteMagnitude;
+            imageView.layer.add(rotateAnimation, forKey: nil)
+        }
         
     }
     
     
+    func addPercentageCompleteLabel() {
+        
+        DispatchQueue.main.async {
+            self.percentageLabel.frame = CGRect(x: self.view.frame.maxX / 2 - 50, y: self.view.frame.minY + 10, width: 100, height: 50)
+            let percentage:Double = (Double(self.bitCount) / 256.0) * 100.0
+            self.percentageLabel.text = "\(Int(percentage))%"
+            self.percentageLabel.textColor = UIColor.black
+            self.percentageLabel.backgroundColor = UIColor.white
+            self.percentageLabel.font = UIFont.systemFont(ofSize: 30)
+            self.percentageLabel.textAlignment = .center
+            self.view.addSubview(self.percentageLabel)
+        }
+    }
     
+    func addClearButton() {
+        
+        self.clearButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 100, y: 0, width: 100 , height: 55))
+        self.clearButton.showsTouchWhenHighlighted = true
+        self.clearButton.backgroundColor = .black
+        self.clearButton.setTitle("Clear", for: .normal)
+        self.clearButton.addTarget(self, action: #selector(self.tapClearDice), for: .touchUpInside)
+        self.view.addSubview(self.clearButton)
+    }
+    
+    @objc func tapClearDice() {
+        
+        clearDice()
+        
+    }
+    
+    func clearDice() {
+        
+        for dice in self.diceArray {
+            dice.removeFromSuperview()
+        }
+        self.diceArray.removeAll()
+        self.tappedIndex = 0
+        self.percentageLabel.removeFromSuperview()
+        self.showDice()
+        
+    }
+    
+    func creatBitKey() {
+        
+        for dice in self.diceArray {
+            
+            let diceNumber = Int((dice.titleLabel?.text)!)!
+            
+            if diceNumber != 0 {
+                
+                if dice.tag < self.tappedIndex {
+                    
+                    switch diceNumber {
+                        
+                    case 1:
+                        self.randomBits.append("00")
+                    case 2:
+                        self.randomBits.append("01")
+                    case 3:
+                        self.randomBits.append("10")
+                    case 4:
+                        self.randomBits.append("11")
+                    case 5:
+                        self.randomBits.append("0")
+                    case 6:
+                        self.randomBits.append("1")
+                    default: break
+                        
+                    }
+                    
+                    self.joinedBits = randomBits.joined()
+                    
+                    self.bitCount = 0
+                    self.percentageLabel.removeFromSuperview()
+                    
+                    for _ in self.joinedBits {
+                        self.bitCount = bitCount + 1
+                    }
+                    
+                    self.addPercentageCompleteLabel()
+                    
+                    if self.bitCount > 255 {
+                        
+                        DispatchQueue.main.async {
+                            
+                            let alert = UIAlertController(title: NSLocalizedString("Are you sure you have input the dice values correctly?", comment: ""), message: "", preferredStyle: UIAlertControllerStyle.alert)
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, I'm sure", comment: ""), style: .default, handler: { (action) in
+                                
+                                if self.bitCount == 257 {
+                                    self.joinedBits.removeLast()
+                                }
+                                
+                                self.parseBitResult = self.parseBinary(binary: self.joinedBits)!
+                                
+                                var count = 0
+                                for _ in self.joinedBits {
+                                    count = count + 1
+                                }
+                                
+                                self.percentageLabel.removeFromSuperview()
+                                self.clearButton.removeFromSuperview()
+                                
+                                for dice in self.diceArray {
+                                    dice.removeFromSuperview()
+                                }
+                                self.diceArray.removeAll()
+                                self.tappedIndex = 0
+                                
+                                self.privateKeyWIF = self.createPrivateKey(userRandomness: self.parseBitResult).privateKeyAddress
+                                self.addQRCodesAndLabels()
+                                
+                            }))
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("No, let me check", comment: ""), style: .default, handler: { (action) in
+                                
+                            }))
+                            
+                            self.present(alert, animated: true, completion: nil)
+                            
+                        }
+                        
+                    } else {
+                        
+                    }
+                    
+                }
+                
+            }
+            
+        }
+        
+        self.randomBits.removeAll()
+        
+    }
+    
+    @objc func tapDice(sender: UIButton!) {
+        
+        self.isInternetAvailable()
+        
+        let diceNumber = Int((sender.titleLabel?.text)!)!
+        
+        func addDiceValue() {
+            
+            switch diceNumber {
+                
+            case 0:
+                DispatchQueue.main.async {
+                    sender.setTitle("1", for: .normal)
+                    sender.setImage(#imageLiteral(resourceName: "one.png"), for: .normal)
+                }
+            case 1:
+                DispatchQueue.main.async {
+                    sender.setTitle("2", for: .normal)
+                    sender.setImage(#imageLiteral(resourceName: "two.png"), for: .normal)
+                }
+            case 2:
+                DispatchQueue.main.async {
+                    sender.setTitle("3", for: .normal)
+                    sender.setImage(#imageLiteral(resourceName: "three.png"), for: .normal)
+                }
+            case 3:
+                DispatchQueue.main.async {
+                    sender.setTitle("4", for: .normal)
+                    sender.setImage(#imageLiteral(resourceName: "four.png"), for: .normal)
+                }
+            case 4:
+                DispatchQueue.main.async {
+                    sender.setTitle("5", for: .normal)
+                    sender.setImage(#imageLiteral(resourceName: "five.png"), for: .normal)
+                }
+            case 5:
+                DispatchQueue.main.async {
+                    sender.setTitle("6", for: .normal)
+                    sender.setImage(#imageLiteral(resourceName: "six.png"), for: .normal)
+                }
+            case 6:
+                DispatchQueue.main.async {
+                    sender.setTitle("1", for: .normal)
+                    sender.setImage(#imageLiteral(resourceName: "one.png"), for: .normal)
+                }
+            default:
+                break
+                
+                
+            }
+            
+        }
+        
+        if self.connected == false {
+            
+            if sender.tag == 1 && diceNumber == 0 {
+                
+                self.tappedIndex = sender.tag
+                addDiceValue()
+                
+            } else if sender.tag == self.tappedIndex + 1 {
+                
+                self.tappedIndex = sender.tag
+                addDiceValue()
+                creatBitKey()
+                
+            } else if sender.tag == self.tappedIndex {
+                
+                addDiceValue()
+                
+            } else if self.hideExplanation == false {
+                
+                DispatchQueue.main.async {
+                    
+                    let alert = UIAlertController(title: NSLocalizedString("You must input dice values in order.", comment: ""), message: "In order for the key to be cryptographically secure you must input the actual values of your dice as they appear to you from left to right, in order row by row.\n\nStart with the top left dice and work your way to the right being very careful to ensure you input the dice values correctly.", preferredStyle: UIAlertControllerStyle.alert)
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Ok, got it", comment: ""), style: .default, handler: { (action) in
+                        
+                    }))
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Why?", comment: ""), style: .default, handler: { (action) in
+                        
+                        self.displayAlert(title: "", message: "We make it impossible for you to input the dice values out of order becasue we don't want you to accidentally create a Private Key that is not based on true cryptographic secure randomness. We also do this to make it impossible for you to accidentaly tap and change a value of a dice you have already input. Secure keys ARE WORTH the effort!")
+                        
+                    }))
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Start Over", comment: ""), style: .destructive, handler: { (action) in
+                        
+                        self.clearDice()
+                        
+                    }))
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Don't show me this again", comment: ""), style: .destructive, handler: { (action) in
+                        
+                        UserDefaults.standard.set(true, forKey: "hideExplanation")
+                        self.hideExplanation = true
+                        
+                    }))
+                    
+                    self.present(alert, animated: true, completion: nil)
+                    
+                }
+                
+            }
+            
+        } else {
+            
+            DispatchQueue.main.async {
+                self.displayAlert(title: "Turn on airplane mode to create private keys securely.", message: "The idea is to never let your Bitcoin private key touch the interent, secure keys are worth the effort.")
+            }
+        }
+    }
+    
+    func showDice() {
+        print("showDice")
+        
+        self.isInternetAvailable()
+        
+        
+        var xvalue:Int!
+        var width:Int!
+        var height:Int!
+        
+        if self.view.frame.width == 414 {
+         
+            xvalue = 25
+            width = 65
+            height = 65
+            
+        } else {
+            
+            xvalue = 14
+            width = 50
+            height = 50
+        }
+        
+        var yvalue = 60
+        var zero = 0
+        
+        for _ in 0..<40 {
+            
+            for _ in 0..<5 {
+                
+                zero = zero + 1
+                self.diceButton = UIButton(frame: CGRect(x: xvalue, y: yvalue, width: width, height: height))
+                self.diceButton.setImage(#imageLiteral(resourceName: "images-6.png"), for: .normal)
+                self.diceButton.tag = zero
+                self.diceButton.showsTouchWhenHighlighted = true
+                self.diceButton.setTitle("\(0)", for: .normal)
+                self.diceButton.titleLabel?.textColor = UIColor.white
+                self.diceButton.addTarget(self, action: #selector(self.tapDice), for: .touchUpInside)
+                self.diceArray.append(self.diceButton)
+                self.scrollView.addSubview(self.diceButton)
+                
+                if self.view.frame.width == 414 {
+                    
+                 xvalue = xvalue + 75
+                    
+                } else {
+                    
+                    xvalue = xvalue + 60
+                }
+                
+            }
+            
+            if self.view.frame.width == 414 {
+              
+                xvalue = 25
+                
+            } else {
+                
+                xvalue = 14
+            }
+            
+            yvalue = yvalue + 90
+            
+        }
+        
+    }
     
 }
 
