@@ -12,7 +12,7 @@ import SystemConfiguration
 import BigInt
 
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UITextFieldDelegate {
     
     @IBOutlet var scrollView: UIScrollView!
     var privateKeyQRCode:UIImage!
@@ -50,13 +50,20 @@ class ViewController: UIViewController {
     var legacyAddress = String()
     var recoveryPhrase = String()
     var recoveryPhraseLabel = UILabel()
+    var privateKeyWIF = String()
+    var importButton = UIButton()
+    var inputMnemonic = UITextField()
+    var outputMnemonic = UITextView()
+    var wordArray = [String]()
+    var importAction = UIButton()
+    var listArray = [String]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        inputMnemonic.delegate = self
         privateKeyMode = true
         showBitcoin()
-        
         
     }
     
@@ -98,6 +105,7 @@ class ViewController: UIViewController {
         addMayerMultipleButton()
         addDiceButton()
         addTransactionsButton()
+        addImportButton()
         
         bitField = UITextView (frame:CGRect(x: view.center.x - (self.view.frame.width / 2), y: view.center.y - (self.view.frame.height / 2), width: self.view.frame.width, height: self.view.frame.height))
         bitField.isUserInteractionEnabled = false
@@ -108,11 +116,49 @@ class ViewController: UIViewController {
         imageView = UIImageView(image: bitcoinImage!)
         imageView.center = view.center
         imageView.frame = CGRect(x: view.center.x - 100, y: view.center.y - 100, width: 200, height: 200)
+        rotateAnimation(imageView: imageView as! UIImageView)
         
         let bitcoinDragged = UIPanGestureRecognizer(target: self, action: #selector(self.userCreatesRandomness(gestureRecognizer:)))
         imageView.isUserInteractionEnabled = true
         imageView.addGestureRecognizer(bitcoinDragged)
         view.addSubview(imageView)
+        
+    }
+    
+    func derivePrivateKeyFromMasterKey(keychain: BTCKeychain) -> (privateKeyAddress: String, legacyAddress: String, segwitAddress: String) {
+        
+        let privateKeyHD = keychain.key.privateKeyAddress
+        let addressHD = keychain.key.address
+        print("privateKeyHD = \(String(describing: privateKeyHD))")
+        print("addressHD = \(String(describing: addressHD))")
+        
+        let privateKey2 = privateKeyHD!.description
+        var privateKey3 = privateKey2.components(separatedBy: " ")
+        self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
+        let legacyAddress1 = addressHD!.description
+        let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+        self.legacyAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+        
+        let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain.key.compressedPublicKeyAddress.data) as Data!) as Data!
+        
+        do {
+            //bc for mainnet and tb for testnet
+            self.bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+            print("segwitBech32 = \(self.bitcoinAddress)")
+            
+        } catch {
+            
+            self.displayAlert(title: "Error", message: "Please try again.")
+            return("", "", "")
+        }
+        print("privatekey = \(self.privateKeyWIF)")
+        print("address = \(self.bitcoinAddress)")
+        
+        
+        
+        keychain.key.clear()
+        
+        return (self.privateKeyWIF, self.legacyAddress, self.bitcoinAddress)
         
     }
     
@@ -135,10 +181,9 @@ class ViewController: UIViewController {
         print("privateKeyHD = \(String(describing: privateKeyHD))")
         print("addressHD = \(String(describing: addressHD))")
         
-        var privateKeyWIF:String!
         let privateKey2 = privateKeyHD!.description
         var privateKey3 = privateKey2.components(separatedBy: " ")
-        privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
+        self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
         let legacyAddress1 = addressHD!.description
         let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
         self.legacyAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
@@ -155,31 +200,97 @@ class ViewController: UIViewController {
             self.displayAlert(title: "Error", message: "Please try again.")
             return("", "")
         }
-        print("privatekey = \(privateKeyWIF)")
+        print("privatekey = \(self.privateKeyWIF)")
         print("address = \(self.bitcoinAddress)")
         
         
         
         keychain?.key.clear()
         
-        return (privateKeyWIF, self.bitcoinAddress)
+        return (self.privateKeyWIF, self.bitcoinAddress)
         
         
         
     }
     
-    //to do
-    func importPriavteKey() {
+    @objc func importMnemonic() {
         
-        //below to import word phrase and get master private key
-        /*
-         let words = ["surprise", "visual", "honey", "setup", "solid", "style", "critic", "flavor", "spring", "vehicle", "frozen", "pond", "misery", "kiwi", "erupt", "slush", "smart", "keen", "hazard", "jazz", "office", "transfer", "spider", "predict"]
-         
-         let testInputMnemonic = BTCMnemonic.init(words: words, password: "", wordListType: BTCMnemonicWordListType.english)
-         let extendedKeyInput = testInputMnemonic?.keychain
-         print("keychainPrivKey = \(String(describing: extendedKeyInput?.extendedPrivateKey))")
-         */
+        self.isInternetAvailable()
         
+        if self.connected == true {
+            
+            DispatchQueue.main.async {
+                self.displayAlert(title: "Security Alert", message: "You are connected to the internet, for maximum security please enable airplane mode before you enter your recovery phrase.")
+            }
+        }
+        
+        
+        self.imageView.removeFromSuperview()
+        self.checkAddressButton.removeFromSuperview()
+        self.mayerMultipleButton.removeFromSuperview()
+        self.diceButton.removeFromSuperview()
+        self.transactionsButton.removeFromSuperview()
+        self.importButton.removeFromSuperview()
+        
+        
+        self.inputMnemonic.frame = CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 100, width: self.view.frame.width - 10, height: 50)
+        self.inputMnemonic.textAlignment = .center
+        self.inputMnemonic.borderStyle = .roundedRect
+        self.inputMnemonic.autocapitalizationType = .none
+        self.inputMnemonic.placeholder = "Type each word one by one"
+        self.inputMnemonic.backgroundColor = UIColor.groupTableViewBackground
+        self.inputMnemonic.returnKeyType = UIReturnKeyType.next
+        self.inputMnemonic.spellCheckingType = .no
+        self.view.addSubview(self.inputMnemonic)
+        self.inputMnemonic.becomeFirstResponder()
+        
+        self.outputMnemonic.frame = CGRect(x: self.view.frame.minX + 5, y: self.inputMnemonic.frame.maxY + 100, width: self.view.frame.width - 10, height: 200)
+        self.outputMnemonic.textAlignment = .left
+        self.outputMnemonic.isEditable = false
+        self.outputMnemonic.font = UIFont.systemFont(ofSize: 22, weight: .regular)
+        self.outputMnemonic.returnKeyType = UIReturnKeyType.done
+        self.view.addSubview(self.outputMnemonic)
+        
+        self.addBackButton()
+        
+        self.addImportActionButton()
+        
+        
+        
+    }
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        print("textFieldDidEndEditing")
+        if textField == self.inputMnemonic {
+           
+            //let words = self.inputMnemonic.text?.split(separator: " ")
+            //print("words = \(String(describing: words))")
+            //let testInputMnemonic = BTCMnemonic.init(words: words, password: "", wordListType: BTCMnemonicWordListType.english)
+            //let extendedKeyInput = testInputMnemonic?.keychain
+            //print("keychainPrivKey = \(String(describing: extendedKeyInput?.extendedPrivateKey))")
+            
+            
+        }
+    }
+    
+    
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        print("textFieldShouldReturn")
+        self.wordArray.append(self.inputMnemonic.text!)
+        print("self.wordArray = \(self.wordArray)")
+        self.listArray.append(self.inputMnemonic.text! + "  ")
+        self.outputMnemonic.text = self.listArray.joined()
+        self.inputMnemonic.text = ""
+        //self.inputMnemonic.becomeFirstResponder()
+        //self.view.endEditing(true)
+        return false
+    }
+    
+    func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
+        print("textFieldShouldEndEditing")
+        //addressToDisplay.resignFirstResponder()
+        return true
     }
     
     func createNewAddress() {
@@ -217,6 +328,7 @@ class ViewController: UIViewController {
         self.mayerMultipleButton.removeFromSuperview()
         self.diceButton.removeFromSuperview()
         self.transactionsButton.removeFromSuperview()
+        self.importButton.removeFromSuperview()
         
         //set up the drag ability and postion of the bitcoin
         let translation = gestureRecognizer.translation(in: view)
@@ -270,95 +382,13 @@ class ViewController: UIViewController {
                         
                     }, completion: { _ in
                         
-                        if self.connected == false {
+                        //if self.connected == false {
                             print("count = \(bits.count)")
-                            let privateKey = self.createPrivateKey(userRandomness: self.parseBitResult).privateKeyAddress
+                            self.privateKeyWIF = self.createPrivateKey(userRandomness: self.parseBitResult).privateKeyAddress
                             
-                            if privateKey != "" {
+                            if self.privateKeyWIF != "" {
                                 
-                                self.privateKeyText = privateKey
-                                self.privateKeyQRCode = self.generateQrCode(key: privateKey)
-                                self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
-                                self.privateKeyQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 120, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
-                                self.privateKeyQRView.alpha = 0
-                                self.scrollView.addSubview(self.privateKeyQRView)
-                                
-                                self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 140 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
-                                self.WIFprivateKeyFieldLabel.font = .systemFont(ofSize: 12)
-                                self.WIFprivateKeyFieldLabel.textColor = UIColor.black
-                                self.WIFprivateKeyFieldLabel.textAlignment = .left
-                                self.scrollView.addSubview(self.WIFprivateKeyFieldLabel)
-                                
-                                UIView.animate(withDuration: 0.5, animations: {
-                                    
-                                    self.imageView.alpha = 0
-                                    self.bitField.alpha = 0
-                                    
-                                }, completion: { _ in
-                                    
-                                    self.imageView.removeFromSuperview()
-                                    self.bitField.removeFromSuperview()
-                                    self.view.addSubview(self.scrollView)
-                                    //self.scrollView.addSubview(self.privateKeyQRView)
-                                    
-                                    UIView.animate(withDuration: 0.5, animations: {
-                                        
-                                        self.privateKeyQRView.alpha = 1
-                                        
-                                        
-                                    }, completion: { _ in
-                                        
-                                        self.scrollView.setContentOffset(.zero, animated: false)
-                                        
-                                        self.WIFprivateKeyFieldLabel.text = "WIF Format:"
-                                        
-                                        self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 60, width: self.scrollView.frame.width, height: 50))
-                                        self.privateKeyTitle.text = "Bitcoin Private Key"
-                                        self.privateKeyTitle.font = .systemFont(ofSize: 32)
-                                        self.privateKeyTitle.textColor = UIColor.black
-                                        self.privateKeyTitle.textAlignment = .center
-                                        self.scrollView.addSubview(self.privateKeyTitle)
-                                        
-                                        self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y + ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: 100))
-                                        self.myField.text = privateKey
-                                        self.myField.isEditable = false
-                                        self.myField.isSelectable = true
-                                        self.myField.font = .systemFont(ofSize: 24)
-                                        self.scrollView.addSubview(self.myField)
-                                        self.addHomeButton()
-                                        self.addBackUpButton()
-                                        self.zero = 0
-                                        self.bitArray.removeAll()
-                                        
-                                        self.mnemonicLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 270 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
-                                        self.mnemonicLabel.text = "Recovery Phrase:"
-                                        self.mnemonicLabel.font = .systemFont(ofSize: 12)
-                                        self.mnemonicLabel.textColor = UIColor.black
-                                        self.mnemonicLabel.textAlignment = .left
-                                        self.scrollView.addSubview(self.mnemonicLabel)
-                                        
-                                        self.mnemonicView = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 275 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 175))
-                                        self.mnemonicView.text = self.recoveryPhrase
-                                        self.mnemonicView.isEditable = false
-                                        self.mnemonicView.isSelectable = true
-                                        self.mnemonicView.font = .systemFont(ofSize: 24)
-                                        self.scrollView.addSubview(self.mnemonicView)
-                                        
-                                        self.recoveryPhraseLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 10, width: self.scrollView.frame.width - 10, height: 50))
-                                        self.recoveryPhraseLabel.text = "Recovery QR Code"
-                                        self.recoveryPhraseLabel.font = .systemFont(ofSize: 32)
-                                        self.recoveryPhraseLabel.textColor = UIColor.black
-                                        self.recoveryPhraseLabel.textAlignment = .center
-                                        self.scrollView.addSubview(self.recoveryPhraseLabel)
-                                        
-                                        self.recoveryPhraseImage = self.generateQrCode(key: self.recoveryPhrase)
-                                        self.recoveryPhraseQRView = UIImageView(image: self.recoveryPhraseImage!)
-                                        self.recoveryPhraseQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 80, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
-                                        self.scrollView.addSubview(self.recoveryPhraseQRView)
-                                        
-                                    })
-                                    
-                                })
+                                self.addQRCodesAndLabels()
                                 
                             } else {
                                 
@@ -391,13 +421,13 @@ class ViewController: UIViewController {
                                 
                             }
                             
-                        } else {
+                        /*} else {
                             DispatchQueue.main.async {
                                 self.zero = 0
                                 self.bitArray.removeAll()
                                 self.displayAlert(title: "Your devices connection may not be secure.", message: "You should only create private keys offline. Please enable airplane mode, turn off wifi and try again.")
                             }
-                        }
+                        }*/
                         
                     })
                     
@@ -424,6 +454,118 @@ class ViewController: UIViewController {
         }
     }
     
+    func addQRCodesAndLabels() {
+        
+        self.privateKeyText = self.privateKeyWIF
+        self.privateKeyQRCode = self.generateQrCode(key: self.privateKeyWIF)
+        self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
+        self.privateKeyQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 120, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
+        self.privateKeyQRView.alpha = 0
+        self.scrollView.addSubview(self.privateKeyQRView)
+        
+        self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 140 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+        self.WIFprivateKeyFieldLabel.font = .systemFont(ofSize: 12)
+        self.WIFprivateKeyFieldLabel.textColor = UIColor.black
+        self.WIFprivateKeyFieldLabel.textAlignment = .left
+        self.scrollView.addSubview(self.WIFprivateKeyFieldLabel)
+        
+        UIView.animate(withDuration: 0.5, animations: {
+            
+            self.imageView.alpha = 0
+            self.bitField.alpha = 0
+            
+        }, completion: { _ in
+            
+            self.imageView.removeFromSuperview()
+            self.bitField.removeFromSuperview()
+            self.view.addSubview(self.scrollView)
+            
+            UIView.animate(withDuration: 0.5, animations: {
+                
+                self.privateKeyQRView.alpha = 1
+                
+                
+            }, completion: { _ in
+                
+                self.scrollView.setContentOffset(.zero, animated: false)
+                
+                self.WIFprivateKeyFieldLabel.text = "WIF Format:"
+                
+                self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 60, width: self.scrollView.frame.width, height: 50))
+                self.privateKeyTitle.text = "Bitcoin Private Key"
+                self.privateKeyTitle.font = .systemFont(ofSize: 32)
+                self.privateKeyTitle.textColor = UIColor.black
+                self.privateKeyTitle.textAlignment = .center
+                self.scrollView.addSubview(self.privateKeyTitle)
+                
+                self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.privateKeyQRView.frame.maxY + 30, width: self.view.frame.width - 50, height: 100))
+                self.myField.isEditable = false
+                self.myField.isSelectable = true
+                self.myField.font = .systemFont(ofSize: 24)
+                self.myField.text = self.privateKeyWIF
+                self.scrollView.addSubview(self.myField)
+                self.addHomeButton()
+                self.addBackUpButton()
+                self.zero = 0
+                self.bitArray.removeAll()
+                
+                self.mnemonicLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 270 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+                self.mnemonicLabel.text = "Recovery Phrase:"
+                self.mnemonicLabel.font = .systemFont(ofSize: 12)
+                self.mnemonicLabel.textColor = UIColor.black
+                self.mnemonicLabel.textAlignment = .left
+                self.scrollView.addSubview(self.mnemonicLabel)
+                
+                self.mnemonicView = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 275 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 175))
+                self.mnemonicView.text = self.recoveryPhrase
+                self.mnemonicView.isEditable = false
+                self.mnemonicView.isSelectable = true
+                self.mnemonicView.font = .systemFont(ofSize: 24)
+                self.scrollView.addSubview(self.mnemonicView)
+                
+                self.recoveryPhraseLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 10, width: self.scrollView.frame.width - 10, height: 50))
+                self.recoveryPhraseLabel.text = "Recovery QR Code"
+                self.recoveryPhraseLabel.font = .systemFont(ofSize: 32)
+                self.recoveryPhraseLabel.textColor = UIColor.black
+                self.recoveryPhraseLabel.textAlignment = .center
+                self.scrollView.addSubview(self.recoveryPhraseLabel)
+                
+                self.recoveryPhraseImage = self.generateQrCode(key: self.recoveryPhrase)
+                self.recoveryPhraseQRView = UIImageView(image: self.recoveryPhraseImage!)
+                self.recoveryPhraseQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 80, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
+                self.scrollView.addSubview(self.recoveryPhraseQRView)
+                
+            })
+            
+        })
+    }
+    
+    @objc func importNow() {
+        
+        
+        if let testInputMnemonic = BTCMnemonic.init(words: self.wordArray, password: "", wordListType: BTCMnemonicWordListType.english) {
+           
+            self.checkAddressButton.removeFromSuperview()
+            self.mayerMultipleButton.removeFromSuperview()
+            self.diceButton.removeFromSuperview()
+            self.transactionsButton.removeFromSuperview()
+            self.importButton.removeFromSuperview()
+            self.inputMnemonic.resignFirstResponder()
+            self.inputMnemonic.removeFromSuperview()
+            
+            let extendedKeyInput = testInputMnemonic.keychain
+            print("keychainPrivKey = \(String(describing: extendedKeyInput?.extendedPrivateKey))")
+            self.privateKeyWIF = self.derivePrivateKeyFromMasterKey(keychain: extendedKeyInput!).privateKeyAddress
+            addQRCodesAndLabels()
+            
+        } else {
+            
+            print("error = \(self.wordArray)")
+        }
+        
+        
+    }
+    
     func addHomeButton() {
         
         DispatchQueue.main.async {
@@ -440,6 +582,32 @@ class ViewController: UIViewController {
             self.bitcoinAddressButton.setTitle("Show Address", for: .normal)
             self.bitcoinAddressButton.addTarget(self, action: #selector(self.getAddress), for: .touchUpInside)
             self.view.addSubview(self.bitcoinAddressButton)
+        }
+    }
+    
+    func addImportActionButton() {
+        
+        DispatchQueue.main.async {
+            self.importAction = UIButton(frame: CGRect(x: 0, y: self.inputMnemonic.frame.maxY + 10, width: self.view.frame.width , height: 50))
+            self.importAction.showsTouchWhenHighlighted = true
+            self.importAction.titleLabel?.textAlignment = .center
+            self.importAction.backgroundColor = .black
+            self.importAction.setTitle("Import", for: .normal)
+            self.importAction.addTarget(self, action: #selector(self.importNow), for: .touchUpInside)
+            self.view.addSubview(self.importAction)
+        }
+        
+    }
+    
+    func addBackButton() {
+        
+        DispatchQueue.main.async {
+            self.button = UIButton(frame: CGRect(x: 0, y: 0, width: 100 , height: 55))
+            self.button.showsTouchWhenHighlighted = true
+            self.button.backgroundColor = .black
+            self.button.setTitle("Back", for: .normal)
+            self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
+            self.view.addSubview(self.button)
         }
     }
     
@@ -466,6 +634,7 @@ class ViewController: UIViewController {
             DispatchQueue.main.async {
                 
                 self.privateKeyTitle.text = "Legacy Bitcoin Address"
+                self.privateKeyTitle.adjustsFontSizeToFitWidth = true
                 self.WIFprivateKeyFieldLabel.text = "Legacy Format:"
                 self.myField.text = self.legacyAddress
                 self.privateKeyQRCode = self.generateQrCode(key: self.legacyAddress)
@@ -614,6 +783,18 @@ class ViewController: UIViewController {
         }
     }
     
+    func addImportButton() {
+        
+        DispatchQueue.main.async {
+            self.importButton = UIButton(frame: CGRect(x: 0, y: self.diceButton.frame.minY - 65, width: self.view.frame.width, height: 55))
+            self.importButton.showsTouchWhenHighlighted = true
+            self.importButton.backgroundColor = .black
+            self.importButton.setTitle("Import", for: .normal)
+            self.importButton.addTarget(self, action: #selector(self.importMnemonic), for: .touchUpInside)
+            self.view.addSubview(self.importButton)
+        }
+    }
+    
     @objc func goTo(sender: UIButton) {
         
         switch sender {
@@ -639,22 +820,6 @@ class ViewController: UIViewController {
         }
         
        
-    }
-    
-    @objc func goToMayerMultiple() {
-        
-        self.performSegue(withIdentifier: "goToMayerMultiple", sender: self)
-    }
-    
-    @objc func goToTransaction() {
-        
-        self.performSegue(withIdentifier: "transaction", sender: self)
-    }
-    
-    
-    @objc func goToCheckAddress() {
-        
-        self.performSegue(withIdentifier: "checkAddress", sender: self)
     }
     
     @objc func airDropImage() {
@@ -711,13 +876,13 @@ class ViewController: UIViewController {
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Private Key Text", comment: ""), style: .default, handler: { (action) in
                     
-                    let textToShare = [self.privateKeyText]
-                    let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
+                    //let textToShare = [self.privateKeyText]
+                    let activityViewController = UIActivityViewController(activityItems: [self.privateKeyText], applicationActivities: nil)
                     self.present(activityViewController, animated: true, completion: nil)
                     
                 }))
                 
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Recovery Phrase", comment: ""), style: .default, handler: { (action) in
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Recovery Phrase Text", comment: ""), style: .default, handler: { (action) in
                     
                     let textToShare = [self.recoveryPhrase]
                     let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
@@ -781,7 +946,7 @@ class ViewController: UIViewController {
                     
                 }))
                 
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Recovery Phrase", comment: ""), style: .default, handler: { (action) in
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Recovery Phrase Text", comment: ""), style: .default, handler: { (action) in
                     
                     let textToShare = [self.recoveryPhrase]
                     let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
@@ -845,7 +1010,7 @@ class ViewController: UIViewController {
                     
                 }))
                 
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Recovery Phrase", comment: ""), style: .default, handler: { (action) in
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Recovery Phrase Text", comment: ""), style: .default, handler: { (action) in
                     
                     let textToShare = [self.recoveryPhrase]
                     let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
@@ -878,7 +1043,16 @@ class ViewController: UIViewController {
         
     }
     
-    
+    func rotateAnimation(imageView:UIImageView,duration: CFTimeInterval = 2.0) {
+        
+        let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
+        rotateAnimation.fromValue = 0.0
+        rotateAnimation.toValue = CGFloat(.pi * 2.0)
+        rotateAnimation.duration = duration
+        rotateAnimation.repeatCount = Float.greatestFiniteMagnitude;
+        imageView.layer.add(rotateAnimation, forKey: nil)
+        
+    }
     
     
     
