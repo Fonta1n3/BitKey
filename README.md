@@ -1,15 +1,22 @@
 # BitSense
 
 -Works offline for key creation and sigining transactions.
--No log ins, no sign ups, simple, fast reliable.
--Bech32 compatible. Native SegWit Addresses, also provides legacy address so you can choose what you want to use.
--BIP39 compatible, import BIP39 mnemonic recovery phrases.
--Allows anyone to create the most mathematically secure private keys possible by using dice or just simply move the bitcoin around with your finger to create randmoness that way.
--Check balances, prices.
--Check the Mayer Multiple.
--Open sourced.
--Copy paste and build it yourself if you know how to use xcode.
 
+-No log ins, no sign ups, simple, fast reliable.
+
+-Bech32 compatible. Native SegWit Addresses, also provides legacy address so you can choose what you want to use.
+
+-BIP39 compatible, import BIP39 mnemonic recovery phrases.
+
+-Allows anyone to create the most mathematically secure private keys possible by using dice or just simply move the bitcoin around with your finger to create randmoness that way.
+
+-Check balances, transactions.
+
+-Check the Mayer Multiple.
+
+-Open sourced.
+
+-Copy paste and build it yourself if you know how to use xcode.
 
 This app is a work in progress and I made it as a project to learn more about Bitcoin and becasue all the other apps are too complicated and don't keep the principles of Bitcoin at heart.
 

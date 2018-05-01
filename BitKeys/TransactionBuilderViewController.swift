@@ -98,7 +98,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             
             let alert = UIAlertController(title: NSLocalizedString("Please set your miner fee preference", comment: ""), message: "", preferredStyle: UIAlertControllerStyle.actionSheet)
             
-            alert.addAction(UIAlertAction(title: NSLocalizedString("High for 1-2 blocks", comment: ""), style: .default, handler: { (action) in
+            alert.addAction(UIAlertAction(title: NSLocalizedString("High Fee (1-2 blocks)", comment: ""), style: .default, handler: { (action) in
                 
                 self.preference = "high"
                 self.amountToSend.becomeFirstResponder()
@@ -116,7 +116,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 
             }))
             
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Medium for 3-6 blocks", comment: ""), style: .default, handler: { (action) in
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Medium Fee (3-6 blocks)", comment: ""), style: .default, handler: { (action) in
                 
                 self.preference = "medium"
                 self.amountToSend.becomeFirstResponder()
@@ -133,7 +133,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 
             }))
             
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Low for 7 blocks +", comment: ""), style: .default, handler: { (action) in
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Low Fee (7 blocks plus)", comment: ""), style: .default, handler: { (action) in
                 
                 self.preference = "low"
                 self.amountToSend.becomeFirstResponder()
@@ -162,7 +162,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
                 
-                self.amountToSend.becomeFirstResponder()
+                self.dismiss(animated: false, completion: nil)
                 
             }))
             
@@ -216,6 +216,8 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 }))
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                    
+                    self.dismiss(animated: false, completion: nil)
                     
                 }))
             
@@ -353,6 +355,17 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         self.view.addSubview(self.addressToDisplay)
         
+    }
+    
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        if textField == self.amountToSend {
+            
+            if self.preference == "" {
+                
+                self.preference = "high"
+                
+            }
+        }
     }
     
     func textFieldDidEndEditing(_ textField: UITextField) {
@@ -1000,7 +1013,17 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                 
                                 self.removeSpinner()
                                 DispatchQueue.main.async {
-                                    self.displayAlert(title: "Error", message: "\(error)")
+                                    
+                                    var errors = [String]()
+                                    
+                                    for e in error {
+                                        
+                                        if let errordescription = (e as? NSDictionary)?["error"] as? String {
+                                            
+                                            errors.append(errordescription)
+                                        }
+                                    }
+                                    self.displayAlert(title: "Error", message: "\(errors)")
                                 }
                                 
                             } else {
@@ -1113,7 +1136,16 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                 
                                 self.removeSpinner()
                                 DispatchQueue.main.async {
-                                    self.displayAlert(title: "Error", message: "\(error)")
+                                    var errors = [String]()
+                                    
+                                    for e in error {
+                                        
+                                        if let errordescription = (e as? NSDictionary)?["error"] as? String {
+                                            
+                                            errors.append(errordescription)
+                                        }
+                                    }
+                                    self.displayAlert(title: "Error", message: "\(errors)")
                                 }
                                 
                             } else {
@@ -1209,36 +1241,58 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                             let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
                             self.removeSpinner()
                             print("jsonAddressResult = \(jsonAddressResult)")
-                            /*
-                            //check if tosign was consumed.. get TX hash
-                            if let txCheck = jsonAddressResult["tx"] as? NSDictionary {
+                            
+                            if let error = jsonAddressResult["errors"] as? NSArray {
                                 
-                                print("txCheck = \(txCheck)")
-                                
-                                if let hashCheck = txCheck["hash"] as? String {
+                                self.removeSpinner()
+                                DispatchQueue.main.async {
+                                    var errors = [String]()
                                     
-                                    print("hashCheck = \(hashCheck)")
-                                    self.removeScanner()
-                                    
-                                    DispatchQueue.main.async {
+                                    for e in error {
                                         
-                                        let alert = UIAlertController(title: NSLocalizedString("Transaction Sent", comment: ""), message: "Transaction ID: \(hashCheck)", preferredStyle: UIAlertControllerStyle.actionSheet)
-                                        
-                                        alert.addAction(UIAlertAction(title: NSLocalizedString("Copy to Clipboard", comment: ""), style: .default, handler: { (action) in
-                                            UIPasteboard.general.string = hashCheck
-                                            self.dismiss(animated: false, completion: nil)
-                                        }))
-                                        
-                                        alert.addAction(UIAlertAction(title: NSLocalizedString("Done", comment: ""), style: .cancel, handler: { (action) in
-                                            self.dismiss(animated: false, completion: nil)
-                                        }))
-                                        
-                                        self.present(alert, animated: true, completion: nil)
-                                        
+                                        if let errordescription = (e as? NSDictionary)?["error"] as? String {
+                                            
+                                            errors.append(errordescription)
+                                        }
                                     }
+                                    self.displayAlert(title: "Error", message: "\(errors)")
                                 }
+                                
+                            } else {
+                                
+                                /*
+                                 //check if tosign was consumed.. get TX hash
+                                 if let txCheck = jsonAddressResult["tx"] as? NSDictionary {
+                                 
+                                 print("txCheck = \(txCheck)")
+                                 
+                                 if let hashCheck = txCheck["hash"] as? String {
+                                 
+                                 print("hashCheck = \(hashCheck)")
+                                 self.removeScanner()
+                                 
+                                 DispatchQueue.main.async {
+                                 
+                                 let alert = UIAlertController(title: NSLocalizedString("Transaction Sent", comment: ""), message: "Transaction ID: \(hashCheck)", preferredStyle: UIAlertControllerStyle.actionSheet)
+                                 
+                                 alert.addAction(UIAlertAction(title: NSLocalizedString("Copy to Clipboard", comment: ""), style: .default, handler: { (action) in
+                                 UIPasteboard.general.string = hashCheck
+                                 self.dismiss(animated: false, completion: nil)
+                                 }))
+                                 
+                                 alert.addAction(UIAlertAction(title: NSLocalizedString("Done", comment: ""), style: .cancel, handler: { (action) in
+                                 self.dismiss(animated: false, completion: nil)
+                                 }))
+                                 
+                                 self.present(alert, animated: true, completion: nil)
+                                 
+                                 }
+                                 }
+                                 }
+                                 */
+                                
                             }
-                            */
+                            
                         } catch {
                             
                             print("JSon processing failed")
@@ -1278,31 +1332,68 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                             
                             print("jsonAddressResult = \(jsonAddressResult)")
                             
-                            //check if tosign was consumed.. get TX hash
-                            if let txCheck = jsonAddressResult["confirmations"] as? NSInteger {
-                                
-                                print("txCheck = \(txCheck)")
+                            if let error = jsonAddressResult["errors"] as? NSArray {
                                 
                                 self.removeSpinner()
                                 DispatchQueue.main.async {
+                                    var errors = [String]()
                                     
-                                    self.transactionView = UITextView (frame:CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 60, width: self.view.frame.width - 10, height: self.view.frame.height - 60))
-                                    self.transactionView.text = "\(jsonAddressResult)"
-                                    self.transactionView.textAlignment = .natural
-                                    self.transactionView.isSelectable = true
-                                    self.transactionView.font = .systemFont(ofSize: 18)
-                                    self.view.addSubview(self.transactionView)
-
-                                    
-                                    self.refreshButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.maxY - 55, width: self.view.frame.width, height: 55))
-                                    self.refreshButton.showsTouchWhenHighlighted = true
-                                    self.refreshButton.backgroundColor = .black
-                                    self.refreshButton.setTitle("Refresh", for: .normal)
-                                    self.refreshButton.addTarget(self, action: #selector(self.tapRefresh), for: .touchUpInside)
-                                    self.view.addSubview(self.refreshButton)
+                                    for e in error {
+                                        
+                                        if let errordescription = (e as? NSDictionary)?["error"] as? String {
+                                            
+                                            errors.append(errordescription)
+                                        }
+                                    }
+                                    self.displayAlert(title: "Error", message: "\(errors)")
                                 }
                                 
+                            } else {
                                 
+                                //check if tosign was consumed.. get TX hash
+                                if let txCheck = jsonAddressResult["confirmations"] as? NSInteger {
+                                    
+                                    print("txCheck = \(txCheck)")
+                                    
+                                    self.removeSpinner()
+                                    DispatchQueue.main.async {
+                                        
+                                        var blockheight = Double()
+                                        var hash = String()
+                                        var fromAddress = NSArray()
+                                        var changeAddress = NSArray()
+                                        
+                                        for (key, value) in jsonAddressResult {
+                                            
+                                            if key as! String == "block_height" {
+                                                blockheight = value as! Double
+                                            }
+                                            if key as! String == "hash" {
+                                               hash = value as! String
+                                            }
+                                            if key as! String == "outputs" {
+                                                fromAddress = value as! NSArray
+                                            }
+                                            if key as! String == "inputs" {
+                                                changeAddress = value as! NSArray
+                                            }
+                                        }
+                                        
+                                        self.transactionView = UITextView (frame:CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 60, width: self.view.frame.width - 10, height: self.view.frame.height - 60))
+                                        self.transactionView.text = "\n\nTransaction ID =\n\n\(hash)\n\nConfirmations = \(txCheck)\n\nBlockheight = \(blockheight)\n\nOutput Transaction Info =\n\n\(fromAddress)\n\nChange Transaction Info =\n\n\(changeAddress)"
+                                        self.transactionView.textAlignment = .natural
+                                        self.transactionView.isSelectable = true
+                                        self.transactionView.font = .systemFont(ofSize: 18)
+                                        self.view.addSubview(self.transactionView)
+                                        
+                                        self.refreshButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.maxY - 55, width: self.view.frame.width, height: 55))
+                                        self.refreshButton.showsTouchWhenHighlighted = true
+                                        self.refreshButton.backgroundColor = .black
+                                        self.refreshButton.setTitle("Refresh", for: .normal)
+                                        self.refreshButton.addTarget(self, action: #selector(self.tapRefresh), for: .touchUpInside)
+                                        self.view.addSubview(self.refreshButton)
+                                    }
+                                }
                             }
                             
                         } catch {
@@ -1311,7 +1402,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                             self.removeSpinner()
                         }
                     }
-                    
                 }
             }
         }
@@ -1323,7 +1413,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         self.transactionView.removeFromSuperview()
         self.refreshButton.removeFromSuperview()
         self.getTransaction()
-    
     
     }
     
@@ -1340,36 +1429,41 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
 extension UITextField{
     
     func addDoneButtonToKeyboard(myAction:Selector){
+        
         let doneToolbar: UIToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: 300, height: 40))
         doneToolbar.barStyle = UIBarStyle.default
-        
         let flexSpace = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
         let done: UIBarButtonItem = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.done, target: TransactionBuilderViewController(), action: myAction)
         var items = [UIBarButtonItem]()
         items.append(flexSpace)
         items.append(done)
-        
         doneToolbar.items = items
         doneToolbar.sizeToFit()
-        
         self.inputAccessoryView = doneToolbar
+        
     }
 }
 
 extension Float {
+    
     var avoidNotation: String {
+        
         let numberFormatter = NumberFormatter()
         numberFormatter.maximumFractionDigits = 8
         numberFormatter.numberStyle = .decimal
         return numberFormatter.string(for: self) ?? ""
+        
     }
 }
 
 extension Double {
+    
     var avoidNotation: String {
+        
         let numberFormatter = NumberFormatter()
         numberFormatter.maximumFractionDigits = 8
         numberFormatter.numberStyle = .decimal
         return numberFormatter.string(for: self) ?? ""
+        
     }
 }
