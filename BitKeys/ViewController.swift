@@ -136,7 +136,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         imageView = UIImageView(image: bitcoinImage!)
         imageView.center = view.center
         imageView.frame = CGRect(x: view.center.x - 100, y: view.center.y - 100, width: 200, height: 200)
-        rotateAnimation(imageView: imageView as! UIImageView)
+        
         
         let bitcoinDragged = UIPanGestureRecognizer(target: self, action: #selector(self.userCreatesRandomness(gestureRecognizer:)))
         imageView.isUserInteractionEnabled = true
@@ -181,7 +181,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     func createPrivateKey(userRandomness: BigInt) -> (privateKeyAddress: String, publicKeyAddress: String) {
         
-        let data = BigUInt(userRandomness).serialize()
+        var data = BigUInt(userRandomness).serialize()
         let mnemonic = BTCMnemonic.init(entropy: data, password: "", wordListType: BTCMnemonicWordListType.english)
         self.words = (mnemonic?.words.description)!
         let formatMnemonic1 = self.words.replacingOccurrences(of: "[", with: "")
@@ -214,7 +214,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         print("privatekey = \(self.privateKeyWIF)")
         print("address = \(self.bitcoinAddress)")
         keychain?.key.clear()
-        
+        data.removeAll()
         return (self.privateKeyWIF, self.bitcoinAddress)
         
     }
@@ -305,6 +305,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     @objc func userCreatesRandomness(gestureRecognizer: UIPanGestureRecognizer) {
         
+        
         //remove buttons when bitcoin gets dragged
         self.checkAddressButton.removeFromSuperview()
         self.mayerMultipleButton.removeFromSuperview()
@@ -339,6 +340,12 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         //displays random bits as user drags bitcoin and creates randomness
         bitField.text = nineToBits
+        
+        if gestureRecognizer.state == UIGestureRecognizerState.began {
+            DispatchQueue.main.async {
+                self.rotateAnimation(imageView: self.imageView as! UIImageView)
+            }
+        }
         
         //senses user has stopped dragging the bitcoin
         if gestureRecognizer.state == UIGestureRecognizerState.ended {
@@ -436,14 +443,19 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     func addQRCodesAndLabels() {
         
+        DispatchQueue.main.async {
+            self.view.addSubview(self.scrollView)
+        }
+        
+        
         self.privateKeyText = self.privateKeyWIF
         self.privateKeyQRCode = self.generateQrCode(key: self.privateKeyWIF)
         self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
-        self.privateKeyQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 120, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
+        self.privateKeyQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 130, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
         self.privateKeyQRView.alpha = 0
         self.scrollView.addSubview(self.privateKeyQRView)
         
-        self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 140 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+        self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 150 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
         self.WIFprivateKeyFieldLabel.font = .systemFont(ofSize: 12)
         self.WIFprivateKeyFieldLabel.textColor = UIColor.black
         self.WIFprivateKeyFieldLabel.textAlignment = .left
@@ -458,7 +470,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
             self.imageView.removeFromSuperview()
             self.bitField.removeFromSuperview()
-            self.view.addSubview(self.scrollView)
+            
             
             UIView.animate(withDuration: 0.5, animations: {
                 
@@ -471,14 +483,14 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 
                 self.WIFprivateKeyFieldLabel.text = "WIF Format:"
                 
-                self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 60, width: self.scrollView.frame.width, height: 50))
+                self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 70, width: self.scrollView.frame.width, height: 50))
                 self.privateKeyTitle.text = "Bitcoin Private Key"
                 self.privateKeyTitle.font = .systemFont(ofSize: 32)
                 self.privateKeyTitle.textColor = UIColor.black
                 self.privateKeyTitle.textAlignment = .center
                 self.scrollView.addSubview(self.privateKeyTitle)
                 
-                self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.privateKeyQRView.frame.maxY + 30, width: self.view.frame.width - 50, height: 100))
+                self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.privateKeyQRView.frame.maxY + 40, width: self.view.frame.width - 50, height: 100))
                 self.myField.isEditable = false
                 self.myField.isSelectable = true
                 self.myField.font = .systemFont(ofSize: 24)
@@ -489,21 +501,21 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 self.zero = 0
                 self.bitArray.removeAll()
                 
-                self.mnemonicLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 270 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+                self.mnemonicLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 280 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
                 self.mnemonicLabel.text = "Recovery Phrase:"
                 self.mnemonicLabel.font = .systemFont(ofSize: 12)
                 self.mnemonicLabel.textColor = UIColor.black
                 self.mnemonicLabel.textAlignment = .left
                 self.scrollView.addSubview(self.mnemonicLabel)
                 
-                self.mnemonicView = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 275 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 175))
+                self.mnemonicView = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 285 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 175))
                 self.mnemonicView.text = self.recoveryPhrase
                 self.mnemonicView.isEditable = false
                 self.mnemonicView.isSelectable = true
                 self.mnemonicView.font = .systemFont(ofSize: 24)
                 self.scrollView.addSubview(self.mnemonicView)
                 
-                self.recoveryPhraseLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 10, width: self.scrollView.frame.width - 10, height: 50))
+                self.recoveryPhraseLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 20, width: self.scrollView.frame.width - 10, height: 50))
                 self.recoveryPhraseLabel.text = "Recovery QR Code"
                 self.recoveryPhraseLabel.font = .systemFont(ofSize: 32)
                 self.recoveryPhraseLabel.textColor = UIColor.black
@@ -512,7 +524,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 
                 self.recoveryPhraseImage = self.generateQrCode(key: self.recoveryPhrase)
                 self.recoveryPhraseQRView = UIImageView(image: self.recoveryPhraseImage!)
-                self.recoveryPhraseQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 80, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
+                self.recoveryPhraseQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 90, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
                 self.scrollView.addSubview(self.recoveryPhraseQRView)
                 
             })
@@ -541,24 +553,40 @@ class ViewController: UIViewController, UITextFieldDelegate {
         } else {
             
             print("error = \(self.wordArray)")
+            DispatchQueue.main.async {
+                self.outputMnemonic.text = ""
+                self.wordArray.removeAll()
+                self.listArray.removeAll()
+                self.displayAlert(title: "Error", message: "Sorry that phrase is not BIP39 compatible, make sure you enter the correct words with no misspellings and no spaces after each word.")
+            }
         }
         
         
     }
     
     func addHomeButton() {
-        
+        print("addHomeButton")
         DispatchQueue.main.async {
-            self.button = UIButton(frame: CGRect(x: 0, y: 0, width: 100 , height: 55))
+            self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 100 , height: 55))
             self.button.showsTouchWhenHighlighted = true
-            self.button.backgroundColor = .black
+            self.button.layer.cornerRadius = 10
+            self.button.backgroundColor = UIColor.lightGray
+            self.button.layer.shadowColor = UIColor.black.cgColor
+            self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.button.layer.shadowRadius = 2.5
+            self.button.layer.shadowOpacity = 0.8
             self.button.setTitle("Back", for: .normal)
             self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
             self.view.addSubview(self.button)
             
-            self.bitcoinAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 150, y: 0, width: 150 , height: 55))
+            self.bitcoinAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 155, y: 20, width: 150 , height: 55))
             self.bitcoinAddressButton.showsTouchWhenHighlighted = true
-            self.bitcoinAddressButton.backgroundColor = .black
+            self.bitcoinAddressButton.layer.cornerRadius = 10
+            self.bitcoinAddressButton.backgroundColor = UIColor.lightGray
+            self.bitcoinAddressButton.layer.shadowColor = UIColor.black.cgColor
+            self.bitcoinAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.bitcoinAddressButton.layer.shadowRadius = 2.5
+            self.bitcoinAddressButton.layer.shadowOpacity = 0.8
             self.bitcoinAddressButton.setTitle("Show Address", for: .normal)
             self.bitcoinAddressButton.addTarget(self, action: #selector(self.getAddress), for: .touchUpInside)
             self.view.addSubview(self.bitcoinAddressButton)
@@ -568,10 +596,15 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func addImportActionButton() {
         
         DispatchQueue.main.async {
-            self.importAction = UIButton(frame: CGRect(x: 0, y: self.inputMnemonic.frame.maxY + 10, width: self.view.frame.width , height: 50))
+            self.importAction = UIButton(frame: CGRect(x: 10, y: self.inputMnemonic.frame.maxY + 10, width: self.view.frame.width - 20, height: 50))
             self.importAction.showsTouchWhenHighlighted = true
             self.importAction.titleLabel?.textAlignment = .center
-            self.importAction.backgroundColor = .black
+            self.importAction.layer.cornerRadius = 10
+            self.importAction.backgroundColor = UIColor.lightGray
+            self.importAction.layer.shadowColor = UIColor.black.cgColor
+            self.importAction.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.importAction.layer.shadowRadius = 2.5
+            self.importAction.layer.shadowOpacity = 0.8
             self.importAction.setTitle("Import", for: .normal)
             self.importAction.addTarget(self, action: #selector(self.importNow), for: .touchUpInside)
             self.view.addSubview(self.importAction)
@@ -582,9 +615,14 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func addBackButton() {
         
         DispatchQueue.main.async {
-            self.button = UIButton(frame: CGRect(x: 0, y: 0, width: 100 , height: 55))
+            self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 100 , height: 55))
             self.button.showsTouchWhenHighlighted = true
-            self.button.backgroundColor = .black
+            self.button.layer.cornerRadius = 10
+            self.button.backgroundColor = UIColor.lightGray
+            self.button.layer.shadowColor = UIColor.black.cgColor
+            self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.button.layer.shadowRadius = 2.5
+            self.button.layer.shadowOpacity = 0.8
             self.button.setTitle("Back", for: .normal)
             self.button.addTarget(self, action: #selector(self.back), for: .touchUpInside)
             self.view.addSubview(self.button)
@@ -592,7 +630,12 @@ class ViewController: UIViewController, UITextFieldDelegate {
     }
     
     @objc func back() {
-        
+        for dice in self.diceArray {
+            dice.removeFromSuperview()
+        }
+        self.diceArray.removeAll()
+        self.tappedIndex = 0
+        self.percentageLabel.removeFromSuperview()
         self.inputMnemonic.resignFirstResponder()
         self.inputMnemonic.removeFromSuperview()
         self.importButton.removeFromSuperview()
@@ -660,7 +703,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("I saved it, go back", comment: ""), style: .destructive, handler: { (action) in
                 
-                self.privateKeyQRView.image != nil
+                self.privateKeyQRView.image = nil
                 self.privateKeyQRCode = nil
                 self.privateKeyImage = nil
                 self.privateKeyQRView.image = nil
@@ -675,6 +718,11 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 self.privateKeyText = ""
                 self.zero = 0
                 self.bitArray.removeAll()
+                self.mnemonicView.removeFromSuperview()
+                self.mnemonicLabel.removeFromSuperview()
+                self.recoveryPhraseQRView.removeFromSuperview()
+                self.recoveryPhraseLabel.removeFromSuperview()
+                self.WIFprivateKeyFieldLabel.removeFromSuperview()
                 self.showBitcoin()
                 
             }))
@@ -708,9 +756,14 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func addBackUpButton() {
         
         DispatchQueue.main.async {
-            self.backUpButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.maxY - 55, width: self.view.frame.width, height: 55))
+            self.backUpButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
             self.backUpButton.showsTouchWhenHighlighted = true
-            self.backUpButton.backgroundColor = .black
+            self.backUpButton.layer.cornerRadius = 10
+            self.backUpButton.backgroundColor = UIColor.lightGray
+            self.backUpButton.layer.shadowColor = UIColor.black.cgColor
+            self.backUpButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.backUpButton.layer.shadowRadius = 2.5
+            self.backUpButton.layer.shadowOpacity = 0.8
             self.backUpButton.setTitle("Back Up / Share / Save / Copy", for: .normal)
             self.backUpButton.addTarget(self, action: #selector(self.airDropImage), for: .touchUpInside)
             self.view.addSubview(self.backUpButton)
@@ -721,10 +774,15 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func addCheckAddressButton() {
         
         DispatchQueue.main.async {
-            self.checkAddressButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.maxY - 55, width: self.view.frame.width, height: 55))
+            self.checkAddressButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.maxY - 60, width: 90, height: 55))
             self.checkAddressButton.showsTouchWhenHighlighted = true
-            self.checkAddressButton.backgroundColor = .black
-            self.checkAddressButton.setTitle("Check Balance", for: .normal)
+            self.checkAddressButton.layer.cornerRadius = 10
+            self.checkAddressButton.backgroundColor = UIColor.lightGray
+            self.checkAddressButton.layer.shadowColor = UIColor.black.cgColor
+            self.checkAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.checkAddressButton.layer.shadowRadius = 2.5
+            self.checkAddressButton.layer.shadowOpacity = 0.8
+            self.checkAddressButton.setTitle("Balance", for: .normal)
             self.checkAddressButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.checkAddressButton)
         }
@@ -734,10 +792,15 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func addMayerMultipleButton() {
         
         DispatchQueue.main.async {
-            self.mayerMultipleButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.minY, width: self.view.frame.width, height: 55))
+            self.mayerMultipleButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.maxY - 60, width: 90, height: 55))
             self.mayerMultipleButton.showsTouchWhenHighlighted = true
-            self.mayerMultipleButton.backgroundColor = .black
-            self.mayerMultipleButton.setTitle("Price Check", for: .normal)
+            self.mayerMultipleButton.layer.cornerRadius = 10
+            self.mayerMultipleButton.backgroundColor = UIColor.lightGray
+            self.mayerMultipleButton.layer.shadowColor = UIColor.black.cgColor
+            self.mayerMultipleButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.mayerMultipleButton.layer.shadowRadius = 2.5
+            self.mayerMultipleButton.layer.shadowOpacity = 0.8
+            self.mayerMultipleButton.setTitle("Price", for: .normal)
             self.mayerMultipleButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.mayerMultipleButton)
         }
@@ -747,9 +810,14 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func addTransactionsButton() {
         
         DispatchQueue.main.async {
-            self.transactionsButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.minY + 65, width: self.view.frame.width, height: 55))
+            self.transactionsButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.view.frame.maxY - 60, width: 90, height: 55))
             self.transactionsButton.showsTouchWhenHighlighted = true
-            self.transactionsButton.backgroundColor = .black
+            self.transactionsButton.layer.cornerRadius = 10
+            self.transactionsButton.backgroundColor = UIColor.lightGray
+            self.transactionsButton.layer.shadowColor = UIColor.black.cgColor
+            self.transactionsButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.transactionsButton.layer.shadowRadius = 2.5
+            self.transactionsButton.layer.shadowOpacity = 0.8
             self.transactionsButton.setTitle("Send", for: .normal)
             self.transactionsButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.transactionsButton)
@@ -760,10 +828,15 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func addDiceButton() {
         
         DispatchQueue.main.async {
-            self.diceButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.maxY - 120, width: self.view.frame.width, height: 55))
+            self.diceButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.minY + 20, width: 90, height: 55))
             self.diceButton.showsTouchWhenHighlighted = true
-            self.diceButton.backgroundColor = .black
-            self.diceButton.setTitle("Dice Key Creator", for: .normal)
+            self.diceButton.layer.cornerRadius = 10
+            self.diceButton.backgroundColor = UIColor.lightGray
+            self.diceButton.layer.shadowColor = UIColor.black.cgColor
+            self.diceButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.diceButton.layer.shadowRadius = 2.5
+            self.diceButton.layer.shadowOpacity = 0.8
+            self.diceButton.setTitle("Dice", for: .normal)
             self.diceButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.diceButton)
         }
@@ -772,9 +845,14 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func addImportButton() {
         
         DispatchQueue.main.async {
-            self.importButton = UIButton(frame: CGRect(x: 0, y: self.diceButton.frame.minY - 65, width: self.view.frame.width, height: 55))
+            self.importButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.minY + 20, width: 90, height: 55))
             self.importButton.showsTouchWhenHighlighted = true
-            self.importButton.backgroundColor = .black
+            self.importButton.layer.cornerRadius = 10
+            self.importButton.backgroundColor = UIColor.lightGray
+            self.importButton.layer.shadowColor = UIColor.black.cgColor
+            self.importButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.importButton.layer.shadowRadius = 2.5
+            self.importButton.layer.shadowOpacity = 0.8
             self.importButton.setTitle("Import", for: .normal)
             self.importButton.addTarget(self, action: #selector(self.importMnemonic), for: .touchUpInside)
             self.view.addSubview(self.importButton)
@@ -1042,7 +1120,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         DispatchQueue.main.async {
             let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
             rotateAnimation.fromValue = 0.0
-            rotateAnimation.toValue = CGFloat(.pi * 2.0)
+            rotateAnimation.toValue = CGFloat(.pi * 8.0)
             rotateAnimation.duration = duration
             rotateAnimation.repeatCount = Float.greatestFiniteMagnitude;
             imageView.layer.add(rotateAnimation, forKey: nil)
@@ -1067,9 +1145,14 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     func addClearButton() {
         
-        self.clearButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 100, y: 0, width: 100 , height: 55))
+        self.clearButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 105, y: 20, width: 100 , height: 55))
         self.clearButton.showsTouchWhenHighlighted = true
-        self.clearButton.backgroundColor = .black
+        self.clearButton.backgroundColor = UIColor.lightGray
+        self.clearButton.layer.cornerRadius = 10
+        self.clearButton.layer.shadowColor = UIColor.black.cgColor
+        self.clearButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.clearButton.layer.shadowRadius = 2.5
+        self.clearButton.layer.shadowOpacity = 0.8
         self.clearButton.setTitle("Clear", for: .normal)
         self.clearButton.addTarget(self, action: #selector(self.tapClearDice), for: .touchUpInside)
         self.view.addSubview(self.clearButton)
@@ -1160,7 +1243,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
                                 self.diceArray.removeAll()
                                 self.tappedIndex = 0
                                 
+                                //self.scrollView.removeFromSuperview()
                                 self.privateKeyWIF = self.createPrivateKey(userRandomness: self.parseBitResult).privateKeyAddress
+                                self.button.removeFromSuperview()
                                 self.addQRCodesAndLabels()
                                 
                             }))
@@ -1323,7 +1408,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             height = 50
         }
         
-        var yvalue = 60
+        var yvalue = 80
         var zero = 0
         
         for _ in 0..<40 {
@@ -1335,6 +1420,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 self.diceButton.setImage(#imageLiteral(resourceName: "images-6.png"), for: .normal)
                 self.diceButton.tag = zero
                 self.diceButton.showsTouchWhenHighlighted = true
+                self.diceButton.backgroundColor = .white
                 self.diceButton.setTitle("\(0)", for: .normal)
                 self.diceButton.titleLabel?.textColor = UIColor.white
                 self.diceButton.addTarget(self, action: #selector(self.tapDice), for: .touchUpInside)

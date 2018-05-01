@@ -11,6 +11,7 @@ import AVFoundation
 
 class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate {
     
+    var imageView:UIView!
     let avCaptureSession = AVCaptureSession()
     var balance = Double()
     var backUpButton = UIButton(type: .custom)
@@ -28,7 +29,35 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     }
     
     
+    func addSpinner() {
+        
+        DispatchQueue.main.async {
+            let bitcoinImage = UIImage(named: "bitcoinIcon.png")
+            self.imageView = UIImageView(image: bitcoinImage!)
+            self.imageView.center = self.view.center
+            self.imageView.frame = CGRect(x: self.view.center.x - 100, y: self.view.center.y - 100, width: 200, height: 200)
+            self.rotateAnimation(imageView: self.imageView as! UIImageView)
+            self.view.addSubview(self.imageView)
+        }
+        
+    }
     
+    func rotateAnimation(imageView:UIImageView,duration: CFTimeInterval = 2.0) {
+        let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
+        rotateAnimation.fromValue = 0.0
+        rotateAnimation.toValue = CGFloat(.pi * 8.0)
+        rotateAnimation.duration = duration
+        rotateAnimation.repeatCount = Float.greatestFiniteMagnitude;
+        
+        imageView.layer.add(rotateAnimation, forKey: nil)
+    }
+    
+    func removeSpinner() {
+        
+        DispatchQueue.main.async {
+            self.imageView.removeFromSuperview()
+        }
+    }
     
     
     @IBOutlet var addressToDisplay: UITextField!
@@ -163,6 +192,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func checkBalance(address: String) {
         print("checkBalance")
         
+        self.addSpinner()
+        
         var url:NSURL!
         
         if address.count == 64 {
@@ -182,7 +213,10 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 if error != nil {
                     
                     print(error as Any)
-                    
+                    self.removeSpinner()
+                    DispatchQueue.main.async {
+                        self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                    }
                     
                 } else {
                     
@@ -201,7 +235,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                 print(self.balance)
                                 
                                     DispatchQueue.main.async {
-                                        
                                         self.videoPreview.removeFromSuperview()
                                         
                                         let btcBalanceLabel = UILabel()
@@ -227,12 +260,22 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                         self.getExchangeRates()
                                         
                                     }
+                                
+                            } else {
+                                
+                                DispatchQueue.main.async {
+                                    self.removeSpinner()
+                                    self.displayAlert(title: "Error", message: "Please try again.")
+                                }
                             }
                             
                         } catch {
                             
                             print("JSon processing failed")
-                            
+                            DispatchQueue.main.async {
+                                self.removeSpinner()
+                                self.displayAlert(title: "Error", message: "Please try again.")
+                            }
                         }
                     }
                 }
@@ -254,7 +297,10 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 if error != nil {
                     
                     print(error as Any)
-                    
+                    self.removeSpinner()
+                    DispatchQueue.main.async {
+                        self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                    }
                     
                 } else {
                     
@@ -268,28 +314,27 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                 
                                 print("exchangeCheck = \(exchangeCheck)")
                                 
+                                self.removeSpinner()
                                 if let usdCheck = exchangeCheck["USD"] as? NSDictionary {
                                     
                                     if let rateCheck = usdCheck["rate_float"] as? Float {
                                         
                                         DispatchQueue.main.async {
                                             
-                                        let exchangeRate = Double(rateCheck)
-                                        let usdAmount = (self.balance * exchangeRate)
-                                        let roundedUsdAmount = round(100 * usdAmount) / 100
-                                        let roundedInt = Int(roundedUsdAmount)
-                                        let usdBalanceLabel = UILabel()
-                                        usdBalanceLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - ((self.view.frame.height / 2) + 60), width: self.view.frame.width, height: self.view.frame.height)
-                                        usdBalanceLabel.text = "\(roundedInt.withCommas()) USD"
-                                        usdBalanceLabel.textColor = UIColor.black
-                                        usdBalanceLabel.font = UIFont.systemFont(ofSize: 32)
-                                        usdBalanceLabel.textAlignment = .center
-                                        self.view.addSubview(usdBalanceLabel)
+                                            let exchangeRate = Double(rateCheck)
+                                            let usdAmount = (self.balance * exchangeRate)
+                                            let roundedUsdAmount = round(100 * usdAmount) / 100
+                                            let roundedInt = Int(roundedUsdAmount)
+                                            let usdBalanceLabel = UILabel()
+                                            usdBalanceLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - ((self.view.frame.height / 2) + 60), width: self.view.frame.width, height: self.view.frame.height)
+                                            usdBalanceLabel.text = "\(roundedInt.withCommas()) USD"
+                                            usdBalanceLabel.textColor = UIColor.black
+                                            usdBalanceLabel.font = UIFont.systemFont(ofSize: 32)
+                                            usdBalanceLabel.textAlignment = .center
+                                            self.view.addSubview(usdBalanceLabel)
                                             
                                         }
-                                        
                                     }
-                                    
                                 }
                                 
                                 if let gbpCheck = exchangeCheck["GBP"] as? NSDictionary {
@@ -297,7 +342,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                     if let rateCheck = gbpCheck["rate_float"] as? Float {
                                         
                                         DispatchQueue.main.async {
-                                            
                                             let exchangeRate = Double(rateCheck)
                                             let gbpAmount = (self.balance * exchangeRate)
                                             let roundedGbpAmount = round(100 * gbpAmount) / 100
@@ -311,9 +355,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                             self.view.addSubview(gbpBalanceLabel)
                                             
                                         }
-                                        
                                     }
-                                    
                                 }
                                 
                                 if let euroCheck = exchangeCheck["EUR"] as? NSDictionary {
@@ -321,7 +363,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                     if let rateCheck = euroCheck["rate_float"] as? Float {
                                         
                                         DispatchQueue.main.async {
-                                            
                                             let exchangeRate = Double(rateCheck)
                                             let euroAmount = (self.balance * exchangeRate)
                                             let roundedEuroAmount = round(100 * euroAmount) / 100
@@ -334,22 +375,20 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                             euroBalanceLabel.textAlignment = .center
                                             self.view.addSubview(euroBalanceLabel)
                                             
-                                            
-                                            
                                         }
-                                        
                                     }
-                                    
                                 }
-                                
                              }
  
                         } catch {
                             
                             print("JSon processing failed")
+                            DispatchQueue.main.async {
+                                self.removeSpinner()
+                                self.displayAlert(title: "Error", message: "Please try again.")
+                            }
                         }
                     }
-                    
                 }
             }
         }
@@ -361,9 +400,14 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func addHomeButton() {
         
         DispatchQueue.main.async {
-            let button = UIButton(frame: CGRect(x: 0, y: 0, width: 100 , height: 55))
+            let button = UIButton(frame: CGRect(x: 5, y: 20, width: 100 , height: 55))
             button.showsTouchWhenHighlighted = true
-            button.backgroundColor = .black
+            button.layer.cornerRadius = 10
+            button.backgroundColor = UIColor.lightGray
+            button.layer.shadowColor = UIColor.black.cgColor
+            button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            button.layer.shadowRadius = 2.5
+            button.layer.shadowOpacity = 0.8
             button.setTitle("Back", for: .normal)
             button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
             self.view.addSubview(button)
@@ -385,9 +429,14 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func addBackUpButton() {
         
         DispatchQueue.main.async {
-            self.backUpButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.maxY - 55, width: self.view.frame.width, height: 55))
+            self.backUpButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
             self.backUpButton.showsTouchWhenHighlighted = true
-            self.backUpButton.backgroundColor = .black
+            self.backUpButton.layer.cornerRadius = 10
+            self.backUpButton.backgroundColor = UIColor.lightGray
+            self.backUpButton.layer.shadowColor = UIColor.black.cgColor
+            self.backUpButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.backUpButton.layer.shadowRadius = 2.5
+            self.backUpButton.layer.shadowOpacity = 0.8
             self.backUpButton.setTitle("Save Bitcoin Address", for: .normal)
             self.backUpButton.addTarget(self, action: #selector(self.airDropImage), for: .touchUpInside)
             self.view.addSubview(self.backUpButton)
@@ -398,9 +447,14 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func addAddressBookButton() {
         
         DispatchQueue.main.async {
-            self.backUpButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.maxY - 55, width: self.view.frame.width, height: 55))
+            self.backUpButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
             self.backUpButton.showsTouchWhenHighlighted = true
-            self.backUpButton.backgroundColor = .black
+            self.backUpButton.layer.cornerRadius = 10
+            self.backUpButton.backgroundColor = UIColor.lightGray
+            self.backUpButton.layer.shadowColor = UIColor.black.cgColor
+            self.backUpButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.backUpButton.layer.shadowRadius = 2.5
+            self.backUpButton.layer.shadowOpacity = 0.8
             self.backUpButton.setTitle("Address Book", for: .normal)
             self.backUpButton.addTarget(self, action: #selector(self.openAddressBook), for: .touchUpInside)
             self.view.addSubview(self.backUpButton)

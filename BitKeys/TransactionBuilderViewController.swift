@@ -11,7 +11,7 @@ import Signer
 import AVFoundation
 import SystemConfiguration
 
-class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilderDataSource,*/ AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate {
+class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilderDataSource,*/ AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate {
     
     var imageView:UIView!
     let avCaptureSession = AVCaptureSession()
@@ -46,6 +46,9 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     var transactionView = UITextView()
     var refreshButton = UIButton()
     var exchangeRate = Double()
+    var rawTransactionView = UITextView()
+    var pushRawTransactionButton = UIButton()
+    var decodeRawTransactionButton = UIButton()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -56,6 +59,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         getPayerAddressMode = false
         getSignatureMode = false
         addressToDisplay.delegate = self
+        rawTransactionView.delegate = self
         amountToSend.delegate = self
         addBackButton()
         addAmount()
@@ -214,6 +218,13 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     self.currecny = "GBP"
                     self.amountToSend.becomeFirstResponder()
                 }))
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Raw Transaction Tool", comment: ""), style: .default, handler: { (action) in
+                
+               self.amountToSend.removeFromSuperview()
+                self.addRawTransactionView()
+                
+            }))
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
                     
@@ -228,12 +239,56 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
 
     }
     
+    func addRawTransactionView() {
+        
+        self.rawTransactionView.frame = CGRect(x: (self.view.frame.width / 2) - ((self.view.frame.width - 10) / 2), y: self.view.frame.minY + 100, width: self.view.frame.width - 10, height: 400)
+        self.rawTransactionView.textAlignment = .left
+        self.rawTransactionView.backgroundColor = UIColor.groupTableViewBackground
+        self.rawTransactionView.keyboardDismissMode = .interactive
+        self.rawTransactionView.isEditable = true
+        self.rawTransactionView.font = UIFont.systemFont(ofSize: 22, weight: .regular)
+        self.rawTransactionView.returnKeyType = UIReturnKeyType.done
+        self.view.addSubview(self.rawTransactionView)
+        
+        self.pushRawTransactionButton = UIButton(frame: CGRect(x: 0, y: self.rawTransactionView.frame.maxY + 10, width: self.view.frame.width , height: 50))
+        self.pushRawTransactionButton.showsTouchWhenHighlighted = true
+        self.pushRawTransactionButton.titleLabel?.textAlignment = .center
+        self.pushRawTransactionButton.backgroundColor = .black
+        self.pushRawTransactionButton.setTitle("Push", for: .normal)
+        self.pushRawTransactionButton.addTarget(self, action: #selector(self.pushRawTransaction), for: .touchUpInside)
+        self.view.addSubview(self.pushRawTransactionButton)
+        
+        self.decodeRawTransactionButton = UIButton(frame: CGRect(x: 0, y: self.pushRawTransactionButton.frame.maxY + 10, width: self.view.frame.width , height: 50))
+        self.decodeRawTransactionButton.showsTouchWhenHighlighted = true
+        self.decodeRawTransactionButton.titleLabel?.textAlignment = .center
+        self.decodeRawTransactionButton.backgroundColor = .black
+        self.decodeRawTransactionButton.setTitle("Decode", for: .normal)
+        self.decodeRawTransactionButton.addTarget(self, action: #selector(self.decodeRawTransaction), for: .touchUpInside)
+        self.view.addSubview(self.decodeRawTransactionButton)
+    }
+    
+    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        if (text as NSString).rangeOfCharacter(from: CharacterSet.newlines).location == NSNotFound {
+            return true
+        }
+        self.rawTransactionView.resignFirstResponder()
+        return false
+    }
+    
+    
+    
+    
     func addBackButton() {
         
         DispatchQueue.main.async {
-            self.backButton = UIButton(frame: CGRect(x: 0, y: 0, width: 100 , height: 55))
+            self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 100 , height: 55))
             self.backButton.showsTouchWhenHighlighted = true
-            self.backButton.backgroundColor = .black
+            self.backButton.layer.cornerRadius = 10
+            self.backButton.backgroundColor = UIColor.lightGray
+            self.backButton.layer.shadowColor = UIColor.black.cgColor
+            self.backButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.backButton.layer.shadowRadius = 2.5
+            self.backButton.layer.shadowOpacity = 0.8
             self.backButton.setTitle("Back", for: .normal)
             self.backButton.addTarget(self, action: #selector(self.home), for: .touchUpInside)
             self.view.addSubview(self.backButton)
@@ -321,7 +376,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func rotateAnimation(imageView:UIImageView,duration: CFTimeInterval = 2.0) {
         let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
         rotateAnimation.fromValue = 0.0
-        rotateAnimation.toValue = CGFloat(.pi * 2.0)
+        rotateAnimation.toValue = CGFloat(.pi * 8.0)
         rotateAnimation.duration = duration
         rotateAnimation.repeatCount = Float.greatestFiniteMagnitude;
         
@@ -546,11 +601,19 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                                 let roundedFiatFeeAmount = round(100 * feeInFiat) / 100
                                                 print("roundedFiatFeeAmount = \(roundedFiatFeeAmount)")
                                                 
-                                                message = "You would like to send \(self.amount) \(self.currecny) which is equal to \(roundedBtcAmount) Bitcoin or \(self.satoshiAmount.withCommas()) Satoshis, with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currecny)"
+                                                let satoshiNoNotation = self.satoshiAmount.avoidNotation
+                                                print("satoshiNoNotation = \(satoshiNoNotation)")
+                                                
+                                                
+                                                message = "You would like to send \(self.amount) \(self.currecny) which is equal to \(roundedBtcAmount.avoidNotation) Bitcoin or \(satoshiNoNotation) Satoshis, with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currecny)"
                                                 
                                             } else if self.preference != "" {
                                                 
-                                                message = "You would like to send \(self.amount) \(self.currecny) which is equal to \(roundedBtcAmount) Bitcoin or \(self.satoshiAmount.withCommas()) Satoshis, with a \(self.preference) miner fee preference."
+                                                let satoshiNoNotation = self.satoshiAmount.avoidNotation
+                                                print("satoshiNoNotation = \(satoshiNoNotation)")
+                                                
+                                                
+                                                message = "You would like to send \(self.amount) \(self.currecny) which is equal to \(roundedBtcAmount.avoidNotation) Bitcoin or \(satoshiNoNotation) Satoshis, with a \(self.preference) miner fee preference."
                                             }
                                             
                                             self.removeSpinner()
@@ -617,7 +680,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         print("textFieldShouldReturn")
-        
         self.view.endEditing(true)
         return false
     }
@@ -627,6 +689,8 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         addressToDisplay.resignFirstResponder()
         return true
     }
+    
+    
     
     enum error: Error {
         
@@ -964,7 +1028,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         print("makeHTTPPostRequest")
         
         self.addSpinner()
-        
         var url:URL!
         url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/new")
         
@@ -1104,7 +1167,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         let jsonData = try? JSONSerialization.data(withJSONObject: self.json)
         var url:URL!
-        url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/send")
+        url = URL(string: "https://api.blockcypher.com/v1/bcy/test/txs/send?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
         
         var request = URLRequest(url: url)
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -1206,7 +1269,9 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         task.resume()
     }
     
-    func pushRawTransaction() {
+    @objc func pushRawTransaction() {
+        
+        self.rawTransaction = self.rawTransactionView.text
         /*
         curl -d '{"tx":"01000000011935b41d12936df99d322ac8972b74ecff7b79408bbccaf1b2eb8015228beac8000000006b483045022100921fc36b911094280f07d8504a80fbab9b823a25f102e2bc69b14bcd369dfc7902200d07067d47f040e724b556e5bc3061af132d5a47bd96e901429d53c41e0f8cca012102152e2bb5b273561ece7bbe8b1df51a4c44f5ab0bc940c105045e2cc77e618044ffffffff0240420f00000000001976a9145fb1af31edd2aa5a2bbaa24f6043d6ec31f7e63288ac20da3c00000000001976a914efec6de6c253e657a9d5506a78ee48d89762fb3188ac00000000"}' https://api.blockcypher.com/v1/bcy/test/txs/push?token=YOURTOKEN
         */
@@ -1216,12 +1281,12 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         self.addSpinner()
         
         var url:URL!
-        url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/send")
+        url = URL(string: "https://api.blockcypher.com/v1/bcy/test/txs/push?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
         
         var request = URLRequest(url: url)
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "POST"
-        request.httpBody = "{\"tx\":\"\(self.rawTransaction)\"}".data(using: .utf8)
+        request.httpBody = "{\"tx\":\"\(self.rawTransactionView.text!)\"}".data(using: .utf8)
         
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) -> Void in
             
@@ -1258,7 +1323,126 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                     self.displayAlert(title: "Error", message: "\(errors)")
                                 }
                                 
+                            } else if let error = jsonAddressResult["error"] as? String {
+                                
+                                DispatchQueue.main.async {
+                                    self.displayAlert(title: "Error", message: "\(error)")
+                                }
+                                
                             } else {
+                                
+                                if let txCheck = jsonAddressResult["tx"] as? NSDictionary {
+                                    
+                                    print("txCheck = \(txCheck)")
+                                    
+                                    if let hashCheck = txCheck["hash"] as? String {
+                                        
+                                        print("hashCheck = \(hashCheck)")
+                                        self.transactionID = hashCheck
+                                        
+                                        DispatchQueue.main.async {
+                                            
+                                            self.removeSpinner()
+                                            
+                                            let alert = UIAlertController(title: NSLocalizedString("Transaction Sent", comment: ""), message: "Transaction ID: \(hashCheck)", preferredStyle: UIAlertControllerStyle.actionSheet)
+                                            
+                                            alert.addAction(UIAlertAction(title: NSLocalizedString("Copy to Clipboard", comment: ""), style: .default, handler: { (action) in
+                                                UIPasteboard.general.string = hashCheck
+                                                self.dismiss(animated: false, completion: nil)
+                                            }))
+                                            
+                                            alert.addAction(UIAlertAction(title: NSLocalizedString("See Transaction", comment: ""), style: .default, handler: { (action) in
+                                                self.getTransaction()
+                                            }))
+                                            
+                                            alert.addAction(UIAlertAction(title: NSLocalizedString("Done", comment: ""), style: .cancel, handler: { (action) in
+                                                self.dismiss(animated: false, completion: nil)
+                                            }))
+                                            
+                                            self.present(alert, animated: true, completion: nil)
+                                            
+                                        }
+                                    }
+                                }
+                                
+                            }
+                            
+                        } catch {
+                            
+                            print("JSon processing failed")
+                            self.removeSpinner()
+                        }
+                    }
+                    
+                }
+            }
+        }
+        task.resume()
+    }
+    
+    @objc func decodeRawTransaction() {
+        
+        self.rawTransaction = self.rawTransactionView.text
+        /*
+         curl -d '{"tx":"01000000011935b41d12936df99d322ac8972b74ecff7b79408bbccaf1b2eb8015228beac8000000006b483045022100921fc36b911094280f07d8504a80fbab9b823a25f102e2bc69b14bcd369dfc7902200d07067d47f040e724b556e5bc3061af132d5a47bd96e901429d53c41e0f8cca012102152e2bb5b273561ece7bbe8b1df51a4c44f5ab0bc940c105045e2cc77e618044ffffffff0240420f00000000001976a9145fb1af31edd2aa5a2bbaa24f6043d6ec31f7e63288ac20da3c00000000001976a914efec6de6c253e657a9d5506a78ee48d89762fb3188ac00000000"}' https://api.blockcypher.com/v1/bcy/test/txs/push?token=YOURTOKEN
+         */
+        
+        print("decodeRawTransaction")
+        
+        self.addSpinner()
+        
+        var url:URL!
+        url = URL(string: "https://api.blockcypher.com/v1/bcy/test/txs/decode?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+        request.httpBody = "{\"tx\":\"\(self.rawTransactionView.text!)\"}".data(using: .utf8)
+        
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) -> Void in
+            
+            do {
+                
+                if error != nil {
+                    self.removeSpinner()
+                    print(error as Any)
+                    
+                    
+                } else {
+                    
+                    if let urlContent = data {
+                        
+                        do {
+                            
+                            let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
+                            self.removeSpinner()
+                            print("jsonAddressResult = \(jsonAddressResult)")
+                            
+                            if let error = jsonAddressResult["errors"] as? NSArray {
+                                
+                                self.removeSpinner()
+                                DispatchQueue.main.async {
+                                    var errors = [String]()
+                                    
+                                    for e in error {
+                                        
+                                        if let errordescription = (e as? NSDictionary)?["error"] as? String {
+                                            
+                                            errors.append(errordescription)
+                                        }
+                                    }
+                                    self.displayAlert(title: "Error", message: "\(errors)")
+                                }
+                                
+                            } else if let error = jsonAddressResult["error"] as? NSDictionary  {
+                                
+                                DispatchQueue.main.async {
+                                    self.displayAlert(title: "Error", message: "\(error)")
+                                }
+                                
+                            } else {
+                                
+                                self.displayAlert(title: "Decoded Transaction", message: "\(jsonAddressResult)")
                                 
                                 /*
                                  //check if tosign was consumed.. get TX hash
@@ -1379,16 +1563,21 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                             }
                                         }
                                         
-                                        self.transactionView = UITextView (frame:CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 60, width: self.view.frame.width - 10, height: self.view.frame.height - 60))
+                                        self.transactionView = UITextView (frame:CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 80, width: self.view.frame.width - 10, height: self.view.frame.height - 60))
                                         self.transactionView.text = "\n\nTransaction ID =\n\n\(hash)\n\nConfirmations = \(txCheck)\n\nBlockheight = \(blockheight)\n\nOutput Transaction Info =\n\n\(fromAddress)\n\nChange Transaction Info =\n\n\(changeAddress)"
                                         self.transactionView.textAlignment = .natural
                                         self.transactionView.isSelectable = true
                                         self.transactionView.font = .systemFont(ofSize: 18)
                                         self.view.addSubview(self.transactionView)
                                         
-                                        self.refreshButton = UIButton(frame: CGRect(x: 0, y: self.view.frame.maxY - 55, width: self.view.frame.width, height: 55))
+                                        self.refreshButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
                                         self.refreshButton.showsTouchWhenHighlighted = true
-                                        self.refreshButton.backgroundColor = .black
+                                        self.refreshButton.layer.cornerRadius = 10
+                                        self.refreshButton.backgroundColor = UIColor.lightGray
+                                        self.refreshButton.layer.shadowColor = UIColor.black.cgColor
+                                        self.refreshButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+                                        self.refreshButton.layer.shadowRadius = 2.5
+                                        self.refreshButton.layer.shadowOpacity = 0.8
                                         self.refreshButton.setTitle("Refresh", for: .normal)
                                         self.refreshButton.addTarget(self, action: #selector(self.tapRefresh), for: .touchUpInside)
                                         self.view.addSubview(self.refreshButton)
@@ -1445,6 +1634,18 @@ extension UITextField{
 }
 
 extension Float {
+    
+    var avoidNotation: String {
+        
+        let numberFormatter = NumberFormatter()
+        numberFormatter.maximumFractionDigits = 8
+        numberFormatter.numberStyle = .decimal
+        return numberFormatter.string(for: self) ?? ""
+        
+    }
+}
+
+extension Int {
     
     var avoidNotation: String {
         
