@@ -94,6 +94,23 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        if self.imageView == nil {
+            
+            let bitcoinImage = UIImage(named: "bitcoinIcon.png")
+            self.imageView = UIImageView(image: bitcoinImage!)
+            self.imageView.center = self.view.center
+            self.imageView.frame = CGRect(x: self.view.center.x - 100, y: self.view.center.y - 100, width: 200, height: 200)
+            
+            
+            let bitcoinDragged = UIPanGestureRecognizer(target: self, action: #selector(self.userCreatesRandomness(gestureRecognizer:)))
+            self.imageView.isUserInteractionEnabled = true
+            self.imageView.addGestureRecognizer(bitcoinDragged)
+            self.view.addSubview(self.imageView)
+            
+        }
+    }
+    
     func isInternetAvailable() -> Bool {
         
         var zeroAddress = sockaddr_in()
@@ -567,10 +584,10 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func addHomeButton() {
         print("addHomeButton")
         DispatchQueue.main.async {
-            self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 100 , height: 55))
+            self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
             self.button.showsTouchWhenHighlighted = true
             self.button.layer.cornerRadius = 10
-            self.button.backgroundColor = UIColor.lightGray
+            self.button.backgroundColor = UIColor.lightText
             self.button.layer.shadowColor = UIColor.black.cgColor
             self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.button.layer.shadowRadius = 2.5
@@ -582,7 +599,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.bitcoinAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 155, y: 20, width: 150 , height: 55))
             self.bitcoinAddressButton.showsTouchWhenHighlighted = true
             self.bitcoinAddressButton.layer.cornerRadius = 10
-            self.bitcoinAddressButton.backgroundColor = UIColor.lightGray
+            self.bitcoinAddressButton.backgroundColor = UIColor.lightText
             self.bitcoinAddressButton.layer.shadowColor = UIColor.black.cgColor
             self.bitcoinAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.bitcoinAddressButton.layer.shadowRadius = 2.5
@@ -600,7 +617,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.importAction.showsTouchWhenHighlighted = true
             self.importAction.titleLabel?.textAlignment = .center
             self.importAction.layer.cornerRadius = 10
-            self.importAction.backgroundColor = UIColor.lightGray
+            self.importAction.backgroundColor = UIColor.lightText
             self.importAction.layer.shadowColor = UIColor.black.cgColor
             self.importAction.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.importAction.layer.shadowRadius = 2.5
@@ -615,10 +632,10 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func addBackButton() {
         
         DispatchQueue.main.async {
-            self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 100 , height: 55))
+            self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
             self.button.showsTouchWhenHighlighted = true
             self.button.layer.cornerRadius = 10
-            self.button.backgroundColor = UIColor.lightGray
+            self.button.backgroundColor = UIColor.lightText
             self.button.layer.shadowColor = UIColor.black.cgColor
             self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.button.layer.shadowRadius = 2.5
@@ -638,6 +655,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         self.percentageLabel.removeFromSuperview()
         self.inputMnemonic.resignFirstResponder()
         self.inputMnemonic.removeFromSuperview()
+        self.importAction.removeFromSuperview()
         self.importButton.removeFromSuperview()
         self.showBitcoin()
     }
@@ -759,7 +777,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.backUpButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
             self.backUpButton.showsTouchWhenHighlighted = true
             self.backUpButton.layer.cornerRadius = 10
-            self.backUpButton.backgroundColor = UIColor.lightGray
+            self.backUpButton.backgroundColor = UIColor.lightText
             self.backUpButton.layer.shadowColor = UIColor.black.cgColor
             self.backUpButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.backUpButton.layer.shadowRadius = 2.5
@@ -777,7 +795,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.checkAddressButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.maxY - 60, width: 90, height: 55))
             self.checkAddressButton.showsTouchWhenHighlighted = true
             self.checkAddressButton.layer.cornerRadius = 10
-            self.checkAddressButton.backgroundColor = UIColor.lightGray
+            self.checkAddressButton.backgroundColor = UIColor.lightText
             self.checkAddressButton.layer.shadowColor = UIColor.black.cgColor
             self.checkAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.checkAddressButton.layer.shadowRadius = 2.5
@@ -795,7 +813,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.mayerMultipleButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.maxY - 60, width: 90, height: 55))
             self.mayerMultipleButton.showsTouchWhenHighlighted = true
             self.mayerMultipleButton.layer.cornerRadius = 10
-            self.mayerMultipleButton.backgroundColor = UIColor.lightGray
+            self.mayerMultipleButton.backgroundColor = UIColor.lightText
             self.mayerMultipleButton.layer.shadowColor = UIColor.black.cgColor
             self.mayerMultipleButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.mayerMultipleButton.layer.shadowRadius = 2.5
@@ -813,7 +831,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.transactionsButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.view.frame.maxY - 60, width: 90, height: 55))
             self.transactionsButton.showsTouchWhenHighlighted = true
             self.transactionsButton.layer.cornerRadius = 10
-            self.transactionsButton.backgroundColor = UIColor.lightGray
+            self.transactionsButton.backgroundColor = UIColor.lightText
             self.transactionsButton.layer.shadowColor = UIColor.black.cgColor
             self.transactionsButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.transactionsButton.layer.shadowRadius = 2.5
@@ -831,7 +849,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.diceButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.minY + 20, width: 90, height: 55))
             self.diceButton.showsTouchWhenHighlighted = true
             self.diceButton.layer.cornerRadius = 10
-            self.diceButton.backgroundColor = UIColor.lightGray
+            self.diceButton.backgroundColor = UIColor.lightText
             self.diceButton.layer.shadowColor = UIColor.black.cgColor
             self.diceButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.diceButton.layer.shadowRadius = 2.5
@@ -848,7 +866,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.importButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.minY + 20, width: 90, height: 55))
             self.importButton.showsTouchWhenHighlighted = true
             self.importButton.layer.cornerRadius = 10
-            self.importButton.backgroundColor = UIColor.lightGray
+            self.importButton.backgroundColor = UIColor.lightText
             self.importButton.layer.shadowColor = UIColor.black.cgColor
             self.importButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.importButton.layer.shadowRadius = 2.5
@@ -877,6 +895,12 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.addClearButton()
             
         case self.mayerMultipleButton:
+            
+            if self.imageView != nil {
+                
+                self.imageView.removeFromSuperview()
+                self.imageView = nil
+            }
             
             self.performSegue(withIdentifier: "goToMayerMultiple", sender: self)
             
@@ -1147,7 +1171,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         self.clearButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 105, y: 20, width: 100 , height: 55))
         self.clearButton.showsTouchWhenHighlighted = true
-        self.clearButton.backgroundColor = UIColor.lightGray
+        self.clearButton.backgroundColor = UIColor.lightText
         self.clearButton.layer.cornerRadius = 10
         self.clearButton.layer.shadowColor = UIColor.black.cgColor
         self.clearButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)

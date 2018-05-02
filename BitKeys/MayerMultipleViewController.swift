@@ -12,47 +12,21 @@ class MayerMultipleViewController: UIViewController {
     
     var imageView:UIView!
     var button = UIButton(type: .custom)
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
-        print("MayerMultipleViewController")
-        
-        self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 100 , height: 55))
-        self.button.showsTouchWhenHighlighted = true
-        self.button.layer.cornerRadius = 10
-        self.button.backgroundColor = UIColor.lightGray
-        self.button.layer.shadowColor = UIColor.black.cgColor
-        self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.button.layer.shadowRadius = 2.5
-        self.button.layer.shadowOpacity = 0.8
-        self.button.setTitle("Back", for: .normal)
-        self.button.addTarget(self, action: #selector(self.goBack), for: .touchUpInside)
-        self.view.addSubview(self.button)
-        
-        getMayerMultiple()
-    }
     
     func rotateAnimation(imageView:UIImageView,duration: CFTimeInterval = 2.0) {
-        
-            let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
-            rotateAnimation.fromValue = 0.0
-            rotateAnimation.toValue = CGFloat(.pi * 8.0)
-            rotateAnimation.duration = duration
-            rotateAnimation.repeatCount = Float.greatestFiniteMagnitude;
-            imageView.layer.add(rotateAnimation, forKey: nil)
-        
+        let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
+        rotateAnimation.fromValue = 0.0
+        rotateAnimation.toValue = CGFloat(.pi * 8.0)
+        rotateAnimation.duration = duration
+        rotateAnimation.repeatCount = Float.greatestFiniteMagnitude;
+        imageView.layer.add(rotateAnimation, forKey: nil)
     }
     
     func addSpinner() {
         
-            let bitcoinImage = UIImage(named: "bitcoinIcon.png")
-            self.imageView = UIImageView(image: bitcoinImage!)
-            self.imageView.center = self.view.center
-            self.imageView.frame = CGRect(x: self.view.center.x - 100, y: self.view.center.y - 100, width: 200, height: 200)
+        DispatchQueue.main.async {
             self.rotateAnimation(imageView: self.imageView as! UIImageView)
-            self.view.addSubview(self.imageView)
+        }
         
     }
     
@@ -62,6 +36,40 @@ class MayerMultipleViewController: UIViewController {
             self.imageView.removeFromSuperview()
         }
     }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        // Do any additional setup after loading the view.
+        print("MayerMultipleViewController")
+        
+        let bitcoinImage = UIImage(named: "bitcoinIcon.png")
+        self.imageView = UIImageView(image: bitcoinImage!)
+        self.imageView.center = self.view.center
+        self.imageView.frame = CGRect(x: self.view.center.x - 100, y: self.view.center.y - 100, width: 200, height: 200)
+        self.view.addSubview(self.imageView)
+        
+        self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
+        self.button.showsTouchWhenHighlighted = true
+        self.button.layer.cornerRadius = 10
+        self.button.backgroundColor = UIColor.lightText
+        self.button.layer.shadowColor = UIColor.black.cgColor
+        self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.button.layer.shadowRadius = 2.5
+        self.button.layer.shadowOpacity = 0.8
+        self.button.setTitle("Back", for: .normal)
+        self.button.addTarget(self, action: #selector(self.goBack), for: .touchUpInside)
+        self.view.addSubview(self.button)
+        
+        getMayerMultiple()
+        
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        self.addSpinner()
+    }
+    
+    
 
     @objc func goBack() {
         
@@ -79,8 +87,8 @@ class MayerMultipleViewController: UIViewController {
 
     func getMayerMultiple() {
         
-        
         self.addSpinner()
+        
         var url:NSURL!
         url = NSURL(string: "https://blockchain.info/charts/market-price?timespan=200days&format=json")
         

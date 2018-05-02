@@ -48,7 +48,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         rotateAnimation.toValue = CGFloat(.pi * 8.0)
         rotateAnimation.duration = duration
         rotateAnimation.repeatCount = Float.greatestFiniteMagnitude;
-        
         imageView.layer.add(rotateAnimation, forKey: nil)
     }
     
@@ -78,7 +77,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             self.addAddressBookButton()
             
         }
-        
     }
 
     @IBOutlet var videoPreview: UIView!
@@ -90,7 +88,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             DispatchQueue.main.async {
                 
                 self.checkBalance(address: self.addressToDisplay.text!)
-                self.addressToDisplay.removeFromSuperview()
+                self.addressToDisplay.text = ""
+                //self.addressToDisplay.removeFromSuperview()
                 self.avCaptureSession.stopRunning()
                 
             }
@@ -156,8 +155,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     
     func scanQRNow() throws {
         
-        
-        
         guard let avCaptureDevice = AVCaptureDevice.default(for: AVMediaType.video) else {
             
             print("no camera")
@@ -215,6 +212,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     print(error as Any)
                     self.removeSpinner()
                     DispatchQueue.main.async {
+                        self.view.addSubview(self.addressToDisplay)
+                        self.avCaptureSession.startRunning()
                         self.displayAlert(title: "Error", message: "\(String(describing: error))")
                     }
                     
@@ -236,6 +235,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                 
                                     DispatchQueue.main.async {
                                         self.videoPreview.removeFromSuperview()
+                                        self.addressToDisplay.removeFromSuperview()
                                         
                                         let btcBalanceLabel = UILabel()
                                         btcBalanceLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - ((self.view.frame.height / 2) + 120), width: self.view.frame.width, height: self.view.frame.height)
@@ -265,6 +265,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                 
                                 DispatchQueue.main.async {
                                     self.removeSpinner()
+                                    self.view.addSubview(self.addressToDisplay)
+                                    self.avCaptureSession.startRunning()
                                     self.displayAlert(title: "Error", message: "Please try again.")
                                 }
                             }
@@ -274,6 +276,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             print("JSon processing failed")
                             DispatchQueue.main.async {
                                 self.removeSpinner()
+                                self.view.addSubview(self.addressToDisplay)
+                                self.avCaptureSession.startRunning()
                                 self.displayAlert(title: "Error", message: "Please try again.")
                             }
                         }
@@ -299,6 +303,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     print(error as Any)
                     self.removeSpinner()
                     DispatchQueue.main.async {
+                        self.view.addSubview(self.addressToDisplay)
+                        self.avCaptureSession.startRunning()
                         self.displayAlert(title: "Error", message: "\(String(describing: error))")
                     }
                     
@@ -385,6 +391,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             print("JSon processing failed")
                             DispatchQueue.main.async {
                                 self.removeSpinner()
+                                self.view.addSubview(self.addressToDisplay)
+                                self.avCaptureSession.startRunning()
                                 self.displayAlert(title: "Error", message: "Please try again.")
                             }
                         }
@@ -400,10 +408,10 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func addHomeButton() {
         
         DispatchQueue.main.async {
-            let button = UIButton(frame: CGRect(x: 5, y: 20, width: 100 , height: 55))
+            let button = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
             button.showsTouchWhenHighlighted = true
             button.layer.cornerRadius = 10
-            button.backgroundColor = UIColor.lightGray
+            button.backgroundColor = UIColor.lightText
             button.layer.shadowColor = UIColor.black.cgColor
             button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             button.layer.shadowRadius = 2.5
@@ -432,7 +440,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             self.backUpButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
             self.backUpButton.showsTouchWhenHighlighted = true
             self.backUpButton.layer.cornerRadius = 10
-            self.backUpButton.backgroundColor = UIColor.lightGray
+            self.backUpButton.backgroundColor = UIColor.lightText
             self.backUpButton.layer.shadowColor = UIColor.black.cgColor
             self.backUpButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.backUpButton.layer.shadowRadius = 2.5
@@ -450,7 +458,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             self.backUpButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
             self.backUpButton.showsTouchWhenHighlighted = true
             self.backUpButton.layer.cornerRadius = 10
-            self.backUpButton.backgroundColor = UIColor.lightGray
+            self.backUpButton.backgroundColor = UIColor.lightText
             self.backUpButton.layer.shadowColor = UIColor.black.cgColor
             self.backUpButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.backUpButton.layer.shadowRadius = 2.5

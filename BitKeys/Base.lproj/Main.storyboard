@@ -126,7 +126,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rb4-YD-yD1">
-                                <rect key="frame" x="0.0" y="162" width="375" height="343"/>
+                                <rect key="frame" x="0.0" y="183" width="375" height="343"/>
                                 <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="375" id="YG9-xe-K41"/>
@@ -134,7 +134,7 @@
                                 </constraints>
                             </view>
                             <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Type or paste a Bitcoin address" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Bn8-xE-3Tw">
-                                <rect key="frame" x="0.0" y="124" width="375" height="30"/>
+                                <rect key="frame" x="16" y="145" width="343" height="30"/>
                                 <nil key="textColor"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" returnKeyType="go"/>
@@ -145,10 +145,10 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="Bn8-xE-3Tw" firstAttribute="trailing" secondItem="EgZ-Ps-Rsq" secondAttribute="trailing" id="0Pp-rv-QJP"/>
+                            <constraint firstItem="Bn8-xE-3Tw" firstAttribute="trailing" secondItem="EgZ-Ps-Rsq" secondAttribute="trailing" constant="-16" id="0Pp-rv-QJP"/>
                             <constraint firstItem="rb4-YD-yD1" firstAttribute="top" secondItem="Bn8-xE-3Tw" secondAttribute="bottom" constant="8" id="Ihm-G9-j5j"/>
-                            <constraint firstItem="Bn8-xE-3Tw" firstAttribute="leading" secondItem="EgZ-Ps-Rsq" secondAttribute="leading" id="WBb-Ef-2aJ"/>
-                            <constraint firstItem="rb4-YD-yD1" firstAttribute="centerY" secondItem="bsy-K8-UFW" secondAttribute="centerY" id="iLg-iy-OSM"/>
+                            <constraint firstItem="Bn8-xE-3Tw" firstAttribute="leading" secondItem="EgZ-Ps-Rsq" secondAttribute="leading" constant="16" id="WBb-Ef-2aJ"/>
+                            <constraint firstItem="rb4-YD-yD1" firstAttribute="centerY" secondItem="bsy-K8-UFW" secondAttribute="centerY" constant="21" id="iLg-iy-OSM"/>
                             <constraint firstItem="rb4-YD-yD1" firstAttribute="centerX" secondItem="bsy-K8-UFW" secondAttribute="centerX" id="kOR-sm-BlV"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="EgZ-Ps-Rsq"/>

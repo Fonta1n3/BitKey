@@ -241,7 +241,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     
     func addRawTransactionView() {
         
-        self.rawTransactionView.frame = CGRect(x: (self.view.frame.width / 2) - ((self.view.frame.width - 10) / 2), y: self.view.frame.minY + 100, width: self.view.frame.width - 10, height: 400)
+        self.rawTransactionView.frame = CGRect(x: (self.view.frame.width / 2) - ((self.view.frame.width - 10) / 2), y: self.view.frame.minY + 100, width: self.view.frame.width - 10, height: 325)
         self.rawTransactionView.textAlignment = .left
         self.rawTransactionView.backgroundColor = UIColor.groupTableViewBackground
         self.rawTransactionView.keyboardDismissMode = .interactive
@@ -250,18 +250,28 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         self.rawTransactionView.returnKeyType = UIReturnKeyType.done
         self.view.addSubview(self.rawTransactionView)
         
-        self.pushRawTransactionButton = UIButton(frame: CGRect(x: 0, y: self.rawTransactionView.frame.maxY + 10, width: self.view.frame.width , height: 50))
+        self.pushRawTransactionButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.rawTransactionView.frame.maxY + 10, width: 300, height: 55))
         self.pushRawTransactionButton.showsTouchWhenHighlighted = true
         self.pushRawTransactionButton.titleLabel?.textAlignment = .center
-        self.pushRawTransactionButton.backgroundColor = .black
+        self.pushRawTransactionButton.layer.cornerRadius = 10
+        self.pushRawTransactionButton.backgroundColor = UIColor.lightText
+        self.pushRawTransactionButton.layer.shadowColor = UIColor.black.cgColor
+        self.pushRawTransactionButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.pushRawTransactionButton.layer.shadowRadius = 2.5
+        self.pushRawTransactionButton.layer.shadowOpacity = 0.8
         self.pushRawTransactionButton.setTitle("Push", for: .normal)
         self.pushRawTransactionButton.addTarget(self, action: #selector(self.pushRawTransaction), for: .touchUpInside)
         self.view.addSubview(self.pushRawTransactionButton)
         
-        self.decodeRawTransactionButton = UIButton(frame: CGRect(x: 0, y: self.pushRawTransactionButton.frame.maxY + 10, width: self.view.frame.width , height: 50))
+        self.decodeRawTransactionButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.pushRawTransactionButton.frame.maxY + 10, width: 300, height: 55))
         self.decodeRawTransactionButton.showsTouchWhenHighlighted = true
         self.decodeRawTransactionButton.titleLabel?.textAlignment = .center
-        self.decodeRawTransactionButton.backgroundColor = .black
+        self.decodeRawTransactionButton.layer.cornerRadius = 10
+        self.decodeRawTransactionButton.backgroundColor = UIColor.lightText
+        self.decodeRawTransactionButton.layer.shadowColor = UIColor.black.cgColor
+        self.decodeRawTransactionButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.decodeRawTransactionButton.layer.shadowRadius = 2.5
+        self.decodeRawTransactionButton.layer.shadowOpacity = 0.8
         self.decodeRawTransactionButton.setTitle("Decode", for: .normal)
         self.decodeRawTransactionButton.addTarget(self, action: #selector(self.decodeRawTransaction), for: .touchUpInside)
         self.view.addSubview(self.decodeRawTransactionButton)
@@ -281,10 +291,10 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func addBackButton() {
         
         DispatchQueue.main.async {
-            self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 100 , height: 55))
+            self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
             self.backButton.showsTouchWhenHighlighted = true
             self.backButton.layer.cornerRadius = 10
-            self.backButton.backgroundColor = UIColor.lightGray
+            self.backButton.backgroundColor = UIColor.lightText
             self.backButton.layer.shadowColor = UIColor.black.cgColor
             self.backButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.backButton.layer.shadowRadius = 2.5
@@ -389,6 +399,8 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         self.addressToDisplay.frame = CGRect(x: self.view.frame.minX + 5, y: self.videoPreview.frame.minY - 55, width: self.view.frame.width - 10, height: 50)
         self.addressToDisplay.textAlignment = .center
         self.addressToDisplay.borderStyle = .roundedRect
+        self.addressToDisplay.autocorrectionType = .no
+        self.addressToDisplay.autocapitalizationType = .none
         self.addressToDisplay.backgroundColor = UIColor.groupTableViewBackground
         self.addressToDisplay.returnKeyType = UIReturnKeyType.go
         
@@ -465,11 +477,29 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 self.addressToDisplay.text = ""
                 self.makeHTTPPostRequest()
                 
+                
             } else if getSignatureMode {
                 
-                self.getPrivateKeySignature(key: self.addressToDisplay.text!)
-                print("privateKey = \(self.addressToDisplay.text!)")
-                self.removeScanner()
+                DispatchQueue.main.async {
+                    
+                    let alert = UIAlertController(title: NSLocalizedString("Please confirm", comment: ""), message: "We will use private key: \(self.addressToDisplay.text!) to create a signature. You can just check first few and last few characters as if its incorrect the worst that will happen is you'll have to start over.", preferredStyle: UIAlertControllerStyle.actionSheet)
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Looks Good, please sign", comment: ""), style: .default, handler: { (action) in
+                        
+                        print("privateKey = \(self.addressToDisplay.text!)")
+                        self.getPrivateKeySignature(key: self.addressToDisplay.text!)
+                        self.removeScanner()
+                        
+                    }))
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                        
+                        self.dismiss(animated: false, completion: nil)
+                        
+                    }))
+                    
+                    self.present(alert, animated: true, completion: nil)
+                }
             }
             
         } else if textField == self.amountToSend && self.setFeeMode == false {
@@ -483,8 +513,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 self.getSatsAndBTCs()
                 
             }
-            
-            //getSatsAndBTCs()
         }
     }
     
@@ -754,7 +782,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                         self.present(alert, animated: true, completion: nil)
                     }
                     
-                    
                 } else if getPayerAddressMode {
                     
                     self.sendingFromAddress = stringURL
@@ -764,12 +791,29 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     self.removeScanner()
                     self.makeHTTPPostRequest()
                     
-                    
                 } else if getSignatureMode {
                     
-                    self.getPrivateKeySignature(key: self.stringURL)
-                    print("privateKey = \(self.stringURL)")
+                    DispatchQueue.main.async {
                         
+                        self.removeScanner()
+                        
+                        let alert = UIAlertController(title: NSLocalizedString("Please confirm", comment: ""), message: "We will use private key: \(self.stringURL) to create a signature. You can just check first few and last few characters as if its incorrect the worst that will happen is you'll have to start over.", preferredStyle: UIAlertControllerStyle.actionSheet)
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("Looks Good, please sign", comment: ""), style: .default, handler: { (action) in
+                            
+                            print("privateKey = \(self.stringURL)")
+                            self.getPrivateKeySignature(key: self.stringURL)
+                            
+                        }))
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                            
+                            self.dismiss(animated: false, completion: nil)
+                            
+                        }))
+                        
+                        self.present(alert, animated: true, completion: nil)
+                    }
                 }
             }
         }
@@ -778,99 +822,110 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func getPrivateKeySignature(key: String) {
         print("getPrivateKeySignature")
         
-        let privateKey = BTCPrivateKeyAddress(string: key)
-        print("privateKey = \(String(describing: privateKey))")
-        let key = BTCKey.init(privateKeyAddress: privateKey)
-        let publicKey = key?.publicKey
-        let publicKeyString = BTCHexFromData(publicKey as Data!)
-        print("prvKey = \(String(describing: key?.privateKey.hex()))")
-        self.privateKeyToSign = (key?.privateKey.hex())!
-        SignerGetSignature(self.privateKeyToSign, self.transactionToBeSigned)
-        let signature = Signer.signature()
-        self.json["signatures"] = ["\(String(describing: signature!))"]
-        self.json["pubkeys"] = ["\(String(describing: publicKeyString!))"]
-        print("json = \(self.json)")
-        
-        DispatchQueue.main.async {
+        if let privateKey = BTCPrivateKeyAddress(string: key) {
+          print("privateKey = \(String(describing: privateKey))")
             
-            self.removeScanner()
+            let key = BTCKey.init(privateKeyAddress: privateKey)
+            print("privateKey = \(String(describing: privateKey))")
+            let publicKey = key?.publicKey
+            let publicKeyString = BTCHexFromData(publicKey as Data!)
+            print("prvKey = \(String(describing: key?.privateKey.hex()))")
+            self.privateKeyToSign = (key?.privateKey.hex())!
+            SignerGetSignature(self.privateKeyToSign, self.transactionToBeSigned)
+            let signature = Signer.signature()
+            self.json["signatures"] = ["\(String(describing: signature!))"]
+            self.json["pubkeys"] = ["\(String(describing: publicKeyString!))"]
+            print("json = \(self.json)")
             
-            var message = String()
-            
-            if self.currecny != "BTC" && self.currecny != "SAT" {
-                
-                //calculate miner fee in users currency
-                //self.exchangeRate
-                let feeInFiat = self.exchangeRate * (Double(self.fees) / 100000000)
-                let roundedFiatFeeAmount = round(100 * feeInFiat) / 100
-                let roundedFiatToSendAmount = (round(100 * Double(self.amount)!) / 100).withCommas()
+            DispatchQueue.main.async {
                 
                 
-                message = "From: \(self.sendingFromAddress)\nTo: \(self.recievingAddress)\nAmount: \(roundedFiatToSendAmount) \(self.currecny) with a miner fee of \(self.fees!.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currecny)"
                 
-            } else {
+                var message = String()
                 
-                message = "From: \(self.sendingFromAddress)\nTo: \(self.recievingAddress)\nAmount: \(self.amount) \(self.currecny) with a miner fee of \(self.fees!.withCommas()) Satoshis"
-            }
-            
-            let alert = UIAlertController(title: NSLocalizedString("Please confirm your transaction before sending.", comment: ""), message: message, preferredStyle: UIAlertControllerStyle.actionSheet)
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Send", comment: ""), style: .default, handler: { (action) in
-                
-                self.isInternetAvailable()
-                
-                if self.connected == true {
+                if self.currecny != "BTC" && self.currecny != "SAT" {
                     
-                    DispatchQueue.main.async {
-                        self.postTransaction()
-                    }
+                    //calculate miner fee in users currency
+                    //self.exchangeRate
+                    let feeInFiat = self.exchangeRate * (Double(self.fees) / 100000000)
+                    let roundedFiatFeeAmount = round(100 * feeInFiat) / 100
+                    let roundedFiatToSendAmount = (round(100 * Double(self.amount)!) / 100).withCommas()
                     
                     
+                    message = "From: \(self.sendingFromAddress)\nTo: \(self.recievingAddress)\nAmount: \(roundedFiatToSendAmount) \(self.currecny) with a miner fee of \(self.fees!.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currecny)"
                     
                 } else {
                     
-                    DispatchQueue.main.async {
-                        
-                        let alert = UIAlertController(title: NSLocalizedString("No Internet Connection.", comment: ""), message: "Please connect now and tap 'Try Again' when you are connected again.", preferredStyle: UIAlertControllerStyle.alert)
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("Try Again", comment: ""), style: .default, handler: { (action) in
-                            
-                            self.isInternetAvailable()
-                            
-                            if self.connected == true {
-                                
-                                DispatchQueue.main.async {
-                                    self.postTransaction()
-                                }
-                                
-                            } else {
-                                
-                                DispatchQueue.main.async {
-                                    self.displayAlert(title: "No Internet Connection", message: "In order to broadcast your transaction to the network we need a connection.")
-                                }
-                                
-                            }
-                            
-                        }))
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                            self.dismiss(animated: false, completion: nil)
-                        }))
-                        
-                        self.present(alert, animated: true, completion: nil)
-                    }
-                    
+                    message = "From: \(self.sendingFromAddress)\nTo: \(self.recievingAddress)\nAmount: \(self.amount) \(self.currecny) with a miner fee of \(self.fees!.withCommas()) Satoshis"
                 }
                 
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                let alert = UIAlertController(title: NSLocalizedString("Please confirm your transaction before sending.", comment: ""), message: message, preferredStyle: UIAlertControllerStyle.actionSheet)
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Send", comment: ""), style: .default, handler: { (action) in
+                    
+                    self.isInternetAvailable()
+                    
+                    if self.connected == true {
+                        
+                        DispatchQueue.main.async {
+                            self.postTransaction()
+                        }
+                        
+                        
+                        
+                    } else {
+                        
+                        DispatchQueue.main.async {
+                            
+                            let alert = UIAlertController(title: NSLocalizedString("No Internet Connection.", comment: ""), message: "Please connect now and tap 'Try Again' when you are connected again.", preferredStyle: UIAlertControllerStyle.alert)
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("Try Again", comment: ""), style: .default, handler: { (action) in
+                                
+                                self.isInternetAvailable()
+                                
+                                if self.connected == true {
+                                    
+                                    DispatchQueue.main.async {
+                                        self.postTransaction()
+                                    }
+                                    
+                                } else {
+                                    
+                                    DispatchQueue.main.async {
+                                        self.displayAlert(title: "No Internet Connection", message: "In order to broadcast your transaction to the network we need a connection.")
+                                    }
+                                    
+                                }
+                                
+                            }))
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                self.dismiss(animated: false, completion: nil)
+                            }))
+                            
+                            self.present(alert, animated: true, completion: nil)
+                        }
+                        
+                    }
+                    
+                }))
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
                     self.dismiss(animated: false, completion: nil)
-            }))
+                }))
+                
+                self.present(alert, animated: true, completion: nil)
+                
+            }
             
-            self.present(alert, animated: true, completion: nil)
+        } else {
             
+            DispatchQueue.main.async {
+                self.displayAlert(title: "Error", message: "The Private Key is not valid, please try again.")
+            }
         }
+        
+        
         
         
     }
@@ -1029,7 +1084,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         self.addSpinner()
         var url:URL!
-        url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/new")
+        url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/new")
         
         var request = URLRequest(url: url)
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -1103,7 +1158,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                         if let sizeCheck = (jsonAddressResult["tx"] as? NSDictionary)?["fees"] as? NSInteger {
                                             
                                             print("sizeCheck = \(sizeCheck)")
-                                            //self.totalSize = sizeCheck + 100
                                             self.fees = sizeCheck
                                             
                                         }
@@ -1163,11 +1217,13 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func postTransaction() {
         print("postTransaction")
         
-        self.addSpinner()
+        //'{"tx": {...}, "tosign": [ "32b5ea64c253b6b466366647458cfd60de9cd29d7dc542293aa0b8b7300cd827" ], "signatures": [ "3045022100921fc36b911094280f07d8504a80fbab9b823a25f102e2bc69b14bcd369dfc7902200d07067d47f040e724b556e5bc3061af132d5a47bd96e901429d53c41e0f8cca" ], "pubkeys": [ "02152e2bb5b273561ece7bbe8b1df51a4c44f5ab0bc940c105045e2cc77e618044" ] }'
         
+        self.addSpinner()
+        print("self.json = \(self.json)")
         let jsonData = try? JSONSerialization.data(withJSONObject: self.json)
         var url:URL!
-        url = URL(string: "https://api.blockcypher.com/v1/bcy/test/txs/send?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
+        url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/send")
         
         var request = URLRequest(url: url)
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -1281,7 +1337,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         self.addSpinner()
         
         var url:URL!
-        url = URL(string: "https://api.blockcypher.com/v1/bcy/test/txs/push?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
+        url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/push?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
         
         var request = URLRequest(url: url)
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -1392,7 +1448,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         self.addSpinner()
         
         var url:URL!
-        url = URL(string: "https://api.blockcypher.com/v1/bcy/test/txs/decode?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
+        url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/decode?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
         
         var request = URLRequest(url: url)
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -1434,7 +1490,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                     self.displayAlert(title: "Error", message: "\(errors)")
                                 }
                                 
-                            } else if let error = jsonAddressResult["error"] as? NSDictionary  {
+                            } else if let error = jsonAddressResult["error"] as? String {
                                 
                                 DispatchQueue.main.async {
                                     self.displayAlert(title: "Error", message: "\(error)")
@@ -1495,7 +1551,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         self.addSpinner()
         var url:URL!
-        url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/\(self.transactionID)")
+        url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/\(self.transactionID)")
         
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) -> Void in
             
@@ -1563,7 +1619,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                             }
                                         }
                                         
-                                        self.transactionView = UITextView (frame:CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 80, width: self.view.frame.width - 10, height: self.view.frame.height - 60))
+                                        self.transactionView = UITextView (frame:CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 80, width: self.view.frame.width - 10, height: self.view.frame.height - 160))
                                         self.transactionView.text = "\n\nTransaction ID =\n\n\(hash)\n\nConfirmations = \(txCheck)\n\nBlockheight = \(blockheight)\n\nOutput Transaction Info =\n\n\(fromAddress)\n\nChange Transaction Info =\n\n\(changeAddress)"
                                         self.transactionView.textAlignment = .natural
                                         self.transactionView.isSelectable = true
@@ -1573,7 +1629,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                         self.refreshButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
                                         self.refreshButton.showsTouchWhenHighlighted = true
                                         self.refreshButton.layer.cornerRadius = 10
-                                        self.refreshButton.backgroundColor = UIColor.lightGray
+                                        self.refreshButton.backgroundColor = UIColor.lightText
                                         self.refreshButton.layer.shadowColor = UIColor.black.cgColor
                                         self.refreshButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
                                         self.refreshButton.layer.shadowRadius = 2.5
