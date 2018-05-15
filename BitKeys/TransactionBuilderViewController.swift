@@ -10,8 +10,9 @@ import UIKit
 import Signer
 import AVFoundation
 import SystemConfiguration
+//import GoTransactionBuilder
 
-class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilderDataSource,*/ AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate {
+class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilderDataSource, */AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate {
     
     var imageView:UIView!
     let avCaptureSession = AVCaptureSession()
@@ -49,6 +50,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     var rawTransactionView = UITextView()
     var pushRawTransactionButton = UIButton()
     var decodeRawTransactionButton = UIButton()
+    var xpubkey = String()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -66,10 +68,16 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         getAmount()
         manuallySetFee = false
         setFeeMode = true
+        
+        //parseAddress(address: "mwsPvCKh8GusWcYD7TfrnJabiP8rjSYDKS")
     }
-    
-    
-    
+    /*
+    func gotransaction() {
+        
+        let tx = GoTransactionBuilderInputTransaction("5HusYj2b2x4nroApgfvaSfKYZhRbKFH41bVyPooymbC6KfgSXdD", "1KKKK6N21XKo48zWKuQKXdvSsCf95ibHFa", 91234, "81b4c832d70cb56ff957589752eb4125a4cab78a25a8fc52d6a09e5bd4404d48")
+        print("tx = \(tx)")
+    }
+    */
     func isInternetAvailable() -> Bool {
         
         var zeroAddress = sockaddr_in()
@@ -384,13 +392,14 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     }
     
     func rotateAnimation(imageView:UIImageView,duration: CFTimeInterval = 2.0) {
+        
         let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
         rotateAnimation.fromValue = 0.0
         rotateAnimation.toValue = CGFloat(.pi * 8.0)
         rotateAnimation.duration = duration
         rotateAnimation.repeatCount = Float.greatestFiniteMagnitude;
-        
         imageView.layer.add(rotateAnimation, forKey: nil)
+        
     }
     
     func addTextInput() {
@@ -425,6 +434,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     }
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
+        
         if textField == self.amountToSend {
             
             if self.preference == "" {
@@ -839,8 +849,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             
             DispatchQueue.main.async {
                 
-                
-                
                 var message = String()
                 
                 if self.currecny != "BTC" && self.currecny != "SAT" {
@@ -963,7 +971,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
     }
     
-    /*
+     /*
     func parseAddress(address: String) {
         print("getAddressTransactionInputs")
         
@@ -1014,30 +1022,29 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     }
     
     
-    
+   
     func callBTCTransaction() {
         //testnet private key to sign with
         let privateKeyString = "cVci5ZPPF2JJbzbBL48j4uBBjuTQrxPU94pcGJTdvNsKEXxqYPXx"
         //testnet address to send from
         let originAddressString = "mwsPvCKh8GusWcYD7TfrnJabiP8rjSYDKS"
-        
+        /*
         //attempting to create a signature script
         let privateKey = BTCPrivateKeyAddress(string: privateKeyString)
         let key = BTCKey.init(privateKeyAddress: privateKey)
         let hash = BTCSHA256(privateKey?.data)
         let sig = key?.signature(forHash: hash! as Data)
-        print("sig = \(sig?.hex())")
         let sigScript = BTCScript.init(data: sig)
-        
-        let input = BTCTransactionInput()
-        input.signatureScript = sigScript
-        let tx = BTCTransaction()
-        tx.addInput(input)
-        let address = BTCAddress(string: "mxxky7EDvEVa4z9pwenveSMcj6L3CJ85di")
+        */
+        //let input = BTCTransactionInput()
+        //input.signatureScript = sigScript
+        //let tx = BTCTransaction()
+        //tx.addInput(input)
+        let address = BTCPublicKeyAddressTestnet(string: "mxxky7EDvEVa4z9pwenveSMcj6L3CJ85di")
         let newTransaction = BTCTransactionBuilder()
+        newTransaction.shouldSign = true
         newTransaction.dataSource = self
-        newTransaction.shouldSign = false
-        newTransaction.changeAddress = BTCAddress(string: self.btcAddress)
+        newTransaction.changeAddress = BTCPublicKeyAddressTestnet(string: originAddressString)
         newTransaction.outputs = [BTCTransactionOutput(value: BTCAmount(50000), address: address)]
         newTransaction.feeRate = BTCAmount(5000)
         
@@ -1439,111 +1446,123 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     @objc func decodeRawTransaction() {
         
         self.rawTransaction = self.rawTransactionView.text
+        print("self.rawTransaction = \(self.rawTransaction)")
         /*
          curl -d '{"tx":"01000000011935b41d12936df99d322ac8972b74ecff7b79408bbccaf1b2eb8015228beac8000000006b483045022100921fc36b911094280f07d8504a80fbab9b823a25f102e2bc69b14bcd369dfc7902200d07067d47f040e724b556e5bc3061af132d5a47bd96e901429d53c41e0f8cca012102152e2bb5b273561ece7bbe8b1df51a4c44f5ab0bc940c105045e2cc77e618044ffffffff0240420f00000000001976a9145fb1af31edd2aa5a2bbaa24f6043d6ec31f7e63288ac20da3c00000000001976a914efec6de6c253e657a9d5506a78ee48d89762fb3188ac00000000"}' https://api.blockcypher.com/v1/bcy/test/txs/push?token=YOURTOKEN
          */
         
         print("decodeRawTransaction")
         
-        self.addSpinner()
-        
-        var url:URL!
-        url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/decode?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
-        
-        var request = URLRequest(url: url)
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.httpMethod = "POST"
-        request.httpBody = "{\"tx\":\"\(self.rawTransactionView.text!)\"}".data(using: .utf8)
-        
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) -> Void in
+        if self.rawTransaction != "" {
             
-            do {
+            self.addSpinner()
+            
+            var url:URL!
+            url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/decode?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
+            
+            var request = URLRequest(url: url)
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+            request.httpMethod = "POST"
+            request.httpBody = "{\"tx\":\"\(self.rawTransactionView.text!)\"}".data(using: .utf8)
+            
+            let task = URLSession.shared.dataTask(with: request) { (data, response, error) -> Void in
                 
-                if error != nil {
-                    self.removeSpinner()
-                    print(error as Any)
+                do {
                     
-                    
-                } else {
-                    
-                    if let urlContent = data {
+                    if error != nil {
+                        self.removeSpinner()
+                        print(error as Any)
                         
-                        do {
+                        
+                    } else {
+                        
+                        if let urlContent = data {
                             
-                            let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
-                            self.removeSpinner()
-                            print("jsonAddressResult = \(jsonAddressResult)")
-                            
-                            if let error = jsonAddressResult["errors"] as? NSArray {
+                            do {
                                 
+                                let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
                                 self.removeSpinner()
-                                DispatchQueue.main.async {
-                                    var errors = [String]()
+                                print("jsonAddressResult = \(jsonAddressResult)")
+                                
+                                if let error = jsonAddressResult["errors"] as? NSArray {
                                     
-                                    for e in error {
+                                    self.removeSpinner()
+                                    DispatchQueue.main.async {
+                                        var errors = [String]()
                                         
-                                        if let errordescription = (e as? NSDictionary)?["error"] as? String {
+                                        for e in error {
                                             
-                                            errors.append(errordescription)
+                                            if let errordescription = (e as? NSDictionary)?["error"] as? String {
+                                                
+                                                errors.append(errordescription)
+                                            }
                                         }
+                                        self.displayAlert(title: "Error", message: "\(errors)")
                                     }
-                                    self.displayAlert(title: "Error", message: "\(errors)")
+                                    
+                                } else if let error = jsonAddressResult["error"] as? String {
+                                    
+                                    DispatchQueue.main.async {
+                                        self.displayAlert(title: "Error", message: "\(error)")
+                                    }
+                                    
+                                } else {
+                                    
+                                    self.displayAlert(title: "Decoded Transaction", message: "\(jsonAddressResult)")
+                                    
+                                    /*
+                                     //check if tosign was consumed.. get TX hash
+                                     if let txCheck = jsonAddressResult["tx"] as? NSDictionary {
+                                     
+                                     print("txCheck = \(txCheck)")
+                                     
+                                     if let hashCheck = txCheck["hash"] as? String {
+                                     
+                                     print("hashCheck = \(hashCheck)")
+                                     self.removeScanner()
+                                     
+                                     DispatchQueue.main.async {
+                                     
+                                     let alert = UIAlertController(title: NSLocalizedString("Transaction Sent", comment: ""), message: "Transaction ID: \(hashCheck)", preferredStyle: UIAlertControllerStyle.actionSheet)
+                                     
+                                     alert.addAction(UIAlertAction(title: NSLocalizedString("Copy to Clipboard", comment: ""), style: .default, handler: { (action) in
+                                     UIPasteboard.general.string = hashCheck
+                                     self.dismiss(animated: false, completion: nil)
+                                     }))
+                                     
+                                     alert.addAction(UIAlertAction(title: NSLocalizedString("Done", comment: ""), style: .cancel, handler: { (action) in
+                                     self.dismiss(animated: false, completion: nil)
+                                     }))
+                                     
+                                     self.present(alert, animated: true, completion: nil)
+                                     
+                                     }
+                                     }
+                                     }
+                                     */
+                                    
                                 }
                                 
-                            } else if let error = jsonAddressResult["error"] as? String {
+                            } catch {
                                 
-                                DispatchQueue.main.async {
-                                    self.displayAlert(title: "Error", message: "\(error)")
-                                }
-                                
-                            } else {
-                                
-                                self.displayAlert(title: "Decoded Transaction", message: "\(jsonAddressResult)")
-                                
-                                /*
-                                 //check if tosign was consumed.. get TX hash
-                                 if let txCheck = jsonAddressResult["tx"] as? NSDictionary {
-                                 
-                                 print("txCheck = \(txCheck)")
-                                 
-                                 if let hashCheck = txCheck["hash"] as? String {
-                                 
-                                 print("hashCheck = \(hashCheck)")
-                                 self.removeScanner()
-                                 
-                                 DispatchQueue.main.async {
-                                 
-                                 let alert = UIAlertController(title: NSLocalizedString("Transaction Sent", comment: ""), message: "Transaction ID: \(hashCheck)", preferredStyle: UIAlertControllerStyle.actionSheet)
-                                 
-                                 alert.addAction(UIAlertAction(title: NSLocalizedString("Copy to Clipboard", comment: ""), style: .default, handler: { (action) in
-                                 UIPasteboard.general.string = hashCheck
-                                 self.dismiss(animated: false, completion: nil)
-                                 }))
-                                 
-                                 alert.addAction(UIAlertAction(title: NSLocalizedString("Done", comment: ""), style: .cancel, handler: { (action) in
-                                 self.dismiss(animated: false, completion: nil)
-                                 }))
-                                 
-                                 self.present(alert, animated: true, completion: nil)
-                                 
-                                 }
-                                 }
-                                 }
-                                 */
-                                
+                                print("JSon processing failed")
+                                self.removeSpinner()
                             }
-                            
-                        } catch {
-                            
-                            print("JSon processing failed")
-                            self.removeSpinner()
                         }
+                        
                     }
-                    
                 }
             }
+            task.resume()
+            
+        } else {
+            
+            DispatchQueue.main.async {
+                self.displayAlert(title: "Error", message: "You need to paste or type a raw transaction into the text field.")
+            }
         }
-        task.resume()
+        
+        
     }
     
     func getTransaction() {

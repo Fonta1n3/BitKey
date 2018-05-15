@@ -82,6 +82,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     @IBOutlet var videoPreview: UIView!
     
     func textFieldDidEndEditing(_ textField: UITextField) {
+        print("textFieldDidEndEditing")
         
         if textField == self.addressToDisplay {
             
@@ -98,12 +99,14 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        
+        print("textFieldShouldReturn")
+        self.addresses = self.addressToDisplay.text!
         self.view.endEditing(true)
         return false
     }
     
     func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
+        print("textFieldShouldEndEditing")
         addressToDisplay.resignFirstResponder()
         return true
     }
@@ -130,6 +133,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     
     func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
         if metadataObjects.count > 0 {
+            print("metadataOutput")
             
             addressToDisplay.removeFromSuperview()
             
@@ -139,6 +143,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 
                 stringURL = machineReadableCode.stringValue!
                 //self.bitcoinAddressQRCode = machineReadableCode
+                print("stringURL = \(stringURL)")
                 
                 DispatchQueue.main.async {
                     self.addressToDisplay.text = self.stringURL
@@ -212,7 +217,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     print(error as Any)
                     self.removeSpinner()
                     DispatchQueue.main.async {
-                        self.view.addSubview(self.addressToDisplay)
+                        //self.view.addSubview(self.addressToDisplay)
                         self.avCaptureSession.startRunning()
                         self.displayAlert(title: "Error", message: "\(String(describing: error))")
                     }
@@ -225,13 +230,10 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             
                             let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
                             
-                            print("jsonAddressResult = \(jsonAddressResult)")
-                            
                             if let finalBalanceCheck = jsonAddressResult["final_balance"] as? Double {
                                 
                                 let btcAmount = finalBalanceCheck / 100000000
                                 self.balance = btcAmount
-                                print(self.balance)
                                 
                                     DispatchQueue.main.async {
                                         self.videoPreview.removeFromSuperview()
@@ -239,7 +241,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                         
                                         let btcBalanceLabel = UILabel()
                                         btcBalanceLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - ((self.view.frame.height / 2) + 120), width: self.view.frame.width, height: self.view.frame.height)
-                                        btcBalanceLabel.text = "\(btcAmount) BTC"
+                                        btcBalanceLabel.text = "\(btcAmount.avoidNotation) BTC"
                                         btcBalanceLabel.textColor = UIColor.black
                                         btcBalanceLabel.font = UIFont.systemFont(ofSize: 32)
                                         btcBalanceLabel.textAlignment = .center
@@ -265,7 +267,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                 
                                 DispatchQueue.main.async {
                                     self.removeSpinner()
-                                    self.view.addSubview(self.addressToDisplay)
+                                    //self.view.addSubview(self.addressToDisplay)
                                     self.avCaptureSession.startRunning()
                                     self.displayAlert(title: "Error", message: "Please try again.")
                                 }
@@ -276,7 +278,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             print("JSon processing failed")
                             DispatchQueue.main.async {
                                 self.removeSpinner()
-                                self.view.addSubview(self.addressToDisplay)
+                                //self.view.addSubview(self.addressToDisplay)
                                 self.avCaptureSession.startRunning()
                                 self.displayAlert(title: "Error", message: "Please try again.")
                             }
@@ -303,7 +305,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     print(error as Any)
                     self.removeSpinner()
                     DispatchQueue.main.async {
-                        self.view.addSubview(self.addressToDisplay)
+                        //self.view.addSubview(self.addressToDisplay)
                         self.avCaptureSession.startRunning()
                         self.displayAlert(title: "Error", message: "\(String(describing: error))")
                     }
@@ -391,7 +393,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             print("JSon processing failed")
                             DispatchQueue.main.async {
                                 self.removeSpinner()
-                                self.view.addSubview(self.addressToDisplay)
+                                //self.view.addSubview(self.addressToDisplay)
                                 self.avCaptureSession.startRunning()
                                 self.displayAlert(title: "Error", message: "Please try again.")
                             }
@@ -437,6 +439,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func addBackUpButton() {
         
         DispatchQueue.main.async {
+            self.backUpButton.removeFromSuperview()
             self.backUpButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
             self.backUpButton.showsTouchWhenHighlighted = true
             self.backUpButton.layer.cornerRadius = 10
@@ -445,7 +448,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             self.backUpButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.backUpButton.layer.shadowRadius = 2.5
             self.backUpButton.layer.shadowOpacity = 0.8
-            self.backUpButton.setTitle("Save Bitcoin Address", for: .normal)
+            self.backUpButton.setTitle("Save/Copy/Share", for: .normal)
             self.backUpButton.addTarget(self, action: #selector(self.airDropImage), for: .touchUpInside)
             self.view.addSubview(self.backUpButton)
         }
@@ -455,6 +458,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func addAddressBookButton() {
         
         DispatchQueue.main.async {
+            self.backUpButton.removeFromSuperview()
             self.backUpButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
             self.backUpButton.showsTouchWhenHighlighted = true
             self.backUpButton.layer.cornerRadius = 10
@@ -471,11 +475,11 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     }
     
     @objc func openAddressBook() {
-        
+        print("openAddressBook")
         self.checkBalance(address: self.addresses)
-        self.avCaptureSession.stopRunning()
-        self.videoPreview.removeFromSuperview()
-        self.addressToDisplay.removeFromSuperview()
+        //self.avCaptureSession.stopRunning()
+        //self.videoPreview.removeFromSuperview()
+        
         
     }
     
@@ -488,7 +492,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             let alert = UIAlertController(title: "Save/Share/Copy", message: nil, preferredStyle: UIAlertControllerStyle.actionSheet)
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Add to Address Book", comment: ""), style: .default, handler: { (action) in
-                
                 
                 UserDefaults.standard.set(self.addresses, forKey: "address")
                 
