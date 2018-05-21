@@ -96,11 +96,27 @@
                         <segue destination="J7p-i3-Ke0" kind="show" identifier="goToMayerMultiple" id="kAW-ML-XUw"/>
                         <segue destination="sI4-9G-NVp" kind="show" identifier="diceKeyCreator" id="VfN-zf-CkG"/>
                         <segue destination="jcU-e8-UqR" kind="show" identifier="transaction" id="YEQ-hz-h2w"/>
+                        <segue destination="SeJ-We-4Nh" kind="show" identifier="settings" id="ibZ-1x-xZS"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="68" y="36.431784107946029"/>
+        </scene>
+        <!--Settings View Controller-->
+        <scene sceneID="qdu-tC-gcX">
+            <objects>
+                <viewController id="SeJ-We-4Nh" customClass="SettingsViewController" customModule="BitKeys" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="KMr-Z0-hss" customClass="Se">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <viewLayoutGuide key="safeArea" id="BJ4-ef-dua"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="YJ5-wX-ps4" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1156" y="1062"/>
         </scene>
         <!--Mayer Multiple View Controller-->
         <scene sceneID="YHO-8S-7UJ">

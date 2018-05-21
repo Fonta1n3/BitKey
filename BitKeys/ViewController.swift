@@ -14,6 +14,7 @@ import BigInt
 
 class ViewController: UIViewController, UITextFieldDelegate {
     
+    var settingsButton = UIButton()
     var diceMode = Bool()
     @IBOutlet var scrollView: UIScrollView!
     var privateKeyQRCode:UIImage!
@@ -87,7 +88,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         diceMode = false
         inputMnemonic.delegate = self
         privateKeyMode = true
-        self.addHomeScreen()
+        addHomeScreen()
         
     }
     
@@ -193,9 +194,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
         let formatMnemonic1 = self.words.replacingOccurrences(of: "[", with: "")
         let formatMnemonic2 = formatMnemonic1.replacingOccurrences(of: "]", with: "")
         self.recoveryPhrase = formatMnemonic2.replacingOccurrences(of: ",", with: "")
-        let keychain = mnemonic?.keychain
-        let privateKeyHD = keychain?.key.privateKeyAddress
-        let addressHD = keychain?.key.address
+        let keychain = mnemonic?.keychain.derivedKeychain(withPath: "m/0'/0'")
+        let privateKeyHD = keychain?.key(withPath: "0'").privateKeyAddress
+        let addressHD = keychain?.key(withPath: "0'").address
         let privateKey2 = privateKeyHD!.description
         var privateKey3 = privateKey2.components(separatedBy: " ")
         self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
@@ -207,9 +208,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
         print("xpub = \(String(describing: xpub))")
         print("xpriv = \(String(describing: xpriv))")
         UserDefaults.standard.set(xpub, forKey: "xpub")
-        UserDefaults.standard.set(1, forKey: "int")
+        UserDefaults.standard.set(0, forKey: "int")
         
-        let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain?.key.compressedPublicKey as Data!) as Data!) as Data!
+        let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain?.key(withPath: "0'").compressedPublicKey as Data!) as Data!) as Data!
         
         do {
             //bc for mainnet and tb for testnet
@@ -245,19 +246,13 @@ class ViewController: UIViewController, UITextFieldDelegate {
             }
         }
         
-        //self.imageView.removeFromSuperview()
-        //self.checkAddressButton.removeFromSuperview()
-        //self.mayerMultipleButton.removeFromSuperview()
-        //self.diceButton.removeFromSuperview()
-        //self.transactionsButton.removeFromSuperview()
-        //self.importButton.removeFromSuperview()
-        //self.newAddressButton.removeFromSuperview()
         self.removeHomeScreen()
         
         self.inputMnemonic.frame = CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 100, width: self.view.frame.width - 10, height: 50)
         self.inputMnemonic.textAlignment = .center
         self.inputMnemonic.borderStyle = .roundedRect
         self.inputMnemonic.autocapitalizationType = .none
+        self.inputMnemonic.autocorrectionType = .no
         self.inputMnemonic.placeholder = "Type each word one by one"
         self.inputMnemonic.backgroundColor = UIColor.groupTableViewBackground
         self.inputMnemonic.returnKeyType = UIReturnKeyType.next
@@ -409,7 +404,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.view.addSubview(self.importButton)
             
             if UserDefaults.standard.object(forKey: "xpub") != nil {
-                //print("addNewAddressButton")
+                
                 self.newAddressButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: 20, width: 90, height: 55))
                 self.newAddressButton.showsTouchWhenHighlighted = true
                 self.newAddressButton.titleLabel?.textAlignment = .center
@@ -421,8 +416,25 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 self.newAddressButton.layer.shadowOpacity = 0.8
                 self.newAddressButton.setTitle("Address", for: .normal)
                 self.newAddressButton.addTarget(self, action: #selector(self.newAddress), for: .touchUpInside)
-                //self.view.addSubview(self.newAddressButton)
+                self.view.addSubview(self.newAddressButton)
+                
             }
+            
+            
+             self.settingsButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.maxY - 125, width: 90, height: 55))
+             self.settingsButton.showsTouchWhenHighlighted = true
+             self.settingsButton.layer.cornerRadius = 10
+             self.settingsButton.backgroundColor = UIColor.lightText
+             self.settingsButton.layer.shadowColor = UIColor.black.cgColor
+             self.settingsButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+             self.settingsButton.layer.shadowRadius = 2.5
+             self.settingsButton.layer.shadowOpacity = 0.8
+             self.settingsButton.setTitle("Settings", for: .normal)
+             self.settingsButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+             self.view.addSubview(self.settingsButton)
+            
+            
+            
         }
         
     }
@@ -431,6 +443,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         print("removeHomeScreen")
         
         DispatchQueue.main.async {
+            
             self.newAddressButton.removeFromSuperview()
             self.importButton.removeFromSuperview()
             self.transactionsButton.removeFromSuperview()
@@ -438,6 +451,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.mayerMultipleButton.removeFromSuperview()
             self.checkAddressButton.removeFromSuperview()
             self.imageView.removeFromSuperview()
+            self.settingsButton.removeFromSuperview()
             self.bitField.removeFromSuperview()
             
         }
@@ -453,6 +467,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         self.transactionsButton.removeFromSuperview()
         self.importButton.removeFromSuperview()
         self.newAddressButton.removeFromSuperview()
+        self.settingsButton.removeFromSuperview()
         
         //set up the drag ability and postion of the bitcoin
         let translation = gestureRecognizer.translation(in: view)
@@ -581,22 +596,21 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     func addQRCodesAndLabels() {
         
+        
+        
+        self.diceButton.removeFromSuperview()
+        self.importButton.removeFromSuperview()
+        self.clearMnemonicButton.removeFromSuperview()
+        self.button.removeFromSuperview()
+        self.importAction.removeFromSuperview()
+        
         if self.watchOnlyMode {
             
             segwitAddressMode = true
             legacyAddressMode = false
-            //privateKeyMode = false
             diceMode = false
             self.importAction.removeFromSuperview()
-            //self.diceButton.removeFromSuperview()
             self.outputMnemonic.removeFromSuperview()
-            //self.newAddressButton.removeFromSuperview()
-            //self.checkAddressButton.removeFromSuperview()
-            //self.mayerMultipleButton.removeFromSuperview()
-            //self.transactionsButton.removeFromSuperview()
-            //self.importButton.removeFromSuperview()
-            
-            
             DispatchQueue.main.async {
                 self.view.addSubview(self.scrollView)
             }
@@ -622,10 +636,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 
             }, completion: { _ in
                 
-                //self.imageView.removeFromSuperview()
-                //self.bitField.removeFromSuperview()
                 self.removeHomeScreen()
-                
                 
                 UIView.animate(withDuration: 0.5, animations: {
                     
@@ -660,11 +671,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
         } else {
             
+            self.privateKeyMode = true
             diceMode = false
-            //self.importAction.removeFromSuperview()
-            //self.diceButton.removeFromSuperview()
             self.outputMnemonic.removeFromSuperview()
-            //self.newAddressButton.removeFromSuperview()
             self.inputMnemonic.removeFromSuperview()
             
             DispatchQueue.main.async {
@@ -691,9 +700,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 self.bitField.alpha = 0
                 
             }, completion: { _ in
-                
-                //self.imageView.removeFromSuperview()
-                //self.bitField.removeFromSuperview()
                 
                 self.removeHomeScreen()
                 
@@ -769,11 +775,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         if let testInputMnemonic = BTCMnemonic.init(words: self.wordArray, password: "", wordListType: BTCMnemonicWordListType.english) {
            
-            //self.checkAddressButton.removeFromSuperview()
-            //self.mayerMultipleButton.removeFromSuperview()
-            //self.diceButton.removeFromSuperview()
-            //self.transactionsButton.removeFromSuperview()
-            //self.importButton.removeFromSuperview()
             self.removeHomeScreen()
             self.inputMnemonic.resignFirstResponder()
             self.inputMnemonic.removeFromSuperview()
@@ -801,6 +802,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func addHomeButton() {
         print("addHomeButton")
         DispatchQueue.main.async {
+            self.button.removeFromSuperview()
             self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
             self.button.showsTouchWhenHighlighted = true
             self.button.layer.cornerRadius = 10
@@ -861,8 +863,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
         print("newAddress")
         
         watchOnlyMode = true
-        //self.importButton.removeFromSuperview()
-        //self.diceButton.removeFromSuperview()
         self.removeHomeScreen()
         
         let int = UInt32((UserDefaults.standard.object(forKey: "int") as! Int) + 1)
@@ -872,10 +872,10 @@ class ViewController: UIViewController, UITextFieldDelegate {
         let xpub = UserDefaults.standard.object(forKey: "xpub") as! String
         let childKeychain = BTCKeychain.init(extendedKey: xpub)
         let newAddress = childKeychain?.key(at: int).address
-        print("newAddress = \(String(describing: newAddress))")
         let legacyAddress1 = (newAddress?.description)!
         let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
         self.legacyAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+        
         
         let compressedPubKey = childKeychain?.key(at: int).compressedPublicKey
         
@@ -899,6 +899,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func addBackButton() {
         print("addBackButton")
         DispatchQueue.main.async {
+            self.button.removeFromSuperview()
             self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
             self.button.showsTouchWhenHighlighted = true
             self.button.layer.cornerRadius = 10
@@ -927,6 +928,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         self.importAction.removeFromSuperview()
         self.importButton.removeFromSuperview()
         self.button.removeFromSuperview()
+        self.clearMnemonicButton.removeFromSuperview()
         self.clearButton.removeFromSuperview()
         self.addHomeScreen()
         
@@ -949,7 +951,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     self.privateKeyQRCode = self.generateQrCode(key: self.legacyAddress)
                     self.privateKeyQRView.image = self.privateKeyQRCode!
                     self.bitcoinAddressButton.setTitle("Show xpub", for: .normal)
-                    //self.privateKeyMode = false
                     self.segwitAddressMode = false
                     self.legacyAddressMode = true
                     self.extendedPublicKeyMode = false
@@ -969,7 +970,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     self.privateKeyQRCode = self.generateQrCode(key: xpub)
                     self.privateKeyQRView.image = self.privateKeyQRCode!
                     self.bitcoinAddressButton.setTitle("Show Segwit", for: .normal)
-                    //self.privateKeyMode = false
                     self.segwitAddressMode = false
                     self.legacyAddressMode = false
                     self.extendedPublicKeyMode = true
@@ -985,7 +985,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 self.privateKeyQRCode = self.generateQrCode(key: self.bitcoinAddress)
                 self.privateKeyQRView.image = self.privateKeyQRCode!
                 self.bitcoinAddressButton.setTitle("Show Legacy", for: .normal)
-                //self.privateKeyMode = false
                 self.segwitAddressMode = true
                 self.legacyAddressMode = false
                 self.extendedPublicKeyMode = false
@@ -1072,8 +1071,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("I saved it, go back", comment: ""), style: .destructive, handler: { (action) in
                 
-                //self.watchOnlyMode = false
-                
                 if self.watchOnlyMode {
                     
                     self.watchOnlyMode = false
@@ -1090,7 +1087,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     self.backUpButton.removeFromSuperview()
                     self.privateKeyText = ""
                     self.WIFprivateKeyFieldLabel.removeFromSuperview()
-                    //self.showBitcoin()
                     self.addHomeScreen()
                     
                 } else {
@@ -1116,7 +1112,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     self.recoveryPhraseQRView.removeFromSuperview()
                     self.recoveryPhraseLabel.removeFromSuperview()
                     self.WIFprivateKeyFieldLabel.removeFromSuperview()
-                    //self.showBitcoin()
                     self.addHomeScreen()
                 }
                 
@@ -1171,6 +1166,11 @@ class ViewController: UIViewController, UITextFieldDelegate {
         print("goTo")
         
         switch sender {
+            
+        case self.settingsButton:
+            
+            print("go to settings")
+            self.performSegue(withIdentifier: "settings", sender: self)
             
         case self.diceButton:
             
@@ -1248,7 +1248,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("XPUB Key Text", comment: ""), style: .default, handler: { (action) in
                 
-                //let textToShare = [self.bitcoinAddress]
                 let activityViewController = UIActivityViewController(activityItems: [self.myField.text!], applicationActivities: nil)
                 self.present(activityViewController, animated: true, completion: nil)
                 
@@ -1583,34 +1582,42 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     func addClearButton() {
         print("addClearButton")
-        self.clearButton.removeFromSuperview()
-        self.clearButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 105, y: 20, width: 100 , height: 55))
-        self.clearButton.showsTouchWhenHighlighted = true
-        self.clearButton.backgroundColor = UIColor.lightText
-        self.clearButton.layer.cornerRadius = 10
-        self.clearButton.layer.shadowColor = UIColor.black.cgColor
-        self.clearButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.clearButton.layer.shadowRadius = 2.5
-        self.clearButton.layer.shadowOpacity = 0.8
-        self.clearButton.setTitle("Clear", for: .normal)
-        self.clearButton.addTarget(self, action: #selector(self.tapClearDice), for: .touchUpInside)
-        self.view.addSubview(self.clearButton)
+        
+        DispatchQueue.main.async {
+            self.clearButton.removeFromSuperview()
+            self.clearButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 105, y: 20, width: 100 , height: 55))
+            self.clearButton.showsTouchWhenHighlighted = true
+            self.clearButton.backgroundColor = UIColor.lightText
+            self.clearButton.layer.cornerRadius = 10
+            self.clearButton.layer.shadowColor = UIColor.black.cgColor
+            self.clearButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.clearButton.layer.shadowRadius = 2.5
+            self.clearButton.layer.shadowOpacity = 0.8
+            self.clearButton.setTitle("Clear", for: .normal)
+            self.clearButton.addTarget(self, action: #selector(self.tapClearDice), for: .touchUpInside)
+            self.view.addSubview(self.clearButton)
+        }
+        
     }
     
     func addClearMnemonicButton() {
         print("addClearMnemonicButton")
-        self.clearMnemonicButton.removeFromSuperview()
-        self.clearMnemonicButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 105, y: 20, width: 100 , height: 55))
-        self.clearMnemonicButton.showsTouchWhenHighlighted = true
-        self.clearMnemonicButton.backgroundColor = UIColor.lightText
-        self.clearMnemonicButton.layer.cornerRadius = 10
-        self.clearMnemonicButton.layer.shadowColor = UIColor.black.cgColor
-        self.clearMnemonicButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.clearMnemonicButton.layer.shadowRadius = 2.5
-        self.clearMnemonicButton.layer.shadowOpacity = 0.8
-        self.clearMnemonicButton.setTitle("Clear", for: .normal)
-        self.clearMnemonicButton.addTarget(self, action: #selector(self.tapClearMnemonic), for: .touchUpInside)
-        self.view.addSubview(self.clearMnemonicButton)
+        
+        DispatchQueue.main.async {
+            self.clearMnemonicButton.removeFromSuperview()
+            self.clearMnemonicButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 105, y: 20, width: 100 , height: 55))
+            self.clearMnemonicButton.showsTouchWhenHighlighted = true
+            self.clearMnemonicButton.backgroundColor = UIColor.lightText
+            self.clearMnemonicButton.layer.cornerRadius = 10
+            self.clearMnemonicButton.layer.shadowColor = UIColor.black.cgColor
+            self.clearMnemonicButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.clearMnemonicButton.layer.shadowRadius = 2.5
+            self.clearMnemonicButton.layer.shadowOpacity = 0.8
+            self.clearMnemonicButton.setTitle("Clear", for: .normal)
+            self.clearMnemonicButton.addTarget(self, action: #selector(self.tapClearMnemonic), for: .touchUpInside)
+            self.view.addSubview(self.clearMnemonicButton)
+        }
+        
     }
     
     @objc func tapClearMnemonic() {
@@ -1709,7 +1716,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
                                 self.diceArray.removeAll()
                                 self.tappedIndex = 0
                                 
-                                //self.scrollView.removeFromSuperview()
                                 self.privateKeyWIF = self.createPrivateKey(userRandomness: self.parseBitResult).privateKeyAddress
                                 self.button.removeFromSuperview()
                                 self.addQRCodesAndLabels()
@@ -1855,9 +1861,10 @@ class ViewController: UIViewController, UITextFieldDelegate {
         print("showDice")
         
         diceMode = true
+        //self.clearMnemonicButton.removeFromSuperview()
         self.addBackButton()
         self.addClearButton()
-        self.view.addSubview(self.scrollView)
+        self.outputMnemonic.removeFromSuperview()
         self.isInternetAvailable()
         var xvalue:Int!
         var width:Int!
@@ -1878,6 +1885,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         var yvalue = 80
         var zero = 0
+        
+        self.view.addSubview(self.scrollView)
         
         for _ in 0..<40 {
             

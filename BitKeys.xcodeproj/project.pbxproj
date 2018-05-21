@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		631F99E7179C80B3B0E962E1 /* libPods-BitKeys.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6B7ACBBE3624198C10931574 /* libPods-BitKeys.a */; };
+		D003821820B24D4400BC310D /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D003821720B24D4400BC310D /* SettingsViewController.swift */; };
 		D00B614E208FD46A00CE73A8 /* Signer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00B614D208FD46A00CE73A8 /* Signer.framework */; };
 		D00FF6A12083DA1000660D3C /* one.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF69B2083DA0F00660D3C /* one.png */; };
 		D00FF6A22083DA1000660D3C /* two.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF69C2083DA0F00660D3C /* two.png */; };
@@ -49,6 +50,7 @@
 		6B7ACBBE3624198C10931574 /* libPods-BitKeys.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BitKeys.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		89CBD468A5EF7493E5F477B6 /* Pods-BitKeys.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitKeys.release.xcconfig"; path = "Pods/Target Support Files/Pods-BitKeys/Pods-BitKeys.release.xcconfig"; sourceTree = "<group>"; };
 		C6342F80D31874B6ABC8D895 /* Pods-BitKeys.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitKeys.debug.xcconfig"; path = "Pods/Target Support Files/Pods-BitKeys/Pods-BitKeys.debug.xcconfig"; sourceTree = "<group>"; };
+		D003821720B24D4400BC310D /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		D00B614D208FD46A00CE73A8 /* Signer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Signer.framework; sourceTree = "<group>"; };
 		D00FF69B2083DA0F00660D3C /* one.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = one.png; sourceTree = "<group>"; };
 		D00FF69C2083DA0F00660D3C /* two.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = two.png; sourceTree = "<group>"; };
@@ -162,6 +164,7 @@
 		D0C56F571FCBFBC4004A5F47 /* BitKeys */ = {
 			isa = PBXGroup;
 			children = (
+				D003821720B24D4400BC310D /* SettingsViewController.swift */,
 				D055012620950E9F001C35F0 /* SegwitAddrCoder.swift */,
 				D0C663342062627C0061B2FF /* CoinbaseViewController.swift */,
 				D0C56F581FCBFBC4004A5F47 /* AppDelegate.swift */,
@@ -253,7 +256,7 @@
 					D0C56F541FCBFBC4004A5F47 = {
 						CreatedOnToolsVersion = 9.1;
 						LastSwiftMigration = 0910;
-						ProvisioningStyle = Manual;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -382,6 +385,7 @@
 			files = (
 				D0EF966B1FCC07FB004A8E4E /* ObjectiveCHeader.m in Sources */,
 				D0B597852013E96E000767A7 /* ViewControllerBalanceChecker.swift in Sources */,
+				D003821820B24D4400BC310D /* SettingsViewController.swift in Sources */,
 				D0C663352062627C0061B2FF /* CoinbaseViewController.swift in Sources */,
 				D0C56F5B1FCBFBC4004A5F47 /* ViewController.swift in Sources */,
 				D055012720950E9F001C35F0 /* SegwitAddrCoder.swift in Sources */,
@@ -570,8 +574,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
-				CODE_SIGN_STYLE = Manual;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 69FR345CDA;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -584,8 +588,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.fontaine.BitKeys1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "6bbcde70-d068-4276-9737-c743e71d4d91";
-				PROVISIONING_PROFILE_SPECIFIER = BitKey;
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "BitKeys/BitKeys-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.0;
@@ -599,8 +603,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
-				CODE_SIGN_STYLE = Manual;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 69FR345CDA;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -613,8 +617,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.fontaine.BitKeys1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "6bbcde70-d068-4276-9737-c743e71d4d91";
-				PROVISIONING_PROFILE_SPECIFIER = BitKey;
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "BitKeys/BitKeys-Bridging-Header.h";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
