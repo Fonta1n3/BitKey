@@ -14,6 +14,11 @@ import BigInt
 
 class ViewController: UIViewController, UITextFieldDelegate {
     
+    var addressMode = Bool()
+    var advancedMode = Bool()
+    var simpleMode = Bool()
+    var legacyMode = Bool()
+    var segwitMode = Bool()
     var settingsButton = UIButton()
     var diceMode = Bool()
     @IBOutlet var scrollView: UIScrollView!
@@ -112,6 +117,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     }
     
     override func viewDidAppear(_ animated: Bool) {
+        
         if self.imageView == nil {
             
             let bitcoinImage = UIImage(named: "bitcoinIcon.png")
@@ -126,7 +132,66 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.view.addSubview(self.imageView)
             
         }
+        
+        checkUserDefaults()
+        
     }
+    
+    func checkUserDefaults() {
+        
+        print("checkUserDefaults")
+        
+        if UserDefaults.standard.object(forKey: "advancedMode") != nil {
+            
+            advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
+            
+        } else {
+            
+            advancedMode = true
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "simpleMode") != nil {
+            
+            simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
+            
+        } else {
+            
+            simpleMode = false
+            
+        }
+        /*
+        if UserDefaults.standard.object(forKey: "watchMode") != nil {
+            
+            watchOnlyMode = UserDefaults.standard.object(forKey: "watchMode") as! Bool
+            
+        } else {
+            
+            watchOnlyMode = true
+            
+        }
+        */
+        if UserDefaults.standard.object(forKey: "legacyMode") != nil {
+            
+            legacyMode = UserDefaults.standard.object(forKey: "legacyMode") as! Bool
+            
+        } else {
+            
+            legacyMode = true
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "segwitMode") != nil {
+            
+            segwitMode = UserDefaults.standard.object(forKey: "segwitMode") as! Bool
+            
+        } else {
+            
+            segwitMode = false
+            
+        }
+    }
+
     
     func isInternetAvailable() -> Bool {
         
@@ -200,9 +265,15 @@ class ViewController: UIViewController, UITextFieldDelegate {
         let privateKey2 = privateKeyHD!.description
         var privateKey3 = privateKey2.components(separatedBy: " ")
         self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
-        let legacyAddress1 = addressHD!.description
-        let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-        self.legacyAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+        
+        if self.legacyMode {
+            
+            let legacyAddress1 = addressHD!.description
+            let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+            self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+            
+        }
+        
         let xpub = keychain?.extendedPublicKey
         let xpriv = keychain?.extendedPrivateKey
         print("xpub = \(String(describing: xpub))")
@@ -210,16 +281,20 @@ class ViewController: UIViewController, UITextFieldDelegate {
         UserDefaults.standard.set(xpub, forKey: "xpub")
         UserDefaults.standard.set(0, forKey: "int")
         
-        let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain?.key(withPath: "0'").compressedPublicKey as Data!) as Data!) as Data!
-        
-        do {
-            //bc for mainnet and tb for testnet
-            self.bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+        if segwitMode {
+          
+            let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain?.key(withPath: "0'").compressedPublicKey as Data!) as Data!) as Data!
             
-        } catch {
+            do {
+                //bc for mainnet and tb for testnet
+                self.bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                
+            } catch {
+                
+                self.displayAlert(title: "Error", message: "Please try again.")
+                return("", "")
+            }
             
-            self.displayAlert(title: "Error", message: "Please try again.")
-            return("", "")
         }
         
         keychain?.key.clear()
@@ -595,9 +670,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     
     func addQRCodesAndLabels() {
+        print("addQRCodesAndLabels")
         
-        
-        
+        self.addressMode = true
         self.diceButton.removeFromSuperview()
         self.importButton.removeFromSuperview()
         self.clearMnemonicButton.removeFromSuperview()
@@ -605,9 +680,19 @@ class ViewController: UIViewController, UITextFieldDelegate {
         self.importAction.removeFromSuperview()
         
         if self.watchOnlyMode {
+            /*
+            if self.segwitMode {
+                
+               segwitAddressMode = true
+                legacyAddressMode = false
+                
+            } else {
+                
+                legacyAddressMode = true
+                segwitAddressMode = false
+            }
+            */
             
-            segwitAddressMode = true
-            legacyAddressMode = false
             diceMode = false
             self.importAction.removeFromSuperview()
             self.outputMnemonic.removeFromSuperview()
@@ -616,7 +701,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
             }
             
             
-            self.privateKeyText = self.privateKeyWIF
             self.privateKeyQRCode = self.generateQrCode(key: self.bitcoinAddress)
             self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
             self.privateKeyQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 130, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
@@ -647,14 +731,17 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     
                     self.scrollView.setContentOffset(.zero, animated: false)
                     
-                    self.WIFprivateKeyFieldLabel.text = "Native Segwit Bech32 Format:"
-                    
-                    self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 70, width: self.scrollView.frame.width, height: 50))
-                    self.privateKeyTitle.text = "Segwit Address"
-                    self.privateKeyTitle.font = .systemFont(ofSize: 32)
-                    self.privateKeyTitle.textColor = UIColor.black
-                    self.privateKeyTitle.textAlignment = .center
-                    self.scrollView.addSubview(self.privateKeyTitle)
+                    DispatchQueue.main.async {
+                        
+                        self.WIFprivateKeyFieldLabel.text = "Legacy Format:"
+                        self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 70, width: self.scrollView.frame.width, height: 50))
+                        self.privateKeyTitle.text = "Legacy Bitcoin Address"
+                        self.privateKeyTitle.font = .systemFont(ofSize: 32)
+                        self.privateKeyTitle.textColor = UIColor.black
+                        self.privateKeyTitle.textAlignment = .center
+                        self.scrollView.addSubview(self.privateKeyTitle)
+                        
+                    }
                     
                     self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.privateKeyQRView.frame.maxY + 40, width: self.view.frame.width - 50, height: 100))
                     self.myField.isEditable = false
@@ -666,6 +753,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     self.addBackUpButton()
                     self.zero = 0
                     self.bitArray.removeAll()
+                    
+                    
                 })
             })
             
@@ -746,8 +835,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     self.mnemonicView.font = .systemFont(ofSize: 24)
                     self.scrollView.addSubview(self.mnemonicView)
                     
-                    
-                    
                     self.recoveryPhraseLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 20, width: self.scrollView.frame.width - 10, height: 50))
                     self.recoveryPhraseLabel.text = "Recovery QR Code"
                     self.recoveryPhraseLabel.font = .systemFont(ofSize: 32)
@@ -800,8 +887,11 @@ class ViewController: UIViewController, UITextFieldDelegate {
     }
     
     func addHomeButton() {
+        
         print("addHomeButton")
+        
         DispatchQueue.main.async {
+            
             self.button.removeFromSuperview()
             self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
             self.button.showsTouchWhenHighlighted = true
@@ -826,7 +916,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
             if self.watchOnlyMode {
                 
-                self.bitcoinAddressButton.setTitle("Legacy Address", for: .normal)
+                self.bitcoinAddressButton.setTitle("Show XPUB", for: .normal)
                 
             } else {
                 
@@ -872,27 +962,11 @@ class ViewController: UIViewController, UITextFieldDelegate {
         let xpub = UserDefaults.standard.object(forKey: "xpub") as! String
         let childKeychain = BTCKeychain.init(extendedKey: xpub)
         let newAddress = childKeychain?.key(at: int).address
+        
         let legacyAddress1 = (newAddress?.description)!
         let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-        self.legacyAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-        
-        
-        let compressedPubKey = childKeychain?.key(at: int).compressedPublicKey
-        
-        let compressedPKData = BTCRIPEMD160(BTCSHA256(compressedPubKey as Data!) as Data!) as Data!
-        
-        do {
-            //bc for mainnet and tb for testnet
-            let bech32 = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
-            print("bech32 = \(bech32)")
-            self.bitcoinAddress = bech32
-            self.addQRCodesAndLabels()
-            
-        } catch {
-            
-            self.displayAlert(title: "Error", message: "Please try again.")
-            
-        }
+        self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+        self.addQRCodesAndLabels()
         
     }
     
@@ -937,28 +1011,12 @@ class ViewController: UIViewController, UITextFieldDelegate {
     @objc func getAddress() {
         print("getAddress")
         
+    
         if watchOnlyMode {
+            print("watchOnlyMode")
             
-            if segwitAddressMode {
-                print("segwitAddressMode")
-                
-                DispatchQueue.main.async {
-                    
-                    self.privateKeyTitle.text = "Legacy Bitcoin Address"
-                    self.privateKeyTitle.adjustsFontSizeToFitWidth = true
-                    self.WIFprivateKeyFieldLabel.text = "Legacy Format:"
-                    self.myField.text = self.legacyAddress
-                    self.privateKeyQRCode = self.generateQrCode(key: self.legacyAddress)
-                    self.privateKeyQRView.image = self.privateKeyQRCode!
-                    self.bitcoinAddressButton.setTitle("Show xpub", for: .normal)
-                    self.segwitAddressMode = false
-                    self.legacyAddressMode = true
-                    self.extendedPublicKeyMode = false
-                    
-                }
-                
-            } else if legacyAddressMode {
-                print("legacyAddressMode")
+            if addressMode {
+                print("addressMode")
                 
                 DispatchQueue.main.async {
                     
@@ -969,26 +1027,26 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     self.myField.text = xpub
                     self.privateKeyQRCode = self.generateQrCode(key: xpub)
                     self.privateKeyQRView.image = self.privateKeyQRCode!
-                    self.bitcoinAddressButton.setTitle("Show Segwit", for: .normal)
-                    self.segwitAddressMode = false
-                    self.legacyAddressMode = false
-                    self.extendedPublicKeyMode = true
+                    self.bitcoinAddressButton.setTitle("Show Address", for: .normal)
+                    self.addressMode = false
                     
                 }
                 
-            } else if extendedPublicKeyMode {
+            } else {
                 print("extendedPublicKeyMode")
                 
-                self.privateKeyTitle.text = "Segwit Address"
-                self.WIFprivateKeyFieldLabel.text = "Native Segwit Bech32 Format:"
-                self.myField.text = self.bitcoinAddress
-                self.privateKeyQRCode = self.generateQrCode(key: self.bitcoinAddress)
-                self.privateKeyQRView.image = self.privateKeyQRCode!
-                self.bitcoinAddressButton.setTitle("Show Legacy", for: .normal)
-                self.segwitAddressMode = true
-                self.legacyAddressMode = false
-                self.extendedPublicKeyMode = false
-                
+                DispatchQueue.main.async {
+                    
+                    self.myField.text = self.bitcoinAddress
+                    self.privateKeyQRCode = self.generateQrCode(key: self.bitcoinAddress)
+                    self.privateKeyQRView.image = self.privateKeyQRCode!
+                    self.privateKeyTitle.text = "Legacy Bitcoin Address"
+                    self.WIFprivateKeyFieldLabel.text = "Legacy Format:"
+                    self.privateKeyTitle.adjustsFontSizeToFitWidth = true
+                    self.bitcoinAddressButton.setTitle("Show XPUB", for: .normal)
+                    self.addressMode = true
+                    
+                }
                 
             }
             
@@ -998,19 +1056,52 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 
                 DispatchQueue.main.async {
                     
-                    self.privateKeyTitle.text = "Segwit Address"
-                    self.WIFprivateKeyFieldLabel.text = "Native Segwit Bech32 Format:"
                     self.myField.text = self.bitcoinAddress
                     self.privateKeyQRCode = self.generateQrCode(key: self.bitcoinAddress)
                     self.privateKeyQRView.image = self.privateKeyQRCode!
-                    self.bitcoinAddressButton.setTitle("Show Legacy", for: .normal)
+                    
+                    if self.segwitMode {
+                        
+                        DispatchQueue.main.async {
+                            self.privateKeyTitle.text = "Segwit Address"
+                            self.WIFprivateKeyFieldLabel.text = "Native Segwit Bech32 Format:"
+                            
+                        }
+                        
+                    } else if self.legacyMode {
+                        
+                        DispatchQueue.main.async {
+                            self.privateKeyTitle.text = "Legacy Bitcoin Address"
+                            self.WIFprivateKeyFieldLabel.text = "Legacy Format:"
+                        }
+                        
+                    }
+                    
+                    self.privateKeyTitle.adjustsFontSizeToFitWidth = true
+                    self.bitcoinAddressButton.setTitle("Show Private Key", for: .normal)
                     self.privateKeyMode = false
-                    self.segwitAddressMode = true
-                    self.legacyAddressMode = false
+                    //self.extendedPublicKeyMode = false
+                    
+                }
+
+                
+            } else {
+                
+                DispatchQueue.main.async {
+                    
+                    self.privateKeyTitle.text = "Bitcoin Private Key"
+                    self.WIFprivateKeyFieldLabel.text = "WIF Format:"
+                    self.myField.text = self.privateKeyText
+                    self.privateKeyQRCode = self.generateQrCode(key: self.privateKeyText)
+                    self.privateKeyQRView.image = self.privateKeyQRCode!
+                    self.bitcoinAddressButton.setTitle("Show Address", for: .normal)
+                    self.privateKeyMode = true
+                    //self.segwitAddressMode = false
+                    //self.privateKeyMode = true
                     
                 }
                 
-            } else if segwitAddressMode {
+            }/* else if segwitAddressMode {
                 
                 DispatchQueue.main.async {
                     
@@ -1042,7 +1133,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     self.privateKeyMode = true
                     
                 }
-            }
+            }*/
             
         }
         

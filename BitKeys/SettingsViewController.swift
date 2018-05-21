@@ -13,7 +13,7 @@ class SettingsViewController: UIViewController {
     var backButton = UIButton()
     var segwitButton = UIButton()
     var legacyButton = UIButton()
-    var watchOnlyButton = UIButton()
+    //var watchOnlyButton = UIButton()
     var simpleModeButton = UIButton()
     var advancedModeButton = UIButton()
     
@@ -21,7 +21,7 @@ class SettingsViewController: UIViewController {
     var legacyMode = Bool()
     var simpleMode = Bool()
     var advancedMode = Bool()
-    var watchOnlyMode = Bool()
+    //var watchOnlyMode = Bool()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -69,7 +69,7 @@ class SettingsViewController: UIViewController {
             simpleMode = false
             
         }
-        
+        /*
         if UserDefaults.standard.object(forKey: "watchMode") != nil {
             
             watchOnlyMode = UserDefaults.standard.object(forKey: "watchMode") as! Bool
@@ -79,7 +79,7 @@ class SettingsViewController: UIViewController {
             watchOnlyMode = true
             
         }
-        
+        */
         if UserDefaults.standard.object(forKey: "legacyMode") != nil {
             
             legacyMode = UserDefaults.standard.object(forKey: "legacyMode") as! Bool
@@ -172,7 +172,7 @@ class SettingsViewController: UIViewController {
             }
             
             self.view.addSubview(self.legacyButton)
-             
+            /*
             self.watchOnlyButton.removeFromSuperview()
             
             self.watchOnlyButton = UIButton(frame: CGRect(x: 10, y: 210, width: self.view.frame.width - 20, height: 50))
@@ -198,10 +198,10 @@ class SettingsViewController: UIViewController {
             }
             
             self.view.addSubview(self.watchOnlyButton)
-             
+             */
             self.simpleModeButton.removeFromSuperview()
             
-            self.simpleModeButton = UIButton(frame: CGRect(x: 10, y: 265, width: self.view.frame.width - 20, height: 50))
+            self.simpleModeButton = UIButton(frame: CGRect(x: 10, y: 210, width: self.view.frame.width - 20, height: 50))
             self.simpleModeButton.showsTouchWhenHighlighted = true
             self.simpleModeButton.layer.cornerRadius = 10
             self.simpleModeButton.layer.shadowColor = UIColor.black.cgColor
@@ -228,7 +228,7 @@ class SettingsViewController: UIViewController {
             
             self.advancedModeButton.removeFromSuperview()
             
-            self.advancedModeButton = UIButton(frame: CGRect(x: 10, y: 320, width: self.view.frame.width - 20, height: 50))
+            self.advancedModeButton = UIButton(frame: CGRect(x: 10, y: 265, width: self.view.frame.width - 20, height: 50))
             self.advancedModeButton.showsTouchWhenHighlighted = true
             self.advancedModeButton.layer.cornerRadius = 10
             self.advancedModeButton.layer.shadowColor = UIColor.black.cgColor
@@ -405,7 +405,7 @@ class SettingsViewController: UIViewController {
                 
             }
             
-            
+        /*
         case self.watchOnlyButton:
             
             print("watch only button")
@@ -427,7 +427,7 @@ class SettingsViewController: UIViewController {
                 UserDefaults.standard.set(self.watchOnlyMode, forKey: "watchMode")
                 
             }
-            
+            */
         default:
             break
         }
