@@ -380,14 +380,14 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                             
                             if let finalBalanceCheck = jsonAddressResult["final_balance"] as? Double {
                                 
-                                if self.sweepMode {
+                                if self.sweepMode && self.coldMode {
                                     
                                    self.sweepAmount = String(finalBalanceCheck)
                                     self.removeSpinner()
                                     
                                 } else {
                                   
-                                    self.amount = String(finalBalanceCheck)
+                                    self.amount = String(Int(finalBalanceCheck))
                                     print("self.amount = \(self.amount)")
                                     self.removeSpinner()
                                     self.setPreference()
@@ -1506,9 +1506,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                     if self.sweepMode && self.hotMode {
                                         
                                         self.sweepMode = false
-                                        let key = self.privateKey.description
-                                        var privateKey3 = key.components(separatedBy: " ")
-                                        self.privateKey = privateKey3[1].replacingOccurrences(of: ">", with: "")
+                                        self.privateKey = UserDefaults.standard.object(forKey: "wif") as! String
                                         print("self.privateKey =  \(self.privateKey)")
                                         self.getPrivateKeySignature(key: self.privateKey)
                                         self.removeSpinner()
