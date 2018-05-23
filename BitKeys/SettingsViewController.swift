@@ -14,13 +14,13 @@ class SettingsViewController: UIViewController {
     var segwitButton = UIButton()
     var legacyButton = UIButton()
     //var watchOnlyButton = UIButton()
-    var simpleModeButton = UIButton()
-    var advancedModeButton = UIButton()
+    var hotModeButton = UIButton()
+    var coldModeButton = UIButton()
     
     var segwitMode = Bool()
     var legacyMode = Bool()
-    var simpleMode = Bool()
-    var advancedMode = Bool()
+    var hotMode = Bool()
+    var coldMode = Bool()
     //var watchOnlyMode = Bool()
 
     override func viewDidLoad() {
@@ -50,36 +50,26 @@ class SettingsViewController: UIViewController {
         
         print("checkUserDefaults")
         
-        if UserDefaults.standard.object(forKey: "advancedMode") != nil {
+        if UserDefaults.standard.object(forKey: "coldMode") != nil {
             
-            advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
+            coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
             
         } else {
             
-            advancedMode = true
+            coldMode = true
             
         }
         
-        if UserDefaults.standard.object(forKey: "simpleMode") != nil {
+        if UserDefaults.standard.object(forKey: "hotMode") != nil {
             
-            simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
-            
-        } else {
-            
-            simpleMode = false
-            
-        }
-        /*
-        if UserDefaults.standard.object(forKey: "watchMode") != nil {
-            
-            watchOnlyMode = UserDefaults.standard.object(forKey: "watchMode") as! Bool
+            hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
             
         } else {
             
-            watchOnlyMode = true
+            hotMode = false
             
         }
-        */
+        
         if UserDefaults.standard.object(forKey: "legacyMode") != nil {
             
             legacyMode = UserDefaults.standard.object(forKey: "legacyMode") as! Bool
@@ -199,58 +189,58 @@ class SettingsViewController: UIViewController {
             
             self.view.addSubview(self.watchOnlyButton)
              */
-            self.simpleModeButton.removeFromSuperview()
+            self.hotModeButton.removeFromSuperview()
             
-            self.simpleModeButton = UIButton(frame: CGRect(x: 10, y: 210, width: self.view.frame.width - 20, height: 50))
-            self.simpleModeButton.showsTouchWhenHighlighted = true
-            self.simpleModeButton.layer.cornerRadius = 10
-            self.simpleModeButton.layer.shadowColor = UIColor.black.cgColor
-            self.simpleModeButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.simpleModeButton.layer.shadowRadius = 2.5
-            self.simpleModeButton.layer.shadowOpacity = 0.8
-            self.simpleModeButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
+            self.hotModeButton = UIButton(frame: CGRect(x: 10, y: 210, width: self.view.frame.width - 20, height: 50))
+            self.hotModeButton.showsTouchWhenHighlighted = true
+            self.hotModeButton.layer.cornerRadius = 10
+            self.hotModeButton.layer.shadowColor = UIColor.black.cgColor
+            self.hotModeButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.hotModeButton.layer.shadowRadius = 2.5
+            self.hotModeButton.layer.shadowOpacity = 0.8
+            self.hotModeButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
             
-            if self.simpleMode {
+            if self.hotMode {
                 
-                self.simpleModeButton.backgroundColor = UIColor.lightText
-                self.simpleModeButton.setTitle("Simple Mode - ON", for: .normal)
-                
-            } else {
-                
-                self.simpleModeButton.backgroundColor = UIColor.groupTableViewBackground
-                self.simpleModeButton.setTitleColor(UIColor.black, for: .normal)
-                self.simpleModeButton.setTitle("Simple Mode - OFF", for: .normal)
-                
-            }
-            
-            self.view.addSubview(self.simpleModeButton)
-            
-            
-            self.advancedModeButton.removeFromSuperview()
-            
-            self.advancedModeButton = UIButton(frame: CGRect(x: 10, y: 265, width: self.view.frame.width - 20, height: 50))
-            self.advancedModeButton.showsTouchWhenHighlighted = true
-            self.advancedModeButton.layer.cornerRadius = 10
-            self.advancedModeButton.layer.shadowColor = UIColor.black.cgColor
-            self.advancedModeButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.advancedModeButton.layer.shadowRadius = 2.5
-            self.advancedModeButton.layer.shadowOpacity = 0.8
-            self.advancedModeButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
-            
-            if self.advancedMode {
-                
-                self.advancedModeButton.backgroundColor = UIColor.lightText
-                self.advancedModeButton.setTitle("Advanced Mode - ON", for: .normal)
+                self.hotModeButton.backgroundColor = UIColor.lightText
+                self.hotModeButton.setTitle("Hot Mode - ON", for: .normal)
                 
             } else {
                 
-                self.advancedModeButton.backgroundColor = UIColor.groupTableViewBackground
-                self.advancedModeButton.setTitleColor(UIColor.black, for: .normal)
-                self.advancedModeButton.setTitle("Advanced Mode - OFF", for: .normal)
+                self.hotModeButton.backgroundColor = UIColor.groupTableViewBackground
+                self.hotModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.hotModeButton.setTitle("Hot Mode - OFF", for: .normal)
                 
             }
             
-            self.view.addSubview(self.advancedModeButton)
+            self.view.addSubview(self.hotModeButton)
+            
+            
+            self.coldModeButton.removeFromSuperview()
+            
+            self.coldModeButton = UIButton(frame: CGRect(x: 10, y: 265, width: self.view.frame.width - 20, height: 50))
+            self.coldModeButton.showsTouchWhenHighlighted = true
+            self.coldModeButton.layer.cornerRadius = 10
+            self.coldModeButton.layer.shadowColor = UIColor.black.cgColor
+            self.coldModeButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.coldModeButton.layer.shadowRadius = 2.5
+            self.coldModeButton.layer.shadowOpacity = 0.8
+            self.coldModeButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
+            
+            if self.coldMode {
+                
+                self.coldModeButton.backgroundColor = UIColor.lightText
+                self.coldModeButton.setTitle("Cold Mode - ON", for: .normal)
+                
+            } else {
+                
+                self.coldModeButton.backgroundColor = UIColor.groupTableViewBackground
+                self.coldModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.coldModeButton.setTitle("Cold Mode - OFF", for: .normal)
+                
+            }
+            
+            self.view.addSubview(self.coldModeButton)
              
             
              
@@ -337,97 +327,75 @@ class SettingsViewController: UIViewController {
                 
             }
             
-        case self.simpleModeButton:
+        case self.hotModeButton:
             
-            print("simple mode button")
+            print("Hot mode button")
             
-            if simpleMode {
+            if hotMode {
                 
-                sender.setTitle("Simple Mode - OFF", for: .normal)
+                sender.setTitle("Hot Mode - OFF", for: .normal)
                 sender.backgroundColor = UIColor.groupTableViewBackground
                 sender.setTitleColor(UIColor.black, for: .normal)
-                self.simpleMode = false
-                UserDefaults.standard.set(self.simpleMode, forKey: "simpleMode")
+                self.hotMode = false
+                UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
                 
-                self.advancedModeButton.setTitle("Advanced Mode - ON", for: .normal)
-                self.advancedModeButton.backgroundColor = UIColor.lightText
-                self.advancedModeButton.setTitleColor(UIColor.white, for: .normal)
-                self.advancedMode = true
-                UserDefaults.standard.set(self.advancedMode, forKey: "advancedMode")
+                self.coldModeButton.setTitle("Cold Mode - ON", for: .normal)
+                self.coldModeButton.backgroundColor = UIColor.lightText
+                self.coldModeButton.setTitleColor(UIColor.white, for: .normal)
+                self.coldMode = true
+                UserDefaults.standard.set(self.coldMode, forKey: "coldMode")
                 
             } else {
                 
-                sender.setTitle("Simple Mode - ON", for: .normal)
+                sender.setTitle("Hot Mode - ON", for: .normal)
                 sender.backgroundColor = UIColor.lightText
                 sender.setTitleColor(UIColor.white, for: .normal)
-                self.simpleMode = true
-                UserDefaults.standard.set(self.simpleMode, forKey: "simpleMode")
+                self.hotMode = true
+                UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
                 
-                self.advancedModeButton.setTitle("Advanced Mode - OFF", for: .normal)
-                self.advancedModeButton.backgroundColor = UIColor.groupTableViewBackground
-                self.advancedModeButton.setTitleColor(UIColor.black, for: .normal)
-                self.advancedMode = false
-                UserDefaults.standard.set(self.advancedMode, forKey: "advancedMode")
+                self.coldModeButton.setTitle("Cold Mode - OFF", for: .normal)
+                self.coldModeButton.backgroundColor = UIColor.groupTableViewBackground
+                self.coldModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.coldMode = false
+                UserDefaults.standard.set(self.coldMode, forKey: "coldMode")
                 
             }
         
-        case self.advancedModeButton:
+        case self.coldModeButton:
             
-            print("advanced mode button")
+            print("Cold mode button")
             
-            if advancedMode {
+            if coldMode {
                 
-                sender.setTitle("Advanced Mode - OFF", for: .normal)
+                sender.setTitle("Cold Mode - OFF", for: .normal)
                 sender.backgroundColor = UIColor.groupTableViewBackground
                 sender.setTitleColor(UIColor.black, for: .normal)
-                self.advancedMode = false
-                UserDefaults.standard.set(self.advancedMode, forKey: "advancedMode")
+                self.coldMode = false
+                UserDefaults.standard.set(self.coldMode, forKey: "coldMode")
                 
-                self.simpleModeButton.setTitle("Simple Mode - ON", for: .normal)
-                self.simpleModeButton.backgroundColor = UIColor.lightText
-                self.simpleModeButton.setTitleColor(UIColor.white, for: .normal)
-                self.simpleMode = true
-                UserDefaults.standard.set(self.simpleMode, forKey: "simpleMode")
+                self.hotModeButton.setTitle("Hot Mode - ON", for: .normal)
+                self.hotModeButton.backgroundColor = UIColor.lightText
+                self.hotModeButton.setTitleColor(UIColor.white, for: .normal)
+                self.hotMode = true
+                UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
                 
             } else {
                 
-                sender.setTitle("Advanced Mode - ON", for: .normal)
+                sender.setTitle("Cold Mode - ON", for: .normal)
                 sender.backgroundColor = UIColor.lightText
                 sender.setTitleColor(UIColor.white, for: .normal)
-                self.advancedMode = true
-                UserDefaults.standard.set(self.advancedMode, forKey: "advancedMode")
+                self.coldMode = true
+                UserDefaults.standard.set(self.coldMode, forKey: "coldMode")
                 
-                self.simpleModeButton.setTitle("Simple Mode - OFF", for: .normal)
-                self.simpleModeButton.backgroundColor = UIColor.groupTableViewBackground
-                self.simpleModeButton.setTitleColor(UIColor.black, for: .normal)
-                self.simpleMode = false
-                UserDefaults.standard.set(self.simpleMode, forKey: "simpleMode")
+                self.hotModeButton.setTitle("Hot Mode - OFF", for: .normal)
+                self.hotModeButton.backgroundColor = UIColor.groupTableViewBackground
+                self.hotModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.hotMode = false
+                UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
                 
             }
             
-        /*
-        case self.watchOnlyButton:
-            
-            print("watch only button")
-            
-            if watchOnlyMode {
-                
-                sender.setTitle("Watch Only Mode - OFF", for: .normal)
-                sender.backgroundColor = UIColor.groupTableViewBackground
-                sender.setTitleColor(UIColor.black, for: .normal)
-                self.watchOnlyMode = false
-                UserDefaults.standard.set(self.watchOnlyMode, forKey: "watchMode")
-                
-            } else {
-                
-                sender.setTitle("Watch Only Mode - ON", for: .normal)
-                sender.backgroundColor = UIColor.lightText
-                sender.setTitleColor(UIColor.white, for: .normal)
-                self.watchOnlyMode = true
-                UserDefaults.standard.set(self.watchOnlyMode, forKey: "watchMode")
-                
-            }
-            */
+        
         default:
             break
         }

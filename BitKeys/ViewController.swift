@@ -15,8 +15,8 @@ import BigInt
 class ViewController: UIViewController, UITextFieldDelegate {
     
     var addressMode = Bool()
-    var advancedMode = Bool()
-    var simpleMode = Bool()
+    var coldMode = Bool()
+    var hotMode = Bool()
     var legacyMode = Bool()
     var segwitMode = Bool()
     var settingsButton = UIButton()
@@ -141,36 +141,26 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         print("checkUserDefaults")
         
-        if UserDefaults.standard.object(forKey: "advancedMode") != nil {
+        if UserDefaults.standard.object(forKey: "coldMode") != nil {
             
-            advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
+            coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
             
         } else {
             
-            advancedMode = true
+            coldMode = true
             
         }
         
-        if UserDefaults.standard.object(forKey: "simpleMode") != nil {
+        if UserDefaults.standard.object(forKey: "hotMode") != nil {
             
-            simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
-            
-        } else {
-            
-            simpleMode = false
-            
-        }
-        /*
-        if UserDefaults.standard.object(forKey: "watchMode") != nil {
-            
-            watchOnlyMode = UserDefaults.standard.object(forKey: "watchMode") as! Bool
+            hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
             
         } else {
             
-            watchOnlyMode = true
+            hotMode = false
             
         }
-        */
+        
         if UserDefaults.standard.object(forKey: "legacyMode") != nil {
             
             legacyMode = UserDefaults.standard.object(forKey: "legacyMode") as! Bool
@@ -260,11 +250,17 @@ class ViewController: UIViewController, UITextFieldDelegate {
         let formatMnemonic2 = formatMnemonic1.replacingOccurrences(of: "]", with: "")
         self.recoveryPhrase = formatMnemonic2.replacingOccurrences(of: ",", with: "")
         let keychain = mnemonic?.keychain.derivedKeychain(withPath: "m/0'/0'")
-        let privateKeyHD = keychain?.key(withPath: "0'").privateKeyAddress
-        let addressHD = keychain?.key(withPath: "0'").address
+        keychain?.key.isPublicKeyCompressed = true
+        let privateKeyHD = keychain?.key(withPath: "0'").privateKeyAddressTestnet
+        let addressHD = keychain?.key(withPath: "0'").addressTestnet
         let privateKey2 = privateKeyHD!.description
         var privateKey3 = privateKey2.components(separatedBy: " ")
         self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
+        
+        if self.hotMode {
+            
+            UserDefaults.standard.set(self.privateKeyWIF, forKey: "wif")
+        }
         
         if self.legacyMode {
             

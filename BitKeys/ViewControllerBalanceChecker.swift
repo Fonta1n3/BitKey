@@ -204,7 +204,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             
         } else {
             
-            url = NSURL(string: "https://blockchain.info/rawaddr/\(address)")
+            url = NSURL(string: "https://testnet.blockchain.info/rawaddr/\(address)")
             
         }
         
