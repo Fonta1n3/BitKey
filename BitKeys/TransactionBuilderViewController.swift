@@ -14,6 +14,8 @@ import SystemConfiguration
 
 class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilderDataSource, */AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate {
     
+    var coldMode = Bool()
+    var hotMode = Bool()
     var sweepAmount = String()
     var privateKey = String()
     var imageView:UIView!
@@ -53,7 +55,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     var pushRawTransactionButton = UIButton()
     var decodeRawTransactionButton = UIButton()
     var xpubkey = String()
-    var viewController = ViewController()
+    //var viewController = ViewController()
     var sweepMode = Bool()
     
     override func viewDidLoad() {
@@ -76,6 +78,38 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         //parseAddress(address: "mwsPvCKh8GusWcYD7TfrnJabiP8rjSYDKS")
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        
+        checkUserDefaults()
+        
+    }
+    
+    func checkUserDefaults() {
+        
+        print("checkUserDefaults")
+        
+        if UserDefaults.standard.object(forKey: "coldMode") != nil {
+            
+            coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
+            
+        } else {
+            
+            coldMode = true
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "hotMode") != nil {
+            
+            hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
+            
+        } else {
+            
+            hotMode = false
+            
+        }
+        
+    }
     /*
     func gotransaction() {
         
@@ -84,6 +118,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     }
     */
     func isInternetAvailable() -> Bool {
+        print("isInternetAvailable")
         
         var zeroAddress = sockaddr_in()
         zeroAddress.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
@@ -121,6 +156,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 self.setFeeMode = false
                 
                 if self.sweepMode {
+                    print("self.sweepMode")
                     
                     self.getSatsAndBTCs()
                     
@@ -147,6 +183,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 self.setFeeMode = false
                 
                 if self.sweepMode {
+                    print("self.sweepMode")
                     
                     self.getSatsAndBTCs()
                     
@@ -173,6 +210,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 self.setFeeMode = false
                 
                 if self.sweepMode {
+                    print("self.sweepMode")
                     
                     self.getSatsAndBTCs()
                     
@@ -264,7 +302,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 self.sweepMode = true
                 self.currecny = "SAT"
                 
-                if self.viewController.hotMode {
+                if self.hotMode {
                     
                     if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
                         
@@ -312,6 +350,8 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func checkBalance(address: String) {
         print("checkBalance")
         
+        print("address = \(address)")
+        
         self.addSpinner()
         
         var url:NSURL!
@@ -343,6 +383,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                 if self.sweepMode {
                                     
                                    self.sweepAmount = String(finalBalanceCheck)
+                                    self.removeSpinner()
                                     
                                 } else {
                                   
@@ -352,8 +393,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                     self.setPreference()
                                     
                                 }
-                                
-                                
                                 
                             } else {
                                 
@@ -473,6 +512,8 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         self.fees = Int(self.amountToSend.text!)!
         self.amountToSend.resignFirstResponder()
+        self.amountToSend.removeFromSuperview()
+        
     }
     
     func addAmount() {
@@ -546,7 +587,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
           
             self.addressToDisplay.placeholder = "Scan or Type Receiving Address"
             
-        } else if getPayerAddressMode && self.viewController.coldMode {
+        } else if getPayerAddressMode && self.coldMode {
             
             self.addressToDisplay.placeholder = "Scan or Type Debit Address"
             
@@ -582,10 +623,11 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             if getReceivingAddressMode {
                 
                 self.recievingAddress = self.addressToDisplay.text!
+                
                 print("self.recievingAddress = \(self.recievingAddress)")
                 self.getReceivingAddressMode = false
                 
-                if self.viewController.coldMode {
+                if self.coldMode {
                     
                  self.getPayerAddressMode = true
                     
@@ -614,10 +656,17 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     self.present(alert, animated: true, completion: nil)
                 }
                 
-            } else if getPayerAddressMode && self.viewController.coldMode {
+            } else if getPayerAddressMode && self.coldMode {
                 
                 self.sendingFromAddress = self.addressToDisplay.text!
                 print("self.sendingFromAddress = \(self.sendingFromAddress)")
+                
+                if sweepMode {
+                    
+                    self.checkBalance(address: self.sendingFromAddress)
+                    
+                }
+                
                 self.getPayerAddressMode = false
                 self.getSignatureMode = true
                 self.removeScanner()
@@ -666,8 +715,11 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func getSatsAndBTCs() {
         print("getSatsAndBTCs")
         
-        let noNotationBTC = self.amountInBTC.avoidNotation
-        let noNotationSatoshi = Float(self.satoshiAmount).avoidNotation
+        
+        var noNotationBTC = String()
+        var noNotationSatoshi = String()
+        //let noNotationBTC = self.amountInBTC.avoidNotation
+        //let noNotationSatoshi = Float(self.satoshiAmount).avoidNotation
         
         func sendMessage() {
             
@@ -714,9 +766,12 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             
             
         } else if self.currecny == "BTC" {
+            print("self.amount = \(self.amount)")
             
             self.amountInBTC = Double(self.amount)!
             self.satoshiAmount = Int(self.amountInBTC * 100000000)
+            noNotationBTC = self.amountInBTC.avoidNotation
+            noNotationSatoshi = Float(self.satoshiAmount).avoidNotation
             sendMessage()
             
         } else if self.currecny == "SAT" {
@@ -724,6 +779,8 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             self.satoshiAmount = Int(self.amount)!
             print("self.satoshiAmount = \(self.satoshiAmount)")
             self.amountInBTC = Double(self.amount)! / 100000000
+            noNotationBTC = self.amountInBTC.avoidNotation
+            noNotationSatoshi = Float(self.satoshiAmount).avoidNotation
             sendMessage()
             
         }
@@ -917,26 +974,26 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 //herehere
                 
                 if getReceivingAddressMode {
+                    print("getReceivingAddressMode")
                     
-                    if self.viewController.coldMode {
+                    if self.coldMode {
                         
                         self.recievingAddress = stringURL
+                        
+                        
+                        
                         print("self.recievingAddress = \(self.recievingAddress)")
                         self.getReceivingAddressMode = false
                         
-                        if self.viewController.coldMode {
+                        self.getPayerAddressMode = true
                             
-                         self.getPayerAddressMode = true
-                            
-                        }
-                        
                         self.removeScanner()
                         
                         DispatchQueue.main.async {
                             
                             let alert = UIAlertController(title: NSLocalizedString("Success", comment: ""), message: "Sending payment to \(self.recievingAddress)", preferredStyle: UIAlertControllerStyle.actionSheet)
                             
-                            alert.addAction(UIAlertAction(title: NSLocalizedString("Scan Private Key", comment: ""), style: .default, handler: { (action) in
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("Scan Debit Address", comment: ""), style: .default, handler: { (action) in
                                 
                                 self.getSignatureMode = true
                                 self.addScanner()
@@ -982,10 +1039,17 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                     
                     
-                } else if getPayerAddressMode && self.viewController.coldMode {
+                } else if getPayerAddressMode && self.coldMode {
                     
                     self.sendingFromAddress = stringURL
                     print("self.sendingFromAddress = \(self.sendingFromAddress)")
+                    
+                    if sweepMode {
+                        
+                        self.checkBalance(address: self.sendingFromAddress)
+                        
+                    }
+                    
                     self.getPayerAddressMode = false
                     self.getSignatureMode = true
                     self.removeScanner()
@@ -997,7 +1061,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                         
                         self.removeScanner()
                         
-                        let alert = UIAlertController(title: NSLocalizedString("Please confirm", comment: ""), message: "We will use private key: \(self.stringURL) to create a signature. You can just check first few and last few characters as if its incorrect the worst that will happen is you'll have to start over.", preferredStyle: UIAlertControllerStyle.actionSheet)
+                        let alert = UIAlertController(title: NSLocalizedString("Please confirm", comment: ""), message: "We will use private key: \(self.stringURL) to create a signature. You can check the first few and last few characters, if its incorrect the worst that will happen is you'll have to start over.", preferredStyle: UIAlertControllerStyle.actionSheet)
                         
                         alert.addAction(UIAlertAction(title: NSLocalizedString("Looks Good, please sign", comment: ""), style: .default, handler: { (action) in
                             
@@ -1028,7 +1092,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             let key = BTCKey.init(privateKeyAddress: privateKey)
             print("privateKey = \(String(describing: privateKey))")
             
-            if self.viewController.hotMode || self.sweepMode {
+            if self.hotMode || self.sweepMode {
                 
                 let legacyAddress1 = (key?.addressTestnet.description)!
                 let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
@@ -1439,7 +1503,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                         }
                                     }
                                     
-                                    if self.sweepMode {
+                                    if self.sweepMode && self.hotMode {
                                         
                                         self.sweepMode = false
                                         let key = self.privateKey.description
@@ -1455,7 +1519,9 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                             
                                             self.removeSpinner()
                                             
-                                            if self.viewController.coldMode {
+                                            if self.coldMode {
+                                                
+                                                self.sweepMode = false
                                                 
                                                 let alert = UIAlertController(title: NSLocalizedString("Turn Airplane Mode On", comment: ""), message: "We need to scan your Private Key so that we can create a signature to sign your transaction with, you may enable airplane mode during this operation for maximum security, this is optional. We NEVER save your Private Keys, the signature is created locally and the internet is not used at all, however we will need the interent after you sign the transaction in order to send the bitcoins.", preferredStyle: UIAlertControllerStyle.alert)
                                                 
