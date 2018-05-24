@@ -14,6 +14,8 @@ import SystemConfiguration
 
 class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilderDataSource, */AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate {
     
+    var testnetMode = Bool()
+    var mainnetMode = Bool()
     var coldMode = Bool()
     var hotMode = Bool()
     var sweepAmount = String()
@@ -106,6 +108,26 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         } else {
             
             hotMode = false
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "testnetMode") != nil {
+            
+            testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
+            
+        } else {
+            
+            testnetMode = false
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "mainnetMode") != nil {
+            
+            mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
+            
+        } else {
+            
+            mainnetMode = true
             
         }
         
@@ -356,7 +378,17 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         var url:NSURL!
         
-        url = NSURL(string: "https://testnet.blockchain.info/rawaddr/\(address)")
+        if testnetMode {
+           
+            url = NSURL(string: "https://testnet.blockchain.info/rawaddr/\(address)")
+            
+        } else {
+            
+            url = NSURL(string: "https://blockchain.info/rawaddr/\(address)")
+            
+        }
+        
+        
             
         let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
             
@@ -715,11 +747,8 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func getSatsAndBTCs() {
         print("getSatsAndBTCs")
         
-        
         var noNotationBTC = String()
         var noNotationSatoshi = String()
-        //let noNotationBTC = self.amountInBTC.avoidNotation
-        //let noNotationSatoshi = Float(self.satoshiAmount).avoidNotation
         
         func sendMessage() {
             
@@ -1233,8 +1262,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 
                 if self.sweepMode {
                     
-                    //self.checkBalance(address: self.sendingFromAddress)
-                    //message = "You are sweeping all funds from private key : \(String(describing: key?.privateKeyAddressTestnet)) to: \(self.recievingAddress)."
                     self.makeHTTPPostRequest()
                     
                 }
@@ -1408,7 +1435,18 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         self.addSpinner()
         var url:URL!
-        url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/new")
+        
+        if testnetMode {
+            
+            url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/new")
+            
+        } else {
+            
+            url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/new")
+            
+        }
+        
+       // url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/new")
         
         var request = URLRequest(url: url)
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -1589,7 +1627,16 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         print("self.json = \(self.json)")
         let jsonData = try? JSONSerialization.data(withJSONObject: self.json)
         var url:URL!
-        url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/send")
+        
+        if testnetMode {
+            
+            url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/send")
+            
+        } else {
+            
+            url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/send")
+            
+        }
         
         var request = URLRequest(url: url)
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -1703,6 +1750,18 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         self.addSpinner()
         
         var url:URL!
+        
+        if testnetMode {
+            
+            url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/push?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
+            
+        } else {
+            
+            url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/push?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
+            
+        }
+        
+        
         url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/push?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
         
         var request = URLRequest(url: url)
@@ -1817,7 +1876,16 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             self.addSpinner()
             
             var url:URL!
-            url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/decode?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
+            
+            if testnetMode {
+                
+                url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/decode?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
+                
+            } else {
+                
+                url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/decode?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
+                
+            }
             
             var request = URLRequest(url: url)
             request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -1929,7 +1997,16 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         self.addSpinner()
         var url:URL!
-        url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/\(self.transactionID)")
+        
+        if testnetMode {
+            
+            url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/\(self.transactionID)")
+            
+        } else {
+            
+            url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/\(self.transactionID)")
+            
+        }
         
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) -> Void in
             

@@ -13,15 +13,17 @@ class SettingsViewController: UIViewController {
     var backButton = UIButton()
     var segwitButton = UIButton()
     var legacyButton = UIButton()
-    //var watchOnlyButton = UIButton()
     var hotModeButton = UIButton()
     var coldModeButton = UIButton()
+    var testnetModeButton = UIButton()
+    var mainnetModeButton = UIButton()
     
     var segwitMode = Bool()
     var legacyMode = Bool()
     var hotMode = Bool()
     var coldMode = Bool()
-    //var watchOnlyMode = Bool()
+    var testnetMode = Bool()
+    var mainnetMode = Bool()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,11 +31,7 @@ class SettingsViewController: UIViewController {
         // Do any additional setup after loading the view.
         print("SettingsViewController")
         
-        //checkUserDefaults()
-        //addButtons()
-        
-        
-    }
+   }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -87,6 +85,26 @@ class SettingsViewController: UIViewController {
         } else {
             
             segwitMode = false
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "testnetMode") != nil {
+            
+            testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
+            
+        } else {
+            
+            testnetMode = false
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "mainnetMode") != nil {
+            
+            mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
+            
+        } else {
+            
+            mainnetMode = true
             
         }
     }
@@ -162,33 +180,7 @@ class SettingsViewController: UIViewController {
             }
             
             self.view.addSubview(self.legacyButton)
-            /*
-            self.watchOnlyButton.removeFromSuperview()
             
-            self.watchOnlyButton = UIButton(frame: CGRect(x: 10, y: 210, width: self.view.frame.width - 20, height: 50))
-            self.watchOnlyButton.showsTouchWhenHighlighted = true
-            self.watchOnlyButton.layer.cornerRadius = 10
-            self.watchOnlyButton.layer.shadowColor = UIColor.black.cgColor
-            self.watchOnlyButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.watchOnlyButton.layer.shadowRadius = 2.5
-            self.watchOnlyButton.layer.shadowOpacity = 0.8
-            self.watchOnlyButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
-            
-            if self.watchOnlyMode {
-                
-                self.watchOnlyButton.backgroundColor = UIColor.lightText
-                self.watchOnlyButton.setTitle("Watch Only Mode - ON", for: .normal)
-                
-            } else {
-                
-                self.watchOnlyButton.backgroundColor = UIColor.groupTableViewBackground
-                self.watchOnlyButton.setTitleColor(UIColor.black, for: .normal)
-                self.watchOnlyButton.setTitle("Watch Only Mode - OFF", for: .normal)
-                
-            }
-            
-            self.view.addSubview(self.watchOnlyButton)
-             */
             self.hotModeButton.removeFromSuperview()
             
             self.hotModeButton = UIButton(frame: CGRect(x: 10, y: 210, width: self.view.frame.width - 20, height: 50))
@@ -241,6 +233,58 @@ class SettingsViewController: UIViewController {
             }
             
             self.view.addSubview(self.coldModeButton)
+            
+            self.testnetModeButton.removeFromSuperview()
+            
+            self.testnetModeButton = UIButton(frame: CGRect(x: 10, y: 320, width: self.view.frame.width - 20, height: 50))
+            self.testnetModeButton.showsTouchWhenHighlighted = true
+            self.testnetModeButton.layer.cornerRadius = 10
+            self.testnetModeButton.layer.shadowColor = UIColor.black.cgColor
+            self.testnetModeButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.testnetModeButton.layer.shadowRadius = 2.5
+            self.testnetModeButton.layer.shadowOpacity = 0.8
+            self.testnetModeButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
+            
+            if self.testnetMode {
+                
+                self.testnetModeButton.backgroundColor = UIColor.lightText
+                self.testnetModeButton.setTitle("Testnet Mode - ON", for: .normal)
+                
+            } else {
+                
+                self.testnetModeButton.backgroundColor = UIColor.groupTableViewBackground
+                self.testnetModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.testnetModeButton.setTitle("Testnet Mode - OFF", for: .normal)
+                
+            }
+            
+            self.view.addSubview(self.testnetModeButton)
+            
+            self.mainnetModeButton.removeFromSuperview()
+            
+            self.mainnetModeButton = UIButton(frame: CGRect(x: 10, y: 375, width: self.view.frame.width - 20, height: 50))
+            self.mainnetModeButton.showsTouchWhenHighlighted = true
+            self.mainnetModeButton.layer.cornerRadius = 10
+            self.mainnetModeButton.layer.shadowColor = UIColor.black.cgColor
+            self.mainnetModeButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.mainnetModeButton.layer.shadowRadius = 2.5
+            self.mainnetModeButton.layer.shadowOpacity = 0.8
+            self.mainnetModeButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
+            
+            if self.mainnetMode {
+                
+                self.mainnetModeButton.backgroundColor = UIColor.lightText
+                self.mainnetModeButton.setTitle("Mainnet Mode - ON", for: .normal)
+                
+            } else {
+                
+                self.mainnetModeButton.backgroundColor = UIColor.groupTableViewBackground
+                self.mainnetModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.mainnetModeButton.setTitle("Mainnet Mode - OFF", for: .normal)
+                
+            }
+            
+            self.view.addSubview(self.mainnetModeButton)
              
             
              
@@ -394,6 +438,76 @@ class SettingsViewController: UIViewController {
                 UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
                 
             }
+            
+        case self.testnetModeButton:
+            
+            print("Testnet mode button")
+            
+            if testnetMode {
+                
+                sender.setTitle("Testnet Mode - OFF", for: .normal)
+                sender.backgroundColor = UIColor.groupTableViewBackground
+                sender.setTitleColor(UIColor.black, for: .normal)
+                self.testnetMode = false
+                UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
+                
+                self.mainnetModeButton.setTitle("Mainnet Mode - ON", for: .normal)
+                self.mainnetModeButton.backgroundColor = UIColor.lightText
+                self.mainnetModeButton.setTitleColor(UIColor.white, for: .normal)
+                self.mainnetMode = true
+                UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
+                
+            } else {
+                
+                sender.setTitle("Testnet Mode - ON", for: .normal)
+                sender.backgroundColor = UIColor.lightText
+                sender.setTitleColor(UIColor.white, for: .normal)
+                self.testnetMode = true
+                UserDefaults.standard.set(self.coldMode, forKey: "testnetMode")
+                
+                self.mainnetModeButton.setTitle("Mainnet Mode - OFF", for: .normal)
+                self.mainnetModeButton.backgroundColor = UIColor.groupTableViewBackground
+                self.mainnetModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.mainnetMode = false
+                UserDefaults.standard.set(self.hotMode, forKey: "mainnetMode")
+                
+            }
+            
+        case self.mainnetModeButton:
+            
+            print("Mainnet mode button")
+            
+            if mainnetMode {
+                
+                sender.setTitle("Mainnet Mode - OFF", for: .normal)
+                sender.backgroundColor = UIColor.groupTableViewBackground
+                sender.setTitleColor(UIColor.black, for: .normal)
+                self.mainnetMode = false
+                UserDefaults.standard.set(self.testnetMode, forKey: "mainnetMode")
+                
+                self.testnetModeButton.setTitle("Testnet Mode - ON", for: .normal)
+                self.testnetModeButton.backgroundColor = UIColor.lightText
+                self.testnetModeButton.setTitleColor(UIColor.white, for: .normal)
+                self.testnetMode = true
+                UserDefaults.standard.set(self.mainnetMode, forKey: "testnetMode")
+                
+            } else {
+                
+                sender.setTitle("Mainnet Mode - ON", for: .normal)
+                sender.backgroundColor = UIColor.lightText
+                sender.setTitleColor(UIColor.white, for: .normal)
+                self.mainnetMode = true
+                UserDefaults.standard.set(self.coldMode, forKey: "mainnetMode")
+                
+                self.testnetModeButton.setTitle("Testnet Mode - OFF", for: .normal)
+                self.testnetModeButton.backgroundColor = UIColor.groupTableViewBackground
+                self.testnetModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.testnetMode = false
+                UserDefaults.standard.set(self.hotMode, forKey: "testnetMode")
+                
+            }
+            
+            
             
         
         default:

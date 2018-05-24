@@ -11,6 +11,10 @@ import AVFoundation
 
 class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate {
     
+    var testnetMode = Bool()
+    var mainnetMode = Bool()
+    var coldMode = Bool()
+    var hotMode = Bool()
     var imageView:UIView!
     let avCaptureSession = AVCaptureSession()
     var balance = Double()
@@ -26,6 +30,52 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         
       
+    }
+    
+    func checkUserDefaults() {
+        
+        print("checkUserDefaults")
+        
+        if UserDefaults.standard.object(forKey: "coldMode") != nil {
+            
+            coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
+            
+        } else {
+            
+            coldMode = true
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "hotMode") != nil {
+            
+            hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
+            
+        } else {
+            
+            hotMode = false
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "testnetMode") != nil {
+            
+            testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
+            
+        } else {
+            
+            testnetMode = false
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "mainnetMode") != nil {
+            
+            mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
+            
+        } else {
+            
+            mainnetMode = true
+            
+        }
+        
     }
     
     
@@ -90,7 +140,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 
                 self.checkBalance(address: self.addressToDisplay.text!)
                 self.addressToDisplay.text = ""
-                //self.addressToDisplay.removeFromSuperview()
                 self.avCaptureSession.stopRunning()
                 
             }
@@ -142,7 +191,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             if machineReadableCode.type == AVMetadataObject.ObjectType.qr {
                 
                 stringURL = machineReadableCode.stringValue!
-                //self.bitcoinAddressQRCode = machineReadableCode
                 print("stringURL = \(stringURL)")
                 
                 DispatchQueue.main.async {
@@ -198,15 +246,21 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         var url:NSURL!
         
-        if address.count == 64 {
-            
-            url = NSURL(string: "https://testnet.blockchain.info/rawtx/\(address)")
-            
-        } else {
+        if testnetMode {
             
             url = NSURL(string: "https://testnet.blockchain.info/rawaddr/\(address)")
             
+        } else {
+            
+            url = NSURL(string: "https://blockchain.info/rawaddr/\(address)")
+            
         }
+        
+        /*if address.count == 64 {
+            
+            url = NSURL(string: "https://testnet.blockchain.info/rawtx/\(address)")
+            
+        } */
         
         let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
             
@@ -217,7 +271,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     print(error as Any)
                     self.removeSpinner()
                     DispatchQueue.main.async {
-                        //self.view.addSubview(self.addressToDisplay)
                         self.avCaptureSession.startRunning()
                         self.displayAlert(title: "Error", message: "\(String(describing: error))")
                     }

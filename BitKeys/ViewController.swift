@@ -14,6 +14,8 @@ import BigInt
 
 class ViewController: UIViewController, UITextFieldDelegate {
     
+    var testnetMode = Bool()
+    var mainnetMode = Bool()
     var addressMode = Bool()
     var coldMode = Bool()
     var hotMode = Bool()
@@ -180,6 +182,26 @@ class ViewController: UIViewController, UITextFieldDelegate {
             segwitMode = false
             
         }
+        
+        if UserDefaults.standard.object(forKey: "testnetMode") != nil {
+            
+            testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
+            
+        } else {
+            
+            testnetMode = false
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "mainnetMode") != nil {
+            
+            mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
+            
+        } else {
+            
+            mainnetMode = true
+            
+        }
     }
 
     
@@ -251,10 +273,24 @@ class ViewController: UIViewController, UITextFieldDelegate {
         self.recoveryPhrase = formatMnemonic2.replacingOccurrences(of: ",", with: "")
         let keychain = mnemonic?.keychain.derivedKeychain(withPath: "m/0'/0'")
         keychain?.key.isPublicKeyCompressed = true
-        let privateKeyHD = keychain?.key(withPath: "0'").privateKeyAddressTestnet
-        let addressHD = keychain?.key(withPath: "0'").addressTestnet
-        let privateKey2 = privateKeyHD!.description
-        var privateKey3 = privateKey2.components(separatedBy: " ")
+        
+        var privateKeyHD = String()
+        var addressHD = String()
+        
+        if testnetMode {
+           
+            privateKeyHD = (keychain?.key(withPath: "0'").privateKeyAddressTestnet.description)!
+            addressHD = (keychain?.key(withPath: "0'").addressTestnet.description)!
+            
+        } else if mainnetMode {
+            
+            privateKeyHD = (keychain?.key(withPath: "0'").privateKeyAddress.description)!
+            addressHD = (keychain?.key(withPath: "0'").address.description)!
+            
+        }
+        
+        //let privateKey2 = privateKeyHD!.description
+        var privateKey3 = privateKeyHD.components(separatedBy: " ")
         self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
         
         if self.hotMode {
@@ -264,8 +300,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         if self.legacyMode {
             
-            let legacyAddress1 = addressHD!.description
-            let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+            //let legacyAddress1 = addressHD!.description
+            let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
             self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
             
         }
@@ -283,7 +319,16 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
             do {
                 //bc for mainnet and tb for testnet
-                self.bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                if mainnetMode {
+                    
+                  self.bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                    
+                } else if testnetMode {
+                    
+                   self.bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
+                    
+                }
+                
                 
             } catch {
                 
@@ -663,8 +708,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
         }
     }
     
-    
-    
     func addQRCodesAndLabels() {
         print("addQRCodesAndLabels")
         
@@ -676,18 +719,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
         self.importAction.removeFromSuperview()
         
         if self.watchOnlyMode {
-            /*
-            if self.segwitMode {
-                
-               segwitAddressMode = true
-                legacyAddressMode = false
-                
-            } else {
-                
-                legacyAddressMode = true
-                segwitAddressMode = false
-            }
-            */
             
             diceMode = false
             self.importAction.removeFromSuperview()
@@ -695,7 +726,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
             DispatchQueue.main.async {
                 self.view.addSubview(self.scrollView)
             }
-            
             
             self.privateKeyQRCode = self.generateQrCode(key: self.bitcoinAddress)
             self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
