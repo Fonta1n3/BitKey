@@ -451,6 +451,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     }
     
     func addRawTransactionView() {
+        print("addRawTransactionView")
         
         self.rawTransactionView.frame = CGRect(x: (self.view.frame.width / 2) - ((self.view.frame.width - 10) / 2), y: self.view.frame.minY + 100, width: self.view.frame.width - 10, height: 325)
         self.rawTransactionView.textAlignment = .left
@@ -574,6 +575,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     }
     
     func addSpinner() {
+        print("addSpinner")
         
         DispatchQueue.main.async {
             let bitcoinImage = UIImage(named: "bitcoinIcon.png")
@@ -587,6 +589,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     }
     
     func removeSpinner() {
+        print("removeSpinner")
         
         DispatchQueue.main.async {
             self.imageView.removeFromSuperview()
@@ -636,6 +639,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     }
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
+        print("textFieldDidBeginEditing")
         
         if textField == self.amountToSend {
             
@@ -653,6 +657,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         if textField == self.addressToDisplay {
             
             if getReceivingAddressMode {
+                print("getReceivingAddressMode")
                 
                 self.recievingAddress = self.addressToDisplay.text!
                 
@@ -660,12 +665,15 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 self.getReceivingAddressMode = false
                 
                 if self.coldMode {
+                    print("coldMode")
                     
                  self.getPayerAddressMode = true
+                    print("self.getPayerAddressMode = true")
                     
                 }
                 
                 self.getSignatureMode = true
+                print("getSignatureMode = true")
                 self.removeScanner()
                 
                 DispatchQueue.main.async {
@@ -674,8 +682,54 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                     alert.addAction(UIAlertAction(title: NSLocalizedString("Next", comment: ""), style: .default, handler: { (action) in
                         
-                        self.addScanner()
-                        self.addressToDisplay.text = ""
+                        if self.hotMode {
+                            
+                            //get wif and private key
+                            //debit wallet programmatically
+                            if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
+                                
+                                //self.recievingAddress = stringURL
+                                //print("self.recievingAddress = \(self.recievingAddress)")
+                                
+                                if self.testnetMode {
+                                   
+                                    let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
+                                    let key = BTCKey.init(privateKeyAddress: privateKey)
+                                    key?.isPublicKeyCompressed = true
+                                    let legacyAddress1 = (key?.addressTestnet.description)!
+                                    let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                                    self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                    print("self.sendingFromAddress = \(self.sendingFromAddress)")
+                                    
+                                    self.getSignatureMode = true
+                                    self.removeScanner()
+                                    self.makeHTTPPostRequest()
+                                    
+                                } else {
+                                    
+                                    let privateKey = BTCPrivateKeyAddress(string: wif)
+                                    let key = BTCKey.init(privateKeyAddress: privateKey)
+                                    key?.isPublicKeyCompressed = true
+                                    let legacyAddress1 = (key?.address.description)!
+                                    let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                                    self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                    print("self.sendingFromAddress = \(self.sendingFromAddress)")
+                                    
+                                    self.getSignatureMode = true
+                                    self.removeScanner()
+                                    self.makeHTTPPostRequest()
+                                }
+                                
+                                
+                                
+                            }
+                            
+                        } else {
+                            
+                            self.addScanner()
+                            self.addressToDisplay.text = ""
+                        }
+                        
                         
                     }))
                     
@@ -689,11 +743,13 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 }
                 
             } else if getPayerAddressMode && self.coldMode {
+                print("getPayerAddressMode && self.coldMode")
                 
                 self.sendingFromAddress = self.addressToDisplay.text!
                 print("self.sendingFromAddress = \(self.sendingFromAddress)")
                 
                 if sweepMode {
+                    print("sweepMode")
                     
                     self.checkBalance(address: self.sendingFromAddress)
                     
@@ -707,6 +763,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 
                 
             } else if getSignatureMode {
+                print("getSignatureMode")
                 
                 DispatchQueue.main.async {
                     
@@ -1438,11 +1495,11 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         if testnetMode {
             
-            url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/new")
+            url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/new")
             
         } else {
             
-            url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/new")
+            url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/new")
             
         }
         
@@ -1991,6 +2048,8 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         
     }
+    
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask { return UIInterfaceOrientationMask.portrait }
     
     func getTransaction() {
         print("getTransaction")

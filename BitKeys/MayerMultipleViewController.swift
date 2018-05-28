@@ -22,6 +22,8 @@ class MayerMultipleViewController: UIViewController {
         imageView.layer.add(rotateAnimation, forKey: nil)
     }
     
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask { return UIInterfaceOrientationMask.portrait }
+    
     func addSpinner() {
         
         DispatchQueue.main.async {

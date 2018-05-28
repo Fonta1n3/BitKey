@@ -463,13 +463,13 @@ class SettingsViewController: UIViewController {
                 sender.backgroundColor = UIColor.lightText
                 sender.setTitleColor(UIColor.white, for: .normal)
                 self.testnetMode = true
-                UserDefaults.standard.set(self.coldMode, forKey: "testnetMode")
+                UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
                 
                 self.mainnetModeButton.setTitle("Mainnet Mode - OFF", for: .normal)
                 self.mainnetModeButton.backgroundColor = UIColor.groupTableViewBackground
                 self.mainnetModeButton.setTitleColor(UIColor.black, for: .normal)
                 self.mainnetMode = false
-                UserDefaults.standard.set(self.hotMode, forKey: "mainnetMode")
+                UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
                 
             }
             
@@ -483,13 +483,13 @@ class SettingsViewController: UIViewController {
                 sender.backgroundColor = UIColor.groupTableViewBackground
                 sender.setTitleColor(UIColor.black, for: .normal)
                 self.mainnetMode = false
-                UserDefaults.standard.set(self.testnetMode, forKey: "mainnetMode")
+                UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
                 
                 self.testnetModeButton.setTitle("Testnet Mode - ON", for: .normal)
                 self.testnetModeButton.backgroundColor = UIColor.lightText
                 self.testnetModeButton.setTitleColor(UIColor.white, for: .normal)
                 self.testnetMode = true
-                UserDefaults.standard.set(self.mainnetMode, forKey: "testnetMode")
+                UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
                 
             } else {
                 
@@ -497,13 +497,13 @@ class SettingsViewController: UIViewController {
                 sender.backgroundColor = UIColor.lightText
                 sender.setTitleColor(UIColor.white, for: .normal)
                 self.mainnetMode = true
-                UserDefaults.standard.set(self.coldMode, forKey: "mainnetMode")
+                UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
                 
                 self.testnetModeButton.setTitle("Testnet Mode - OFF", for: .normal)
                 self.testnetModeButton.backgroundColor = UIColor.groupTableViewBackground
                 self.testnetModeButton.setTitleColor(UIColor.black, for: .normal)
                 self.testnetMode = false
-                UserDefaults.standard.set(self.hotMode, forKey: "testnetMode")
+                UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
                 
             }
             
@@ -515,5 +515,7 @@ class SettingsViewController: UIViewController {
         }
         
     }
+    
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask { return UIInterfaceOrientationMask.portrait }
 
 }

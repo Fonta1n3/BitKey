@@ -21,6 +21,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     var backUpButton = UIButton(type: .custom)
     var bitcoinAddressQRCode = UIImage()
     var stringURL = String()
+    var myAddressButton = UIButton()
     
     //change to an array of dictioanries with nickname, and ability to delete them
     var addresses = String()
@@ -30,6 +31,12 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         
       
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        
+        checkUserDefaults()
+        scanQRCode()
     }
     
     func checkUserDefaults() {
@@ -118,8 +125,9 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         self.addressToDisplay.delegate = self
         print("ViewControllerBalanceChecker")
+        
         addHomeButton()
-        scanQRCode()
+        addMyAddressButton()
         
         if UserDefaults.standard.object(forKey: "address") != nil {
             
@@ -128,6 +136,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             
         }
     }
+    
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask { return UIInterfaceOrientationMask.portrait }
 
     @IBOutlet var videoPreview: UIView!
     
@@ -250,11 +260,13 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             
             url = NSURL(string: "https://testnet.blockchain.info/rawaddr/\(address)")
             
-        } else {
+        } else if mainnetMode {
             
             url = NSURL(string: "https://blockchain.info/rawaddr/\(address)")
             
         }
+        
+        print("url = \(url)")
         
         /*if address.count == 64 {
             
@@ -310,6 +322,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                          self.view.addSubview(addressLabel)
                                         
                                         //add label to bottom above button
+                                        self.myAddressButton.removeFromSuperview()
                                         self.addBackUpButton()
                                         self.generateQrCode(key: address)
                                         self.getExchangeRates()
@@ -512,7 +525,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         DispatchQueue.main.async {
             self.backUpButton.removeFromSuperview()
-            self.backUpButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
+            self.backUpButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 150, y: self.view.frame.maxY - 60, width: 140, height: 55))
             self.backUpButton.showsTouchWhenHighlighted = true
             self.backUpButton.layer.cornerRadius = 10
             self.backUpButton.backgroundColor = UIColor.lightText
@@ -527,12 +540,59 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
     }
     
+    func addMyAddressButton() {
+        
+        DispatchQueue.main.async {
+            self.myAddressButton.removeFromSuperview()
+            self.myAddressButton = UIButton(frame: CGRect(x: self.view.frame.minX + 10, y: self.view.frame.maxY - 60, width: 140, height: 55))
+            self.myAddressButton.showsTouchWhenHighlighted = true
+            self.myAddressButton.layer.cornerRadius = 10
+            self.myAddressButton.backgroundColor = UIColor.lightText
+            self.myAddressButton.layer.shadowColor = UIColor.black.cgColor
+            self.myAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.myAddressButton.layer.shadowRadius = 2.5
+            self.myAddressButton.layer.shadowOpacity = 0.8
+            self.myAddressButton.setTitle("My Address", for: .normal)
+            self.myAddressButton.addTarget(self, action: #selector(self.checkMyAddress), for: .touchUpInside)
+            self.view.addSubview(self.myAddressButton)
+        }
+    }
+    
     @objc func openAddressBook() {
         print("openAddressBook")
-        self.checkBalance(address: self.addresses)
-        //self.avCaptureSession.stopRunning()
-        //self.videoPreview.removeFromSuperview()
         
+        self.checkBalance(address: self.addresses)
+        
+    }
+    
+    @objc func checkMyAddress() {
+        
+        if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
+            
+            if testnetMode {
+                
+                let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
+                let key = BTCKey.init(privateKeyAddress: privateKey)
+                key?.isPublicKeyCompressed = true
+                let legacyAddress1 = (key?.addressTestnet.description)!
+                let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                let myAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                print("myAddress = \(myAddress)")
+                self.checkBalance(address: myAddress)
+                
+            } else {
+                
+                let privateKey = BTCPrivateKeyAddress(string: wif)
+                let key = BTCKey.init(privateKeyAddress: privateKey)
+                key?.isPublicKeyCompressed = true
+                let legacyAddress1 = (key?.address.description)!
+                let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                let myAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                print("myAddress = \(myAddress)")
+                self.checkBalance(address: myAddress)
+            }
+            
+        }
         
     }
     
