@@ -14,6 +14,8 @@ import SystemConfiguration
 
 class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilderDataSource, */AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate {
     
+    var simpleMode = Bool()
+    var advancedMode = Bool()
     var testnetMode = Bool()
     var mainnetMode = Bool()
     var coldMode = Bool()
@@ -57,7 +59,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     var pushRawTransactionButton = UIButton()
     var decodeRawTransactionButton = UIButton()
     var xpubkey = String()
-    //var viewController = ViewController()
     var sweepMode = Bool()
     
     override func viewDidLoad() {
@@ -65,12 +66,18 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
 
         // Do any additional setup after loading the view.
         print("TransactionBuilderViewController")
-        getReceivingAddressMode = true
-        //getPayerAddressMode = false
-        getSignatureMode = false
+        
         addressToDisplay.delegate = self
         rawTransactionView.delegate = self
         amountToSend.delegate = self
+        
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        
+        checkUserDefaults()
+        getReceivingAddressMode = true
+        getSignatureMode = false
         addBackButton()
         addAmount()
         getAmount()
@@ -78,18 +85,31 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         setFeeMode = true
         sweepMode = false
         
-        //parseAddress(address: "mwsPvCKh8GusWcYD7TfrnJabiP8rjSYDKS")
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        
-        checkUserDefaults()
-        
     }
     
     func checkUserDefaults() {
         
         print("checkUserDefaults")
+        
+        if UserDefaults.standard.object(forKey: "simpleMode") != nil {
+            
+            simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
+            
+        } else {
+            
+            simpleMode = true
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "advancedMode") != nil {
+            
+            advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
+            
+        } else {
+            
+            advancedMode = false
+            
+        }
         
         if UserDefaults.standard.object(forKey: "coldMode") != nil {
             
@@ -168,110 +188,141 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func setPreference() {
         print("setPreference")
         
-        DispatchQueue.main.async {
+        if simpleMode {
             
-            let alert = UIAlertController(title: NSLocalizedString("Please set your miner fee preference", comment: ""), message: "", preferredStyle: UIAlertControllerStyle.actionSheet)
+            self.preference = "medium"
+            self.setFeeMode = false
             
-            alert.addAction(UIAlertAction(title: NSLocalizedString("High Fee (1-2 blocks)", comment: ""), style: .default, handler: { (action) in
+            if self.sweepMode {
+                print("self.sweepMode")
                 
-                self.preference = "high"
-                self.setFeeMode = false
+                self.getSatsAndBTCs()
                 
-                if self.sweepMode {
-                    print("self.sweepMode")
-                    
-                    self.getSatsAndBTCs()
-                    
-                } else {
-                    
-                   self.amountToSend.becomeFirstResponder()
-                    
-                    if self.currecny != "BTC" && self.currecny != "SAT" {
-                        
-                        self.getSatoshiAmount()
-                        
-                    } else {
-                        
-                        self.getSatsAndBTCs()
-                    }
-                    
-                }
+            } else {
                 
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Medium Fee (3-6 blocks)", comment: ""), style: .default, handler: { (action) in
-                
-                self.preference = "medium"
-                self.setFeeMode = false
-                
-                if self.sweepMode {
-                    print("self.sweepMode")
-                    
-                    self.getSatsAndBTCs()
-                    
-                } else {
-                    
-                    self.amountToSend.becomeFirstResponder()
-                    
-                    if self.currecny != "BTC" && self.currecny != "SAT" {
-                        
-                        self.getSatoshiAmount()
-                        
-                    } else {
-                        
-                        self.getSatsAndBTCs()
-                    }
-                    
-                }
-                
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Low Fee (7 blocks plus)", comment: ""), style: .default, handler: { (action) in
-                
-                self.preference = "low"
-                self.setFeeMode = false
-                
-                if self.sweepMode {
-                    print("self.sweepMode")
-                    
-                    self.getSatsAndBTCs()
-                    
-                } else {
-                    
-                    self.amountToSend.becomeFirstResponder()
-                    
-                    if self.currecny != "BTC" && self.currecny != "SAT" {
-                        
-                        self.getSatoshiAmount()
-                        
-                    } else {
-                        
-                        self.getSatsAndBTCs()
-                    }
-                    
-                }
-                
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Manually Set", comment: ""), style: .default, handler: { (action) in
-                
-                self.preference = ""
-                self.manuallySetFee = true
-                self.addFeeAmount()
                 self.amountToSend.becomeFirstResponder()
-                self.setFeeMode = false
                 
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                if self.currecny != "BTC" {
+                    
+                    self.getSatoshiAmount()
+                    
+                } else {
+                    
+                    self.getSatsAndBTCs()
+                    
+                }
                 
-                self.dismiss(animated: false, completion: nil)
+            }
+            
+        } else {
+            
+            DispatchQueue.main.async {
                 
-            }))
-            
-            self.present(alert, animated: true, completion: nil)
-            
+                let alert = UIAlertController(title: NSLocalizedString("Please set your miner fee preference", comment: ""), message: "", preferredStyle: UIAlertControllerStyle.actionSheet)
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("High Fee (1-2 blocks)", comment: ""), style: .default, handler: { (action) in
+                    
+                    self.preference = "high"
+                    self.setFeeMode = false
+                    
+                    if self.sweepMode {
+                        print("self.sweepMode")
+                        
+                        self.getSatsAndBTCs()
+                        
+                    } else {
+                        
+                        self.amountToSend.becomeFirstResponder()
+                        
+                        if self.currecny != "BTC" && self.currecny != "SAT" {
+                            
+                            self.getSatoshiAmount()
+                            
+                        } else {
+                            
+                            self.getSatsAndBTCs()
+                        }
+                        
+                    }
+                    
+                }))
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Medium Fee (3-6 blocks)", comment: ""), style: .default, handler: { (action) in
+                    
+                    self.preference = "medium"
+                    self.setFeeMode = false
+                    
+                    if self.sweepMode {
+                        print("self.sweepMode")
+                        
+                        self.getSatsAndBTCs()
+                        
+                    } else {
+                        
+                        self.amountToSend.becomeFirstResponder()
+                        
+                        if self.currecny != "BTC" && self.currecny != "SAT" {
+                            
+                            self.getSatoshiAmount()
+                            
+                        } else {
+                            
+                            self.getSatsAndBTCs()
+                        }
+                        
+                    }
+                    
+                }))
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Low Fee (7 blocks plus)", comment: ""), style: .default, handler: { (action) in
+                    
+                    self.preference = "low"
+                    self.setFeeMode = false
+                    
+                    if self.sweepMode {
+                        print("self.sweepMode")
+                        
+                        self.getSatsAndBTCs()
+                        
+                    } else {
+                        
+                        self.amountToSend.becomeFirstResponder()
+                        
+                        if self.currecny != "BTC" && self.currecny != "SAT" {
+                            
+                            self.getSatoshiAmount()
+                            
+                        } else {
+                            
+                            self.getSatsAndBTCs()
+                        }
+                        
+                    }
+                    
+                }))
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Manually Set", comment: ""), style: .default, handler: { (action) in
+                    
+                    self.preference = ""
+                    self.manuallySetFee = true
+                    self.addFeeAmount()
+                    self.amountToSend.becomeFirstResponder()
+                    self.setFeeMode = false
+                    
+                }))
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                    
+                    self.dismiss(animated: false, completion: nil)
+                    
+                }))
+                
+                self.present(alert, animated: true, completion: nil)
+                
+            }
+
         }
+        
         
     }
     
@@ -280,8 +331,10 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         DispatchQueue.main.async {
                 
-                let alert = UIAlertController(title: NSLocalizedString("Please choose your currency", comment: ""), message: "", preferredStyle: UIAlertControllerStyle.actionSheet)
-                
+            let alert = UIAlertController(title: NSLocalizedString("Please choose your currency", comment: ""), message: "", preferredStyle: UIAlertControllerStyle.actionSheet)
+            
+            if self.advancedMode {
+              
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Satoshis", comment: ""), style: .default, handler: { (action) in
                     
                     self.amountToSend.placeholder = "Amount to send in Satoshis"
@@ -290,33 +343,39 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                 }))
                 
-                alert.addAction(UIAlertAction(title: NSLocalizedString("BTC", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.amountToSend.placeholder = "Amount to send in BTC"
-                    self.currecny = "BTC"
-                    self.amountToSend.becomeFirstResponder()
-                }))
+            }
                 
-                alert.addAction(UIAlertAction(title: NSLocalizedString("USD", comment: ""), style: .default, handler: { (action) in
+            alert.addAction(UIAlertAction(title: NSLocalizedString("BTC", comment: ""), style: .default, handler: { (action) in
                     
-                    self.amountToSend.placeholder = "Amount to send in USD"
-                    self.currecny = "USD"
-                    self.amountToSend.becomeFirstResponder()
-                }))
+                self.amountToSend.placeholder = "Amount to send in BTC"
+                self.currecny = "BTC"
+                self.amountToSend.becomeFirstResponder()
                 
-                alert.addAction(UIAlertAction(title: NSLocalizedString("EUR", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.amountToSend.placeholder = "Amount to send in EUR"
-                    self.currecny = "EUR"
-                    self.amountToSend.becomeFirstResponder()
-                }))
+            }))
                 
-                alert.addAction(UIAlertAction(title: NSLocalizedString("GBP", comment: ""), style: .default, handler: { (action) in
+            alert.addAction(UIAlertAction(title: NSLocalizedString("USD", comment: ""), style: .default, handler: { (action) in
                     
-                    self.amountToSend.placeholder = "Amount to send in GBP"
-                    self.currecny = "GBP"
-                    self.amountToSend.becomeFirstResponder()
-                }))
+                self.amountToSend.placeholder = "Amount to send in USD"
+                self.currecny = "USD"
+                self.amountToSend.becomeFirstResponder()
+                
+            }))
+                
+            alert.addAction(UIAlertAction(title: NSLocalizedString("EUR", comment: ""), style: .default, handler: { (action) in
+                    
+                self.amountToSend.placeholder = "Amount to send in EUR"
+                self.currecny = "EUR"
+                self.amountToSend.becomeFirstResponder()
+                
+            }))
+                
+            alert.addAction(UIAlertAction(title: NSLocalizedString("GBP", comment: ""), style: .default, handler: { (action) in
+                    
+                self.amountToSend.placeholder = "Amount to send in GBP"
+                self.currecny = "GBP"
+                self.amountToSend.becomeFirstResponder()
+                
+            }))
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Sweep All Funds", comment: ""), style: .default, handler: { (action) in
                 
@@ -343,29 +402,31 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     self.amount = "-1"
                     print("self.amount = \(self.amount)")
                     self.setPreference()
+                    
                 }
                 
-                
-                
             }))
             
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Raw Transaction Tool", comment: ""), style: .default, handler: { (action) in
+            if self.advancedMode {
                 
-               self.amountToSend.removeFromSuperview()
-                self.addRawTransactionView()
-                
-            }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Raw Transaction Tool", comment: ""), style: .default, handler: { (action) in
                     
-                    self.dismiss(animated: false, completion: nil)
+                    self.amountToSend.removeFromSuperview()
+                    self.addRawTransactionView()
                     
                 }))
-            
-            
-                self.present(alert, animated: true, completion: nil)
-            
+                
             }
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                    
+                self.dismiss(animated: false, completion: nil)
+                    
+            }))
+            
+            self.present(alert, animated: true, completion: nil)
+            
+        }
 
     }
     

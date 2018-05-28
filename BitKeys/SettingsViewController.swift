@@ -17,7 +17,11 @@ class SettingsViewController: UIViewController {
     var coldModeButton = UIButton()
     var testnetModeButton = UIButton()
     var mainnetModeButton = UIButton()
+    var advancedModeButton = UIButton()
+    var simpleModeButton = UIButton()
     
+    var simpleMode = Bool()
+    var advancedMode = Bool()
     var segwitMode = Bool()
     var legacyMode = Bool()
     var hotMode = Bool()
@@ -47,6 +51,26 @@ class SettingsViewController: UIViewController {
     func checkUserDefaults() {
         
         print("checkUserDefaults")
+        
+        if UserDefaults.standard.object(forKey: "simpleMode") != nil {
+            
+            simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
+            
+        } else {
+            
+            simpleMode = true
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "advancedMode") != nil {
+            
+            advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
+            
+        } else {
+            
+            advancedMode = false
+            
+        }
         
         if UserDefaults.standard.object(forKey: "coldMode") != nil {
             
@@ -129,9 +153,81 @@ class SettingsViewController: UIViewController {
             self.backButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
             self.view.addSubview(self.backButton)
             
+            self.simpleModeButton.removeFromSuperview()
+            
+            self.simpleModeButton = UIButton(frame: CGRect(x: 10, y: 100, width: self.view.frame.width - 20, height: 50))
+            self.simpleModeButton.showsTouchWhenHighlighted = true
+            self.simpleModeButton.layer.cornerRadius = 10
+            self.simpleModeButton.layer.shadowColor = UIColor.black.cgColor
+            self.simpleModeButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.simpleModeButton.layer.shadowRadius = 2.5
+            self.simpleModeButton.layer.shadowOpacity = 0.8
+            self.simpleModeButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
+            
+            if self.simpleMode {
+                
+                self.simpleModeButton.backgroundColor = UIColor.lightText
+                self.simpleModeButton.setTitle("Simple Mode - ON", for: .normal)
+                
+                UIView.animate(withDuration: 0.5, animations: {
+                    
+                    self.hotModeButton.alpha = 0
+                    self.coldModeButton.alpha = 0
+                    self.segwitButton.alpha = 0
+                    self.legacyButton.alpha = 0
+                    self.testnetModeButton.alpha = 0
+                    self.mainnetModeButton.alpha = 0
+                    
+                }, completion: { (true) in
+                    
+                    self.hotModeButton.removeFromSuperview()
+                    self.coldModeButton.removeFromSuperview()
+                    self.segwitButton.removeFromSuperview()
+                    self.legacyButton.removeFromSuperview()
+                    self.testnetModeButton.removeFromSuperview()
+                    self.mainnetModeButton.removeFromSuperview()
+                    
+                })
+                
+            } else {
+                
+                self.simpleModeButton.backgroundColor = UIColor.groupTableViewBackground
+                self.simpleModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.simpleModeButton.setTitle("Simple Mode - OFF", for: .normal)
+                
+            }
+            
+            self.view.addSubview(self.simpleModeButton)
+            
+            self.advancedModeButton.removeFromSuperview()
+            
+            self.advancedModeButton = UIButton(frame: CGRect(x: 10, y: 155, width: self.view.frame.width - 20, height: 50))
+            self.advancedModeButton.showsTouchWhenHighlighted = true
+            self.advancedModeButton.layer.cornerRadius = 10
+            self.advancedModeButton.layer.shadowColor = UIColor.black.cgColor
+            self.advancedModeButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.advancedModeButton.layer.shadowRadius = 2.5
+            self.advancedModeButton.layer.shadowOpacity = 0.8
+            self.advancedModeButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
+            
+            if self.advancedMode {
+                
+                self.advancedModeButton.backgroundColor = UIColor.lightText
+                self.advancedModeButton.setTitle("Advanced Mode - ON", for: .normal)
+                
+            } else {
+                
+                self.advancedModeButton.backgroundColor = UIColor.groupTableViewBackground
+                self.advancedModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.advancedModeButton.setTitle("Advanced Mode - OFF", for: .normal)
+                
+            }
+            
+            self.view.addSubview(self.advancedModeButton)
+            
             self.segwitButton.removeFromSuperview()
             
-            self.segwitButton = UIButton(frame: CGRect(x: 10, y: 100, width: self.view.frame.width - 20, height: 50))
+            self.segwitButton = UIButton(frame: CGRect(x: 10, y: 460, width: self.view.frame.width - 20, height: 50))
             self.segwitButton.showsTouchWhenHighlighted = true
             self.segwitButton.layer.cornerRadius = 10
             self.segwitButton.layer.shadowColor = UIColor.black.cgColor
@@ -157,7 +253,7 @@ class SettingsViewController: UIViewController {
              
             self.legacyButton.removeFromSuperview()
             
-            self.legacyButton = UIButton(frame: CGRect(x: 10, y: 155, width: self.view.frame.width - 20, height: 50))
+            self.legacyButton = UIButton(frame: CGRect(x: 10, y: 515, width: self.view.frame.width - 20, height: 50))
             self.legacyButton.showsTouchWhenHighlighted = true
             self.legacyButton.layer.cornerRadius = 10
             self.legacyButton.layer.shadowColor = UIColor.black.cgColor
@@ -183,7 +279,7 @@ class SettingsViewController: UIViewController {
             
             self.hotModeButton.removeFromSuperview()
             
-            self.hotModeButton = UIButton(frame: CGRect(x: 10, y: 210, width: self.view.frame.width - 20, height: 50))
+            self.hotModeButton = UIButton(frame: CGRect(x: 10, y: 220, width: self.view.frame.width - 20, height: 50))
             self.hotModeButton.showsTouchWhenHighlighted = true
             self.hotModeButton.layer.cornerRadius = 10
             self.hotModeButton.layer.shadowColor = UIColor.black.cgColor
@@ -210,7 +306,7 @@ class SettingsViewController: UIViewController {
             
             self.coldModeButton.removeFromSuperview()
             
-            self.coldModeButton = UIButton(frame: CGRect(x: 10, y: 265, width: self.view.frame.width - 20, height: 50))
+            self.coldModeButton = UIButton(frame: CGRect(x: 10, y: 275, width: self.view.frame.width - 20, height: 50))
             self.coldModeButton.showsTouchWhenHighlighted = true
             self.coldModeButton.layer.cornerRadius = 10
             self.coldModeButton.layer.shadowColor = UIColor.black.cgColor
@@ -236,7 +332,7 @@ class SettingsViewController: UIViewController {
             
             self.testnetModeButton.removeFromSuperview()
             
-            self.testnetModeButton = UIButton(frame: CGRect(x: 10, y: 320, width: self.view.frame.width - 20, height: 50))
+            self.testnetModeButton = UIButton(frame: CGRect(x: 10, y: 340, width: self.view.frame.width - 20, height: 50))
             self.testnetModeButton.showsTouchWhenHighlighted = true
             self.testnetModeButton.layer.cornerRadius = 10
             self.testnetModeButton.layer.shadowColor = UIColor.black.cgColor
@@ -262,7 +358,7 @@ class SettingsViewController: UIViewController {
             
             self.mainnetModeButton.removeFromSuperview()
             
-            self.mainnetModeButton = UIButton(frame: CGRect(x: 10, y: 375, width: self.view.frame.width - 20, height: 50))
+            self.mainnetModeButton = UIButton(frame: CGRect(x: 10, y: 395, width: self.view.frame.width - 20, height: 50))
             self.mainnetModeButton.showsTouchWhenHighlighted = true
             self.mainnetModeButton.layer.cornerRadius = 10
             self.mainnetModeButton.layer.shadowColor = UIColor.black.cgColor
@@ -302,6 +398,184 @@ class SettingsViewController: UIViewController {
             
             print("back button")
             self.dismiss(animated: false, completion: nil)
+            
+        case self.advancedModeButton:
+            
+            print("advancedModeButton")
+            
+            if advancedMode {
+                
+                sender.setTitle("Advanced Mode - OFF", for: .normal)
+                sender.backgroundColor = UIColor.groupTableViewBackground
+                sender.setTitleColor(UIColor.black, for: .normal)
+                self.advancedMode = false
+                UserDefaults.standard.set(self.simpleMode, forKey: "advancedMode")
+                
+                self.simpleModeButton.setTitle("Simple Mode - ON", for: .normal)
+                self.simpleModeButton.backgroundColor = UIColor.lightText
+                self.simpleModeButton.setTitleColor(UIColor.white, for: .normal)
+                self.simpleMode = true
+                UserDefaults.standard.set(self.simpleMode, forKey: "simpleMode")
+                
+                DispatchQueue.main.async {
+                    
+                    UIView.animate(withDuration: 0.5, animations: {
+                        
+                        self.hotModeButton.alpha = 0
+                        self.coldModeButton.alpha = 0
+                        self.segwitButton.alpha = 0
+                        self.legacyButton.alpha = 0
+                        self.testnetModeButton.alpha = 0
+                        self.mainnetModeButton.alpha = 0
+                        
+                    }, completion: { (true) in
+                        
+                        self.hotModeButton.removeFromSuperview()
+                        self.coldModeButton.removeFromSuperview()
+                        self.segwitButton.removeFromSuperview()
+                        self.legacyButton.removeFromSuperview()
+                        self.testnetModeButton.removeFromSuperview()
+                        self.mainnetModeButton.removeFromSuperview()
+                        
+                    })
+                    
+                }
+                
+            } else {
+                
+                sender.setTitle("Advanced Mode - ON", for: .normal)
+                sender.backgroundColor = UIColor.lightText
+                sender.setTitleColor(UIColor.white, for: .normal)
+                self.advancedMode = true
+                UserDefaults.standard.set(self.advancedMode, forKey: "advancedMode")
+                
+                self.simpleModeButton.setTitle("Simple Mode - OFF", for: .normal)
+                self.simpleModeButton.backgroundColor = UIColor.groupTableViewBackground
+                self.simpleModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.simpleMode = false
+                UserDefaults.standard.set(self.simpleMode, forKey: "simpleMode")
+                
+                self.hotModeButton.alpha = 0
+                self.coldModeButton.alpha = 0
+                self.segwitButton.alpha = 0
+                self.legacyButton.alpha = 0
+                self.testnetModeButton.alpha = 0
+                self.mainnetModeButton.alpha = 0
+                
+                self.view.addSubview(hotModeButton)
+                self.view.addSubview(coldModeButton)
+                self.view.addSubview(segwitButton)
+                self.view.addSubview(legacyButton)
+                self.view.addSubview(testnetModeButton)
+                self.view.addSubview(mainnetModeButton)
+                
+                DispatchQueue.main.async {
+                    
+                    UIView.animate(withDuration: 0.5, animations: {
+                        
+                        self.hotModeButton.alpha = 1
+                        self.coldModeButton.alpha = 1
+                        self.segwitButton.alpha = 1
+                        self.legacyButton.alpha = 1
+                        self.testnetModeButton.alpha = 1
+                        self.mainnetModeButton.alpha = 1
+                        
+                    }, completion: { (true) in
+                        
+                    })
+                    
+                }
+                
+            }
+            
+        case self.simpleModeButton:
+            
+            print("simpleModeButton")
+            
+            if simpleMode {
+                
+                sender.setTitle("Simple Mode - OFF", for: .normal)
+                sender.backgroundColor = UIColor.groupTableViewBackground
+                sender.setTitleColor(UIColor.black, for: .normal)
+                self.simpleMode = false
+                UserDefaults.standard.set(self.simpleMode, forKey: "simpleMode")
+                
+                self.advancedModeButton.setTitle("Advanced Mode - ON", for: .normal)
+                self.advancedModeButton.backgroundColor = UIColor.lightText
+                self.advancedModeButton.setTitleColor(UIColor.white, for: .normal)
+                self.advancedMode = true
+                UserDefaults.standard.set(self.advancedMode, forKey: "advancedMode")
+                
+                self.hotModeButton.alpha = 0
+                self.coldModeButton.alpha = 0
+                self.segwitButton.alpha = 0
+                self.legacyButton.alpha = 0
+                self.testnetModeButton.alpha = 0
+                self.mainnetModeButton.alpha = 0
+                
+                self.view.addSubview(hotModeButton)
+                self.view.addSubview(coldModeButton)
+                self.view.addSubview(segwitButton)
+                self.view.addSubview(legacyButton)
+                self.view.addSubview(testnetModeButton)
+                self.view.addSubview(mainnetModeButton)
+                
+                DispatchQueue.main.async {
+                    
+                    UIView.animate(withDuration: 0.5, animations: {
+                        
+                        self.hotModeButton.alpha = 1
+                        self.coldModeButton.alpha = 1
+                        self.segwitButton.alpha = 1
+                        self.legacyButton.alpha = 1
+                        self.testnetModeButton.alpha = 1
+                        self.mainnetModeButton.alpha = 1
+                        
+                    }, completion: { (true) in
+                        
+                    })
+                    
+                }
+                
+            } else {
+                
+                sender.setTitle("Simple Mode - ON", for: .normal)
+                sender.backgroundColor = UIColor.lightText
+                sender.setTitleColor(UIColor.white, for: .normal)
+                self.simpleMode = true
+                UserDefaults.standard.set(self.simpleMode, forKey: "simpleMode")
+                
+                self.advancedModeButton.setTitle("Advanced Mode - OFF", for: .normal)
+                self.advancedModeButton.backgroundColor = UIColor.groupTableViewBackground
+                self.advancedModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.advancedMode = false
+                UserDefaults.standard.set(self.advancedMode, forKey: "advancedMode")
+                
+                DispatchQueue.main.async {
+                    
+                    UIView.animate(withDuration: 0.5, animations: {
+                        
+                        self.hotModeButton.alpha = 0
+                        self.coldModeButton.alpha = 0
+                        self.segwitButton.alpha = 0
+                        self.legacyButton.alpha = 0
+                        self.testnetModeButton.alpha = 0
+                        self.mainnetModeButton.alpha = 0
+                        
+                    }, completion: { (true) in
+                        
+                        self.hotModeButton.removeFromSuperview()
+                        self.coldModeButton.removeFromSuperview()
+                        self.segwitButton.removeFromSuperview()
+                        self.legacyButton.removeFromSuperview()
+                        self.testnetModeButton.removeFromSuperview()
+                        self.mainnetModeButton.removeFromSuperview()
+                        
+                    })
+                    
+                }
+                
+            }
             
         case self.segwitButton:
             

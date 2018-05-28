@@ -14,6 +14,8 @@ import BigInt
 
 class ViewController: UIViewController, UITextFieldDelegate {
     
+    var simpleMode = Bool()
+    var advancedMode = Bool()
     var testnetMode = Bool()
     var mainnetMode = Bool()
     var addressMode = Bool()
@@ -95,7 +97,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         diceMode = false
         inputMnemonic.delegate = self
         privateKeyMode = true
-        addHomeScreen()
+        
         
     }
     
@@ -120,6 +122,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     override func viewDidAppear(_ animated: Bool) {
         
+        /*
         if self.imageView == nil {
             
             let bitcoinImage = UIImage(named: "bitcoinIcon.png")
@@ -134,14 +137,36 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.view.addSubview(self.imageView)
             
         }
+        */
         
         checkUserDefaults()
+        addHomeScreen()
         
     }
     
     func checkUserDefaults() {
         
         print("checkUserDefaults")
+        
+        if UserDefaults.standard.object(forKey: "simpleMode") != nil {
+            
+            simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
+            
+        } else {
+            
+            simpleMode = true
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "advancedMode") != nil {
+            
+            advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
+            
+        } else {
+            
+            advancedMode = false
+            
+        }
         
         if UserDefaults.standard.object(forKey: "coldMode") != nil {
             
@@ -450,15 +475,23 @@ class ViewController: UIViewController, UITextFieldDelegate {
             if self.imageView != nil {
                 self.imageView.removeFromSuperview()
             }
+            
             let bitcoinImage = UIImage(named: "bitcoinIcon.png")
             self.imageView = UIImageView(image: bitcoinImage!)
             self.imageView.center = self.view.center
             self.imageView.frame = CGRect(x: self.view.center.x - 100, y: self.view.center.y - 100, width: 200, height: 200)
             let bitcoinDragged = UIPanGestureRecognizer(target: self, action: #selector(self.userCreatesRandomness(gestureRecognizer:)))
             self.imageView.isUserInteractionEnabled = true
-            self.imageView.addGestureRecognizer(bitcoinDragged)
+            
+            if self.advancedMode {
+                
+             self.imageView.addGestureRecognizer(bitcoinDragged)
+                
+            }
+            
             self.view.addSubview(self.imageView)
             
+            self.checkAddressButton.removeFromSuperview()
             self.checkAddressButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.maxY - 60, width: 90, height: 55))
             self.checkAddressButton.showsTouchWhenHighlighted = true
             self.checkAddressButton.layer.cornerRadius = 10
@@ -471,6 +504,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.checkAddressButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.checkAddressButton)
             
+            self.mayerMultipleButton.removeFromSuperview()
             self.mayerMultipleButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.maxY - 60, width: 90, height: 55))
             self.mayerMultipleButton.showsTouchWhenHighlighted = true
             self.mayerMultipleButton.layer.cornerRadius = 10
@@ -483,18 +517,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.mayerMultipleButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.mayerMultipleButton)
             
-            self.diceButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.minY + 20, width: 90, height: 55))
-            self.diceButton.showsTouchWhenHighlighted = true
-            self.diceButton.layer.cornerRadius = 10
-            self.diceButton.backgroundColor = UIColor.lightText
-            self.diceButton.layer.shadowColor = UIColor.black.cgColor
-            self.diceButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.diceButton.layer.shadowRadius = 2.5
-            self.diceButton.layer.shadowOpacity = 0.8
-            self.diceButton.setTitle("Dice", for: .normal)
-            self.diceButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-            self.view.addSubview(self.diceButton)
-            
+            self.transactionsButton.removeFromSuperview()
             self.transactionsButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.view.frame.maxY - 60, width: 90, height: 55))
             self.transactionsButton.showsTouchWhenHighlighted = true
             self.transactionsButton.layer.cornerRadius = 10
@@ -507,49 +530,66 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.transactionsButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.transactionsButton)
             
-            self.importButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.minY + 20, width: 90, height: 55))
-            self.importButton.showsTouchWhenHighlighted = true
-            self.importButton.layer.cornerRadius = 10
-            self.importButton.backgroundColor = UIColor.lightText
-            self.importButton.layer.shadowColor = UIColor.black.cgColor
-            self.importButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.importButton.layer.shadowRadius = 2.5
-            self.importButton.layer.shadowOpacity = 0.8
-            self.importButton.setTitle("Import", for: .normal)
-            self.importButton.addTarget(self, action: #selector(self.importMnemonic), for: .touchUpInside)
-            self.view.addSubview(self.importButton)
-            
-            if UserDefaults.standard.object(forKey: "xpub") != nil {
+            if self.advancedMode {
                 
-                self.newAddressButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: 20, width: 90, height: 55))
-                self.newAddressButton.showsTouchWhenHighlighted = true
-                self.newAddressButton.titleLabel?.textAlignment = .center
-                self.newAddressButton.layer.cornerRadius = 10
-                self.newAddressButton.backgroundColor = UIColor.lightText
-                self.newAddressButton.layer.shadowColor = UIColor.black.cgColor
-                self.newAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-                self.newAddressButton.layer.shadowRadius = 2.5
-                self.newAddressButton.layer.shadowOpacity = 0.8
-                self.newAddressButton.setTitle("Address", for: .normal)
-                self.newAddressButton.addTarget(self, action: #selector(self.newAddress), for: .touchUpInside)
-                self.view.addSubview(self.newAddressButton)
+                self.diceButton.removeFromSuperview()
+                self.diceButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.minY + 20, width: 90, height: 55))
+                self.diceButton.showsTouchWhenHighlighted = true
+                self.diceButton.layer.cornerRadius = 10
+                self.diceButton.backgroundColor = UIColor.lightText
+                self.diceButton.layer.shadowColor = UIColor.black.cgColor
+                self.diceButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+                self.diceButton.layer.shadowRadius = 2.5
+                self.diceButton.layer.shadowOpacity = 0.8
+                self.diceButton.setTitle("Dice", for: .normal)
+                self.diceButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+                self.view.addSubview(self.diceButton)
+            
+                self.importButton.removeFromSuperview()
+                self.importButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.minY + 20, width: 90, height: 55))
+                self.importButton.showsTouchWhenHighlighted = true
+                self.importButton.layer.cornerRadius = 10
+                self.importButton.backgroundColor = UIColor.lightText
+                self.importButton.layer.shadowColor = UIColor.black.cgColor
+                self.importButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+                self.importButton.layer.shadowRadius = 2.5
+                self.importButton.layer.shadowOpacity = 0.8
+                self.importButton.setTitle("Import", for: .normal)
+                self.importButton.addTarget(self, action: #selector(self.importMnemonic), for: .touchUpInside)
+                self.view.addSubview(self.importButton)
+                
+                if UserDefaults.standard.object(forKey: "xpub") != nil {
+                    
+                    self.newAddressButton.removeFromSuperview()
+                    self.newAddressButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: 20, width: 90, height: 55))
+                    self.newAddressButton.showsTouchWhenHighlighted = true
+                    self.newAddressButton.titleLabel?.textAlignment = .center
+                    self.newAddressButton.layer.cornerRadius = 10
+                    self.newAddressButton.backgroundColor = UIColor.lightText
+                    self.newAddressButton.layer.shadowColor = UIColor.black.cgColor
+                    self.newAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+                    self.newAddressButton.layer.shadowRadius = 2.5
+                    self.newAddressButton.layer.shadowOpacity = 0.8
+                    self.newAddressButton.setTitle("Address", for: .normal)
+                    self.newAddressButton.addTarget(self, action: #selector(self.newAddress), for: .touchUpInside)
+                    self.view.addSubview(self.newAddressButton)
+                    
+                }
                 
             }
             
-            
-             self.settingsButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.maxY - 125, width: 90, height: 55))
-             self.settingsButton.showsTouchWhenHighlighted = true
-             self.settingsButton.layer.cornerRadius = 10
-             self.settingsButton.backgroundColor = UIColor.lightText
-             self.settingsButton.layer.shadowColor = UIColor.black.cgColor
-             self.settingsButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-             self.settingsButton.layer.shadowRadius = 2.5
-             self.settingsButton.layer.shadowOpacity = 0.8
-             self.settingsButton.setTitle("Settings", for: .normal)
-             self.settingsButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-             self.view.addSubview(self.settingsButton)
-            
-            
+            self.settingsButton.removeFromSuperview()
+            self.settingsButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.maxY - 125, width: 90, height: 55))
+            self.settingsButton.showsTouchWhenHighlighted = true
+            self.settingsButton.layer.cornerRadius = 10
+            self.settingsButton.backgroundColor = UIColor.lightText
+            self.settingsButton.layer.shadowColor = UIColor.black.cgColor
+            self.settingsButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.settingsButton.layer.shadowRadius = 2.5
+            self.settingsButton.layer.shadowOpacity = 0.8
+            self.settingsButton.setTitle("Settings", for: .normal)
+            self.settingsButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+            self.view.addSubview(self.settingsButton)
             
         }
         
