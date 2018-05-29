@@ -329,12 +329,20 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func getAmount() {
         print("getAmount")
         
-        DispatchQueue.main.async {
-                
-            let alert = UIAlertController(title: NSLocalizedString("Please choose your currency", comment: ""), message: "", preferredStyle: UIAlertControllerStyle.actionSheet)
+        if simpleMode {
             
-            if self.advancedMode {
-              
+            self.amountToSend.placeholder = "Amount to send in USD"
+            self.currecny = "USD"
+            self.amountToSend.becomeFirstResponder()
+            
+        } else {
+            
+            DispatchQueue.main.async {
+                
+                let alert = UIAlertController(title: NSLocalizedString("Please choose your currency", comment: ""), message: "", preferredStyle: UIAlertControllerStyle.actionSheet)
+                
+                
+                
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Satoshis", comment: ""), style: .default, handler: { (action) in
                     
                     self.amountToSend.placeholder = "Amount to send in Satoshis"
@@ -343,71 +351,71 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                 }))
                 
-            }
-                
-            alert.addAction(UIAlertAction(title: NSLocalizedString("BTC", comment: ""), style: .default, handler: { (action) in
+                alert.addAction(UIAlertAction(title: NSLocalizedString("BTC", comment: ""), style: .default, handler: { (action) in
                     
-                self.amountToSend.placeholder = "Amount to send in BTC"
-                self.currecny = "BTC"
-                self.amountToSend.becomeFirstResponder()
-                
-            }))
-                
-            alert.addAction(UIAlertAction(title: NSLocalizedString("USD", comment: ""), style: .default, handler: { (action) in
+                    self.amountToSend.placeholder = "Amount to send in BTC"
+                    self.currecny = "BTC"
+                    self.amountToSend.becomeFirstResponder()
                     
-                self.amountToSend.placeholder = "Amount to send in USD"
-                self.currecny = "USD"
-                self.amountToSend.becomeFirstResponder()
+                }))
                 
-            }))
                 
-            alert.addAction(UIAlertAction(title: NSLocalizedString("EUR", comment: ""), style: .default, handler: { (action) in
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("USD", comment: ""), style: .default, handler: { (action) in
                     
-                self.amountToSend.placeholder = "Amount to send in EUR"
-                self.currecny = "EUR"
-                self.amountToSend.becomeFirstResponder()
-                
-            }))
-                
-            alert.addAction(UIAlertAction(title: NSLocalizedString("GBP", comment: ""), style: .default, handler: { (action) in
+                    self.amountToSend.placeholder = "Amount to send in USD"
+                    self.currecny = "USD"
+                    self.amountToSend.becomeFirstResponder()
                     
-                self.amountToSend.placeholder = "Amount to send in GBP"
-                self.currecny = "GBP"
-                self.amountToSend.becomeFirstResponder()
+                }))
                 
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Sweep All Funds", comment: ""), style: .default, handler: { (action) in
-                
-                self.amountToSend.removeFromSuperview()
-                self.sweepMode = true
-                self.currecny = "SAT"
-                
-                if self.hotMode {
+                alert.addAction(UIAlertAction(title: NSLocalizedString("EUR", comment: ""), style: .default, handler: { (action) in
                     
-                    if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
+                    self.amountToSend.placeholder = "Amount to send in EUR"
+                    self.currecny = "EUR"
+                    self.amountToSend.becomeFirstResponder()
+                    
+                }))
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("GBP", comment: ""), style: .default, handler: { (action) in
+                    
+                    self.amountToSend.placeholder = "Amount to send in GBP"
+                    self.currecny = "GBP"
+                    self.amountToSend.becomeFirstResponder()
+                    
+                }))
+                
+                
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Sweep All Funds", comment: ""), style: .default, handler: { (action) in
+                    
+                    self.amountToSend.removeFromSuperview()
+                    self.sweepMode = true
+                    self.currecny = "SAT"
+                    
+                    if self.hotMode {
                         
-                        let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
-                        let key = BTCKey.init(privateKeyAddress: privateKey)
-                        key?.isPublicKeyCompressed = true
-                        let legacyAddress1 = (key?.addressTestnet.description)!
-                        let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                        self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                        print("self.sendingFromAddress = \(self.sendingFromAddress)")
-                        self.checkBalance(address: self.sendingFromAddress)
+                        if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
+                            
+                            let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
+                            let key = BTCKey.init(privateKeyAddress: privateKey)
+                            key?.isPublicKeyCompressed = true
+                            let legacyAddress1 = (key?.addressTestnet.description)!
+                            let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                            self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                            print("self.sendingFromAddress = \(self.sendingFromAddress)")
+                            self.checkBalance(address: self.sendingFromAddress)
+                        }
+                        
+                    } else {
+                        
+                        self.amount = "-1"
+                        print("self.amount = \(self.amount)")
+                        self.setPreference()
+                        
                     }
                     
-                } else {
-                    
-                    self.amount = "-1"
-                    print("self.amount = \(self.amount)")
-                    self.setPreference()
-                    
-                }
-                
-            }))
-            
-            if self.advancedMode {
+                }))
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Raw Transaction Tool", comment: ""), style: .default, handler: { (action) in
                     
@@ -416,18 +424,18 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                 }))
                 
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                    
+                    self.dismiss(animated: false, completion: nil)
+                    
+                }))
+                
+                self.present(alert, animated: true, completion: nil)
+                
             }
             
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                    
-                self.dismiss(animated: false, completion: nil)
-                    
-            }))
-            
-            self.present(alert, animated: true, completion: nil)
-            
         }
-
+        
     }
     
     func checkBalance(address: String) {
@@ -977,6 +985,8 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                         self.satoshiAmount = Int(self.amountInBTC * 100000000)
                                         let roundedBtcAmount = round(100000000 * self.amountInBTC) / 100000000
                                         
+                                        
+                                        
                                         DispatchQueue.main.async {
                                             
                                             var message = String()
@@ -1008,23 +1018,33 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                             }
                                             
                                             self.removeSpinner()
+                                            
+                                            if self.simpleMode {
                                                 
-                                            let alert = UIAlertController(title: NSLocalizedString("Please Confirm", comment: ""), message: message, preferredStyle: UIAlertControllerStyle.actionSheet)
-                                                
-                                            alert.addAction(UIAlertAction(title: NSLocalizedString("Yes", comment: ""), style: .default, handler: { (action) in
-                                                    
                                                 self.amountToSend.removeFromSuperview()
                                                 self.addScanner()
                                                 
-                                            }))
+                                            } else {
                                                 
-                                            alert.addAction(UIAlertAction(title: NSLocalizedString("No", comment: ""), style: .cancel, handler: { (action) in
+                                                let alert = UIAlertController(title: NSLocalizedString("Please Confirm", comment: ""), message: message, preferredStyle: UIAlertControllerStyle.actionSheet)
                                                 
-                                                self.dismiss(animated: false, completion: nil)
+                                                alert.addAction(UIAlertAction(title: NSLocalizedString("Yes", comment: ""), style: .default, handler: { (action) in
+                                                    
+                                                    self.amountToSend.removeFromSuperview()
+                                                    self.addScanner()
+                                                    
+                                                }))
                                                 
-                                            }))
+                                                alert.addAction(UIAlertAction(title: NSLocalizedString("No", comment: ""), style: .cancel, handler: { (action) in
+                                                    
+                                                    self.dismiss(animated: false, completion: nil)
+                                                    
+                                                }))
                                                 
-                                            self.present(alert, animated: true, completion: nil)
+                                                self.present(alert, animated: true, completion: nil)
+                                            }
+                                                
+                                            
                                                 
                                         }
                                     }
