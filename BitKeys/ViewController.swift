@@ -483,11 +483,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
             let bitcoinDragged = UIPanGestureRecognizer(target: self, action: #selector(self.userCreatesRandomness(gestureRecognizer:)))
             self.imageView.isUserInteractionEnabled = true
             
-            if self.advancedMode {
+            self.imageView.addGestureRecognizer(bitcoinDragged)
                 
-             self.imageView.addGestureRecognizer(bitcoinDragged)
-                
-            }
             
             self.view.addSubview(self.imageView)
             
@@ -526,7 +523,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.transactionsButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.transactionsButton.layer.shadowRadius = 2.5
             self.transactionsButton.layer.shadowOpacity = 0.8
-            self.transactionsButton.setTitle("Send", for: .normal)
+            self.transactionsButton.setTitle("Pay", for: .normal)
             self.transactionsButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.transactionsButton)
             
@@ -579,17 +576,36 @@ class ViewController: UIViewController, UITextFieldDelegate {
             }
             
             self.settingsButton.removeFromSuperview()
-            self.settingsButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.maxY - 125, width: 90, height: 55))
+            self.settingsButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.maxY - 125, width: 55, height: 55))
             self.settingsButton.showsTouchWhenHighlighted = true
-            self.settingsButton.layer.cornerRadius = 10
-            self.settingsButton.backgroundColor = UIColor.lightText
+            self.settingsButton.layer.cornerRadius = 28
+            self.settingsButton.backgroundColor = UIColor.clear
             self.settingsButton.layer.shadowColor = UIColor.black.cgColor
             self.settingsButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.settingsButton.layer.shadowRadius = 2.5
             self.settingsButton.layer.shadowOpacity = 0.8
-            self.settingsButton.setTitle("Settings", for: .normal)
+            self.settingsButton.setImage(#imageLiteral(resourceName: "settings.png"), for: .normal)
             self.settingsButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.settingsButton)
+            
+            if self.simpleMode {
+                
+                //add button to show private key and address
+                
+                self.newAddressButton.removeFromSuperview()
+                self.newAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.minY + 20, width: 90, height: 55))
+                self.newAddressButton.showsTouchWhenHighlighted = true
+                self.newAddressButton.titleLabel?.textAlignment = .center
+                self.newAddressButton.layer.cornerRadius = 10
+                self.newAddressButton.backgroundColor = UIColor.lightText
+                self.newAddressButton.layer.shadowColor = UIColor.black.cgColor
+                self.newAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+                self.newAddressButton.layer.shadowRadius = 2.5
+                self.newAddressButton.layer.shadowOpacity = 0.8
+                self.newAddressButton.setTitle("Receive", for: .normal)
+                self.newAddressButton.addTarget(self, action: #selector(self.newAddress), for: .touchUpInside)
+                self.view.addSubview(self.newAddressButton)
+            }
             
         }
         
@@ -662,6 +678,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
         //senses user has stopped dragging the bitcoin
         if gestureRecognizer.state == UIGestureRecognizerState.ended {
             
+            //check hot wallet overwrite
+            
             self.isInternetAvailable()
             
             for character in nineToBits {
@@ -681,20 +699,163 @@ class ViewController: UIViewController, UITextFieldDelegate {
                         
                     }, completion: { _ in
                         
-                        if self.connected == true {
-                           
+                        
+                        
+                        if self.hotMode {
+                            
+                            //alert to overwrite
                             DispatchQueue.main.async {
                                 
-                                self.displayAlert(title: "Security Alert", message: "You should only create private keys offline. Please enable airplane mode, turn off wifi and try again.")
+                                let alert = UIAlertController(title: "Alert!", message: "This will overwrite your existing Private Key and Bitcoin Address and you will lose your Bitcoin if you have'nt backed them up, are you sure you want to proceed?", preferredStyle: UIAlertControllerStyle.alert)
+                                
+                                alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, Create a new Account", comment: ""), style: .destructive, handler: { (action) in
+                                    
+                                    
+                                    
+                                    self.privateKeyWIF = self.createPrivateKey(userRandomness: self.parseBitResult).privateKeyAddress
+                                    
+                                    if self.privateKeyWIF != "" {
+                                        
+                                        if self.advancedMode {
+                                            
+                                            self.addQRCodesAndLabels()
+                                            
+                                            if self.connected == true {
+                                                
+                                                DispatchQueue.main.async {
+                                                    
+                                                    self.displayAlert(title: "Security Alert", message: "You should only create private keys offline. Please enable airplane mode, turn off wifi and try again.")
+                                                }
+                                                
+                                            }
+                                            
+                                        } else if self.simpleMode {
+                                            
+                                            DispatchQueue.main.async {
+                                                
+                                                self.displayAlert(title: "Success", message: "You've created a Bitcoin account, congratulations!")
+                                                
+                                                self.bitField.removeFromSuperview()
+                                                self.privateKeyQRCode = nil
+                                                self.privateKeyImage = nil
+                                                self.privateKeyQRView.image = nil
+                                                self.privateKeyTitle.text = ""
+                                                self.myField.text = ""
+                                                self.imageView.removeFromSuperview()
+                                                self.imageView = nil
+                                                self.button.removeFromSuperview()
+                                                self.backUpButton.removeFromSuperview()
+                                                self.numberArray.removeAll()
+                                                self.joinedArray = ""
+                                                self.privateKeyText = ""
+                                                self.zero = 0
+                                                self.bitArray.removeAll()
+                                                self.addHomeScreen()
+                                                
+                                            }
+                                            
+                                        }
+                                        
+                                    } else {
+                                        
+                                        DispatchQueue.main.async {
+                                            
+                                            let alert = UIAlertController(title: "There was an error", message: "Please try again.", preferredStyle: UIAlertControllerStyle.alert)
+                                            
+                                            alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .destructive, handler: { (action) in
+                                                
+                                                self.privateKeyQRCode = nil
+                                                self.privateKeyImage = nil
+                                                self.privateKeyQRView.image = nil
+                                                self.privateKeyTitle.text = ""
+                                                self.myField.text = ""
+                                                self.imageView.removeFromSuperview()
+                                                self.imageView = nil
+                                                self.button.removeFromSuperview()
+                                                self.backUpButton.removeFromSuperview()
+                                                self.numberArray.removeAll()
+                                                self.joinedArray = ""
+                                                self.privateKeyText = ""
+                                                self.zero = 0
+                                                self.bitArray.removeAll()
+                                                self.addHomeScreen()
+                                                
+                                            }))
+                                            
+                                            self.present(alert, animated: true, completion: nil)
+                                        }
+                                    }
+                                    
+                                }))
+                                
+                                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                    
+                                    self.privateKeyQRCode = nil
+                                    self.privateKeyImage = nil
+                                    self.privateKeyQRView.image = nil
+                                    self.privateKeyTitle.text = ""
+                                    self.myField.text = ""
+                                    self.imageView.removeFromSuperview()
+                                    self.imageView = nil
+                                    self.button.removeFromSuperview()
+                                    self.backUpButton.removeFromSuperview()
+                                    self.numberArray.removeAll()
+                                    self.joinedArray = ""
+                                    self.privateKeyText = ""
+                                    self.zero = 0
+                                    self.bitArray.removeAll()
+                                    self.addHomeScreen()
+                                    
+                                }))
+                                
+                                self.present(alert, animated: true, completion: nil)
                             }
                             
-                        }
+                        } else {
+                            
+                            if self.connected == true {
+                                
+                                DispatchQueue.main.async {
+                                    
+                                    self.displayAlert(title: "Security Alert", message: "You should only create private keys offline. Please enable airplane mode, turn off wifi and try again.")
+                                }
+                                
+                            }
                             
                             self.privateKeyWIF = self.createPrivateKey(userRandomness: self.parseBitResult).privateKeyAddress
                             
                             if self.privateKeyWIF != "" {
                                 
-                                self.addQRCodesAndLabels()
+                                if self.advancedMode {
+                                    
+                                    self.addQRCodesAndLabels()
+                                    
+                                } else {
+                                    
+                                    DispatchQueue.main.async {
+                                        
+                                        self.displayAlert(title: "Success", message: "You've created a Bitcoin account, congratulations!")
+                                        
+                                        self.bitField.removeFromSuperview()
+                                        self.privateKeyQRCode = nil
+                                        self.privateKeyImage = nil
+                                        self.privateKeyQRView.image = nil
+                                        self.privateKeyTitle.text = ""
+                                        self.myField.text = ""
+                                        self.imageView.removeFromSuperview()
+                                        self.imageView = nil
+                                        self.button.removeFromSuperview()
+                                        self.backUpButton.removeFromSuperview()
+                                        self.numberArray.removeAll()
+                                        self.joinedArray = ""
+                                        self.privateKeyText = ""
+                                        self.zero = 0
+                                        self.bitArray.removeAll()
+                                        self.addHomeScreen()
+                                        
+                                    }
+                                    
+                                }
                                 
                             } else {
                                 
@@ -725,6 +886,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
                                     self.present(alert, animated: true, completion: nil)
                                 }
                             }
+
+                        }
+                            
                     })
                 }
             }
@@ -751,14 +915,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func addQRCodesAndLabels() {
         print("addQRCodesAndLabels")
         
-        self.addressMode = true
-        self.diceButton.removeFromSuperview()
-        self.importButton.removeFromSuperview()
-        self.clearMnemonicButton.removeFromSuperview()
-        self.button.removeFromSuperview()
-        self.importAction.removeFromSuperview()
-        
-        if self.watchOnlyMode {
+        if simpleMode {
             
             diceMode = false
             self.importAction.removeFromSuperview()
@@ -799,9 +956,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     
                     DispatchQueue.main.async {
                         
-                        self.WIFprivateKeyFieldLabel.text = "Legacy Format:"
+                        self.WIFprivateKeyFieldLabel.text = "Text Format:"
                         self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 70, width: self.scrollView.frame.width, height: 50))
-                        self.privateKeyTitle.text = "Legacy Bitcoin Address"
+                        self.privateKeyTitle.text = "Send Bitcoin To:"
                         self.privateKeyTitle.font = .systemFont(ofSize: 32)
                         self.privateKeyTitle.textColor = UIColor.black
                         self.privateKeyTitle.textAlignment = .center
@@ -823,102 +980,182 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     
                 })
             })
+
+            
             
         } else {
             
-            self.privateKeyMode = true
-            diceMode = false
-            self.outputMnemonic.removeFromSuperview()
-            self.inputMnemonic.removeFromSuperview()
+            self.addressMode = true
+            self.diceButton.removeFromSuperview()
+            self.importButton.removeFromSuperview()
+            self.clearMnemonicButton.removeFromSuperview()
+            self.button.removeFromSuperview()
+            self.importAction.removeFromSuperview()
             
-            DispatchQueue.main.async {
-                self.view.addSubview(self.scrollView)
-            }
-            
-            
-            self.privateKeyText = self.privateKeyWIF
-            self.privateKeyQRCode = self.generateQrCode(key: self.privateKeyWIF)
-            self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
-            self.privateKeyQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 130, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
-            self.privateKeyQRView.alpha = 0
-            self.scrollView.addSubview(self.privateKeyQRView)
-            
-            self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 150 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
-            self.WIFprivateKeyFieldLabel.font = .systemFont(ofSize: 12)
-            self.WIFprivateKeyFieldLabel.textColor = UIColor.black
-            self.WIFprivateKeyFieldLabel.textAlignment = .left
-            self.scrollView.addSubview(self.WIFprivateKeyFieldLabel)
-            
-            UIView.animate(withDuration: 0.5, animations: {
+            if self.watchOnlyMode {
                 
-                self.imageView.alpha = 0
-                self.bitField.alpha = 0
+                diceMode = false
+                self.importAction.removeFromSuperview()
+                self.outputMnemonic.removeFromSuperview()
+                DispatchQueue.main.async {
+                    self.view.addSubview(self.scrollView)
+                }
                 
-            }, completion: { _ in
+                self.privateKeyQRCode = self.generateQrCode(key: self.bitcoinAddress)
+                self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
+                self.privateKeyQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 130, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
+                self.privateKeyQRView.alpha = 0
+                self.scrollView.addSubview(self.privateKeyQRView)
                 
-                self.removeHomeScreen()
+                self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 150 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+                self.WIFprivateKeyFieldLabel.font = .systemFont(ofSize: 12)
+                self.WIFprivateKeyFieldLabel.textColor = UIColor.black
+                self.WIFprivateKeyFieldLabel.textAlignment = .left
+                self.scrollView.addSubview(self.WIFprivateKeyFieldLabel)
                 
                 UIView.animate(withDuration: 0.5, animations: {
                     
-                    self.privateKeyQRView.alpha = 1
-                    
+                    self.imageView.alpha = 0
+                    self.bitField.alpha = 0
                     
                 }, completion: { _ in
                     
-                    self.scrollView.setContentOffset(.zero, animated: false)
+                    self.removeHomeScreen()
                     
-                    self.WIFprivateKeyFieldLabel.text = "WIF Format:"
+                    UIView.animate(withDuration: 0.5, animations: {
+                        
+                        self.privateKeyQRView.alpha = 1
+                        
+                        
+                    }, completion: { _ in
+                        
+                        self.scrollView.setContentOffset(.zero, animated: false)
+                        
+                        DispatchQueue.main.async {
+                            
+                            self.WIFprivateKeyFieldLabel.text = "Legacy Format:"
+                            self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 70, width: self.scrollView.frame.width, height: 50))
+                            self.privateKeyTitle.text = "Legacy Bitcoin Address"
+                            self.privateKeyTitle.font = .systemFont(ofSize: 32)
+                            self.privateKeyTitle.textColor = UIColor.black
+                            self.privateKeyTitle.textAlignment = .center
+                            self.scrollView.addSubview(self.privateKeyTitle)
+                            
+                        }
+                        
+                        self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.privateKeyQRView.frame.maxY + 40, width: self.view.frame.width - 50, height: 100))
+                        self.myField.isEditable = false
+                        self.myField.isSelectable = true
+                        self.myField.font = .systemFont(ofSize: 24)
+                        self.myField.text = self.bitcoinAddress
+                        self.scrollView.addSubview(self.myField)
+                        self.addHomeButton()
+                        self.addBackUpButton()
+                        self.zero = 0
+                        self.bitArray.removeAll()
+                        
+                        
+                    })
+                })
+                
+            } else {
+                
+                self.privateKeyMode = true
+                diceMode = false
+                self.outputMnemonic.removeFromSuperview()
+                self.inputMnemonic.removeFromSuperview()
+                
+                DispatchQueue.main.async {
+                    self.view.addSubview(self.scrollView)
+                }
+                
+                
+                self.privateKeyText = self.privateKeyWIF
+                self.privateKeyQRCode = self.generateQrCode(key: self.privateKeyWIF)
+                self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
+                self.privateKeyQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 130, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
+                self.privateKeyQRView.alpha = 0
+                self.scrollView.addSubview(self.privateKeyQRView)
+                
+                self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 150 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+                self.WIFprivateKeyFieldLabel.font = .systemFont(ofSize: 12)
+                self.WIFprivateKeyFieldLabel.textColor = UIColor.black
+                self.WIFprivateKeyFieldLabel.textAlignment = .left
+                self.scrollView.addSubview(self.WIFprivateKeyFieldLabel)
+                
+                UIView.animate(withDuration: 0.5, animations: {
                     
-                    self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 70, width: self.scrollView.frame.width, height: 50))
-                    self.privateKeyTitle.text = "Bitcoin Private Key"
-                    self.privateKeyTitle.font = .systemFont(ofSize: 32)
-                    self.privateKeyTitle.textColor = UIColor.black
-                    self.privateKeyTitle.textAlignment = .center
-                    self.scrollView.addSubview(self.privateKeyTitle)
+                    self.imageView.alpha = 0
+                    self.bitField.alpha = 0
                     
-                    self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.privateKeyQRView.frame.maxY + 40, width: self.view.frame.width - 50, height: 100))
-                    self.myField.isEditable = false
-                    self.myField.isSelectable = true
-                    self.myField.font = .systemFont(ofSize: 24)
-                    self.myField.text = self.privateKeyWIF
-                    self.scrollView.addSubview(self.myField)
-                    self.addHomeButton()
-                    self.addBackUpButton()
-                    self.zero = 0
-                    self.bitArray.removeAll()
+                }, completion: { _ in
                     
-                    self.mnemonicLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 280 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
-                    self.mnemonicLabel.text = "Recovery Phrase:"
-                    self.mnemonicLabel.font = .systemFont(ofSize: 12)
-                    self.mnemonicLabel.textColor = UIColor.black
-                    self.mnemonicLabel.textAlignment = .left
-                    self.scrollView.addSubview(self.mnemonicLabel)
+                    self.removeHomeScreen()
                     
-                    self.mnemonicView = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 285 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 175))
-                    self.mnemonicView.text = self.recoveryPhrase
-                    self.mnemonicView.isEditable = false
-                    self.mnemonicView.isSelectable = true
-                    self.mnemonicView.font = .systemFont(ofSize: 24)
-                    self.scrollView.addSubview(self.mnemonicView)
-                    
-                    self.recoveryPhraseLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 20, width: self.scrollView.frame.width - 10, height: 50))
-                    self.recoveryPhraseLabel.text = "Recovery QR Code"
-                    self.recoveryPhraseLabel.font = .systemFont(ofSize: 32)
-                    self.recoveryPhraseLabel.textColor = UIColor.black
-                    self.recoveryPhraseLabel.textAlignment = .center
-                    self.scrollView.addSubview(self.recoveryPhraseLabel)
-                    
-                    self.recoveryPhraseImage = self.generateQrCode(key: self.recoveryPhrase)
-                    self.recoveryPhraseQRView = UIImageView(image: self.recoveryPhraseImage!)
-                    self.recoveryPhraseQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 90, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
-                    self.scrollView.addSubview(self.recoveryPhraseQRView)
+                    UIView.animate(withDuration: 0.5, animations: {
+                        
+                        self.privateKeyQRView.alpha = 1
+                        
+                        
+                    }, completion: { _ in
+                        
+                        self.scrollView.setContentOffset(.zero, animated: false)
+                        
+                        self.WIFprivateKeyFieldLabel.text = "WIF Format:"
+                        
+                        self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 70, width: self.scrollView.frame.width, height: 50))
+                        self.privateKeyTitle.text = "Bitcoin Private Key"
+                        self.privateKeyTitle.font = .systemFont(ofSize: 32)
+                        self.privateKeyTitle.textColor = UIColor.black
+                        self.privateKeyTitle.textAlignment = .center
+                        self.scrollView.addSubview(self.privateKeyTitle)
+                        
+                        self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.privateKeyQRView.frame.maxY + 40, width: self.view.frame.width - 50, height: 100))
+                        self.myField.isEditable = false
+                        self.myField.isSelectable = true
+                        self.myField.font = .systemFont(ofSize: 24)
+                        self.myField.text = self.privateKeyWIF
+                        self.scrollView.addSubview(self.myField)
+                        self.addHomeButton()
+                        self.addBackUpButton()
+                        self.zero = 0
+                        self.bitArray.removeAll()
+                        
+                        self.mnemonicLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 280 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+                        self.mnemonicLabel.text = "Recovery Phrase:"
+                        self.mnemonicLabel.font = .systemFont(ofSize: 12)
+                        self.mnemonicLabel.textColor = UIColor.black
+                        self.mnemonicLabel.textAlignment = .left
+                        self.scrollView.addSubview(self.mnemonicLabel)
+                        
+                        self.mnemonicView = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 285 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 175))
+                        self.mnemonicView.text = self.recoveryPhrase
+                        self.mnemonicView.isEditable = false
+                        self.mnemonicView.isSelectable = true
+                        self.mnemonicView.font = .systemFont(ofSize: 24)
+                        self.scrollView.addSubview(self.mnemonicView)
+                        
+                        self.recoveryPhraseLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 20, width: self.scrollView.frame.width - 10, height: 50))
+                        self.recoveryPhraseLabel.text = "Recovery QR Code"
+                        self.recoveryPhraseLabel.font = .systemFont(ofSize: 32)
+                        self.recoveryPhraseLabel.textColor = UIColor.black
+                        self.recoveryPhraseLabel.textAlignment = .center
+                        self.scrollView.addSubview(self.recoveryPhraseLabel)
+                        
+                        self.recoveryPhraseImage = self.generateQrCode(key: self.recoveryPhrase)
+                        self.recoveryPhraseQRView = UIImageView(image: self.recoveryPhraseImage!)
+                        self.recoveryPhraseQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 90, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
+                        self.scrollView.addSubview(self.recoveryPhraseQRView)
+                        
+                    })
                     
                 })
                 
-            })
-            
-            
+                
+            }
         }
+        
+        
         
         
     }
@@ -956,43 +1193,72 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         print("addHomeButton")
         
-        DispatchQueue.main.async {
+        if self.advancedMode {
             
-            self.button.removeFromSuperview()
-            self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
-            self.button.showsTouchWhenHighlighted = true
-            self.button.layer.cornerRadius = 10
-            self.button.backgroundColor = UIColor.lightText
-            self.button.layer.shadowColor = UIColor.black.cgColor
-            self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.button.layer.shadowRadius = 2.5
-            self.button.layer.shadowOpacity = 0.8
-            self.button.setTitle("Back", for: .normal)
-            self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
-            self.view.addSubview(self.button)
-            
-            self.bitcoinAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 155, y: 20, width: 150 , height: 55))
-            self.bitcoinAddressButton.showsTouchWhenHighlighted = true
-            self.bitcoinAddressButton.layer.cornerRadius = 10
-            self.bitcoinAddressButton.backgroundColor = UIColor.lightText
-            self.bitcoinAddressButton.layer.shadowColor = UIColor.black.cgColor
-            self.bitcoinAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.bitcoinAddressButton.layer.shadowRadius = 2.5
-            self.bitcoinAddressButton.layer.shadowOpacity = 0.8
-            
-            if self.watchOnlyMode {
+            DispatchQueue.main.async {
                 
-                self.bitcoinAddressButton.setTitle("Show XPUB", for: .normal)
+                self.button.removeFromSuperview()
+                self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
+                self.button.showsTouchWhenHighlighted = true
+                self.button.layer.cornerRadius = 10
+                self.button.backgroundColor = UIColor.lightText
+                self.button.layer.shadowColor = UIColor.black.cgColor
+                self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+                self.button.layer.shadowRadius = 2.5
+                self.button.layer.shadowOpacity = 0.8
+                self.button.setTitle("Back", for: .normal)
+                self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
+                self.view.addSubview(self.button)
                 
-            } else {
+                self.bitcoinAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 155, y: 20, width: 150 , height: 55))
+                self.bitcoinAddressButton.showsTouchWhenHighlighted = true
+                self.bitcoinAddressButton.layer.cornerRadius = 10
+                self.bitcoinAddressButton.backgroundColor = UIColor.lightText
+                self.bitcoinAddressButton.layer.shadowColor = UIColor.black.cgColor
+                self.bitcoinAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+                self.bitcoinAddressButton.layer.shadowRadius = 2.5
+                self.bitcoinAddressButton.layer.shadowOpacity = 0.8
                 
-               self.bitcoinAddressButton.setTitle("Show Address", for: .normal)
+                
+                
+                if self.watchOnlyMode {
+                    
+                    self.bitcoinAddressButton.setTitle("Show XPUB", for: .normal)
+                    
+                } else {
+                    
+                    self.bitcoinAddressButton.setTitle("Show Address", for: .normal)
+                    
+                }
+                
+                self.bitcoinAddressButton.addTarget(self, action: #selector(self.getAddress), for: .touchUpInside)
+                self.view.addSubview(self.bitcoinAddressButton)
                 
             }
             
-            self.bitcoinAddressButton.addTarget(self, action: #selector(self.getAddress), for: .touchUpInside)
-            self.view.addSubview(self.bitcoinAddressButton)
+        } else {
+            
+            
+            DispatchQueue.main.async {
+                
+                self.button.removeFromSuperview()
+                self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
+                self.button.showsTouchWhenHighlighted = true
+                self.button.layer.cornerRadius = 10
+                self.button.backgroundColor = UIColor.lightText
+                self.button.layer.shadowColor = UIColor.black.cgColor
+                self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+                self.button.layer.shadowRadius = 2.5
+                self.button.layer.shadowOpacity = 0.8
+                self.button.setTitle("Back", for: .normal)
+                self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
+                self.view.addSubview(self.button)
+                
+            }
+            
         }
+        
+        
     }
     
     func addImportActionButton() {
@@ -1018,21 +1284,76 @@ class ViewController: UIViewController, UITextFieldDelegate {
     @objc func newAddress() {
         print("newAddress")
         
-        watchOnlyMode = true
-        self.removeHomeScreen()
-        
-        let int = UInt32((UserDefaults.standard.object(forKey: "int") as! Int) + 1)
-        UserDefaults.standard.set(int, forKey: "int")
-        print("int = \(int)")
-        
-        let xpub = UserDefaults.standard.object(forKey: "xpub") as! String
-        let childKeychain = BTCKeychain.init(extendedKey: xpub)
-        let newAddress = childKeychain?.key(at: int).address
-        
-        let legacyAddress1 = (newAddress?.description)!
-        let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-        self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-        self.addQRCodesAndLabels()
+        if simpleMode {
+            
+            watchOnlyMode = true
+            self.removeHomeScreen()
+            
+            if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
+               
+                if self.testnetMode {
+                    
+                    let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
+                    let key = BTCKey.init(privateKeyAddress: privateKey)
+                    key?.isPublicKeyCompressed = true
+                    let legacyAddress1 = (key?.addressTestnet.description)!
+                    let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                    self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                    print("self.bitcoinAddress = \(self.bitcoinAddress)")
+                    self.addQRCodesAndLabels()
+                    
+                    
+                } else {
+                    
+                    let privateKey = BTCPrivateKeyAddress(string: wif)
+                    let key = BTCKey.init(privateKeyAddress: privateKey)
+                    key?.isPublicKeyCompressed = true
+                    let legacyAddress1 = (key?.address.description)!
+                    let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                    self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                    print("self.bitcoinAddress = \(self.bitcoinAddress)")
+                    self.addQRCodesAndLabels()
+                    
+                }
+                
+            }
+            
+            
+            
+            /*
+            let int = UInt32((UserDefaults.standard.object(forKey: "int") as! Int) + 1)
+            UserDefaults.standard.set(int, forKey: "int")
+            print("int = \(int)")
+            
+            let xpub = UserDefaults.standard.object(forKey: "xpub") as! String
+            let childKeychain = BTCKeychain.init(extendedKey: xpub)
+            let newAddress = childKeychain?.key(at: int).address
+            
+            let legacyAddress1 = (newAddress?.description)!
+            let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+            self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+            self.addQRCodesAndLabels()
+            */
+            
+        } else {
+            
+            watchOnlyMode = true
+            self.removeHomeScreen()
+            
+            let int = UInt32((UserDefaults.standard.object(forKey: "int") as! Int) + 1)
+            UserDefaults.standard.set(int, forKey: "int")
+            print("int = \(int)")
+            
+            let xpub = UserDefaults.standard.object(forKey: "xpub") as! String
+            let childKeychain = BTCKeychain.init(extendedKey: xpub)
+            let newAddress = childKeychain?.key(at: int).address
+            
+            let legacyAddress1 = (newAddress?.description)!
+            let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+            self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+            self.addQRCodesAndLabels()
+            
+        }
         
     }
     
@@ -1213,73 +1534,96 @@ class ViewController: UIViewController, UITextFieldDelegate {
             var title = String()
             var message = String()
             
-            if self.watchOnlyMode {
-                
-                title = "Have you saved the Address?"
-                message = "Ensure you have saved this before going back otherwise the addresses will be lost, we do save your \"extended public key\" for you so you can always create a new address based on the last private key you created/imported."
-                
-            } else {
-                
-                title = "Have you saved this Private Key?"
-                message = "Ensure you have saved this before going back if you'd like to use this Private Key in the future."
-            }
-            
-            let alert = UIAlertController(title: title, message: message, preferredStyle: UIAlertControllerStyle.alert)
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("I saved it, go back", comment: ""), style: .destructive, handler: { (action) in
+            if self.advancedMode {
                 
                 if self.watchOnlyMode {
                     
-                    self.watchOnlyMode = false
-                    self.bitcoinAddressButton.removeFromSuperview()
-                    self.privateKeyQRView.image = nil
-                    self.privateKeyQRCode = nil
-                    self.privateKeyImage = nil
-                    self.privateKeyQRView.image = nil
-                    self.privateKeyTitle.text = ""
-                    self.myField.text = ""
-                    self.imageView.removeFromSuperview()
-                    self.imageView = nil
-                    self.button.removeFromSuperview()
-                    self.backUpButton.removeFromSuperview()
-                    self.privateKeyText = ""
-                    self.WIFprivateKeyFieldLabel.removeFromSuperview()
-                    self.addHomeScreen()
+                    title = "Have you saved the Address?"
+                    message = "Ensure you have saved this before going back otherwise the addresses will be lost, we do save your \"extended public key\" for you so you can always create a new address based on the last private key you created/imported."
                     
                 } else {
                     
-                    self.bitcoinAddressButton.removeFromSuperview()
-                    self.privateKeyQRView.image = nil
-                    self.privateKeyQRCode = nil
-                    self.privateKeyImage = nil
-                    self.privateKeyQRView.image = nil
-                    self.privateKeyTitle.text = ""
-                    self.myField.text = ""
-                    self.imageView.removeFromSuperview()
-                    self.imageView = nil
-                    self.button.removeFromSuperview()
-                    self.backUpButton.removeFromSuperview()
-                    self.numberArray.removeAll()
-                    self.joinedArray = ""
-                    self.privateKeyText = ""
-                    self.zero = 0
-                    self.bitArray.removeAll()
-                    self.mnemonicView.removeFromSuperview()
-                    self.mnemonicLabel.removeFromSuperview()
-                    self.recoveryPhraseQRView.removeFromSuperview()
-                    self.recoveryPhraseLabel.removeFromSuperview()
-                    self.WIFprivateKeyFieldLabel.removeFromSuperview()
-                    self.addHomeScreen()
+                    title = "Have you saved this Private Key?"
+                    message = "Ensure you have saved this before going back if you'd like to use this Private Key in the future."
                 }
                 
+                let alert = UIAlertController(title: title, message: message, preferredStyle: UIAlertControllerStyle.alert)
                 
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                alert.addAction(UIAlertAction(title: NSLocalizedString("I saved it, go back", comment: ""), style: .destructive, handler: { (action) in
+                    
+                    if self.watchOnlyMode {
+                        
+                        self.watchOnlyMode = false
+                        self.bitcoinAddressButton.removeFromSuperview()
+                        self.privateKeyQRView.image = nil
+                        self.privateKeyQRCode = nil
+                        self.privateKeyImage = nil
+                        self.privateKeyQRView.image = nil
+                        self.privateKeyTitle.text = ""
+                        self.myField.text = ""
+                        self.imageView.removeFromSuperview()
+                        self.imageView = nil
+                        self.button.removeFromSuperview()
+                        self.backUpButton.removeFromSuperview()
+                        self.privateKeyText = ""
+                        self.WIFprivateKeyFieldLabel.removeFromSuperview()
+                        self.addHomeScreen()
+                        
+                    } else {
+                        
+                        self.bitcoinAddressButton.removeFromSuperview()
+                        self.privateKeyQRView.image = nil
+                        self.privateKeyQRCode = nil
+                        self.privateKeyImage = nil
+                        self.privateKeyQRView.image = nil
+                        self.privateKeyTitle.text = ""
+                        self.myField.text = ""
+                        self.imageView.removeFromSuperview()
+                        self.imageView = nil
+                        self.button.removeFromSuperview()
+                        self.backUpButton.removeFromSuperview()
+                        self.numberArray.removeAll()
+                        self.joinedArray = ""
+                        self.privateKeyText = ""
+                        self.zero = 0
+                        self.bitArray.removeAll()
+                        self.mnemonicView.removeFromSuperview()
+                        self.mnemonicLabel.removeFromSuperview()
+                        self.recoveryPhraseQRView.removeFromSuperview()
+                        self.recoveryPhraseLabel.removeFromSuperview()
+                        self.WIFprivateKeyFieldLabel.removeFromSuperview()
+                        self.addHomeScreen()
+                    }
+                    
+                    
+                }))
                 
-            }))
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                    
+                }))
+                
+                self.present(alert, animated: true, completion: nil)
+                
+            } else {
+                
+                self.watchOnlyMode = false
+                self.bitcoinAddressButton.removeFromSuperview()
+                self.privateKeyQRView.image = nil
+                self.privateKeyQRCode = nil
+                self.privateKeyImage = nil
+                self.privateKeyQRView.image = nil
+                self.privateKeyTitle.text = ""
+                self.myField.text = ""
+                self.imageView.removeFromSuperview()
+                self.imageView = nil
+                self.button.removeFromSuperview()
+                self.backUpButton.removeFromSuperview()
+                self.privateKeyText = ""
+                self.WIFprivateKeyFieldLabel.removeFromSuperview()
+                self.addHomeScreen()
+                
+            }
             
-            self.present(alert, animated: true, completion: nil)
         }
     }
     
@@ -1348,7 +1692,20 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
         case self.transactionsButton:
             
-            self.performSegue(withIdentifier: "transaction", sender: self)
+            if UserDefaults.standard.object(forKey: "wif") != nil {
+             
+                self.performSegue(withIdentifier: "transaction", sender: self)
+                
+            } else {
+                
+                DispatchQueue.main.async {
+                    
+                    self.displayAlert(title: "Create an account first!", message: "Just move the Bitcoin around to create your account then you can send Bitcoin to anyone in the world.")
+                    
+                }
+                
+            }
+            
             
         case self.checkAddressButton:
             

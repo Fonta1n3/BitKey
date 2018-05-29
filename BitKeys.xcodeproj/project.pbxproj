@@ -33,6 +33,7 @@
 		D0C663352062627C0061B2FF /* CoinbaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C663342062627C0061B2FF /* CoinbaseViewController.swift */; };
 		D0E8115C20615E23000DBBE8 /* MayerMultipleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E8115B20615E23000DBBE8 /* MayerMultipleViewController.swift */; };
 		D0EF966B1FCC07FB004A8E4E /* ObjectiveCHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = D0EF966A1FCC07FB004A8E4E /* ObjectiveCHeader.m */; };
+		D0F3E1AA20BCF535000F7A5D /* settings.png in Resources */ = {isa = PBXBuildFile; fileRef = D0F3E1A920BCF535000F7A5D /* settings.png */; };
 		D0F858A0202BD39C00560247 /* TransactionBuilderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F8589F202BD39C00560247 /* TransactionBuilderViewController.swift */; };
 /* End PBXBuildFile section */
 
@@ -81,6 +82,7 @@
 		D0E8115B20615E23000DBBE8 /* MayerMultipleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MayerMultipleViewController.swift; sourceTree = "<group>"; };
 		D0EF96691FCC07FA004A8E4E /* BitKeys-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BitKeys-Bridging-Header.h"; sourceTree = "<group>"; };
 		D0EF966A1FCC07FB004A8E4E /* ObjectiveCHeader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ObjectiveCHeader.m; sourceTree = "<group>"; };
+		D0F3E1A920BCF535000F7A5D /* settings.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = settings.png; sourceTree = "<group>"; };
 		D0F8589F202BD39C00560247 /* TransactionBuilderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionBuilderViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -120,6 +122,7 @@
 		D00FF69A2083D9E400660D3C /* Pictures */ = {
 			isa = PBXGroup;
 			children = (
+				D0F3E1A920BCF535000F7A5D /* settings.png */,
 				D00FF6A72083DAC900660D3C /* images-6.png */,
 				D00FF69B2083DA0F00660D3C /* one.png */,
 				D00FF69C2083DA0F00660D3C /* two.png */,
@@ -291,6 +294,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0F3E1AA20BCF535000F7A5D /* settings.png in Resources */,
 				D00FF6A22083DA1000660D3C /* two.png in Resources */,
 				D0C56F661FCBFBC4004A5F47 /* LaunchScreen.storyboard in Resources */,
 				D0C56F631FCBFBC4004A5F47 /* Assets.xcassets in Resources */,

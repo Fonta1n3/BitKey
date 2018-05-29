@@ -133,6 +133,18 @@ class SettingsViewController: UIViewController {
         }
     }
     
+    func setDefaults() {
+        
+        UserDefaults.standard.set(true, forKey: "legacyMode")
+        UserDefaults.standard.set(false, forKey: "segwitMode")
+        UserDefaults.standard.set(true, forKey: "hotMode")
+        UserDefaults.standard.set(false, forKey: "coldMode")
+        UserDefaults.standard.set(true, forKey: "mainnetMode")
+        UserDefaults.standard.set(false, forKey: "testnetMode")
+        UserDefaults.standard.set(false, forKey: "advancedMode")
+        UserDefaults.standard.set(true, forKey: "simpleMode")
+        
+    }
 
     func addButtons() {
         
@@ -168,6 +180,8 @@ class SettingsViewController: UIViewController {
                 
                 self.simpleModeButton.backgroundColor = UIColor.lightText
                 self.simpleModeButton.setTitle("Simple Mode - ON", for: .normal)
+                
+                self.setDefaults()
                 
                 UIView.animate(withDuration: 0.5, animations: {
                     
@@ -220,6 +234,8 @@ class SettingsViewController: UIViewController {
                 self.advancedModeButton.backgroundColor = UIColor.groupTableViewBackground
                 self.advancedModeButton.setTitleColor(UIColor.black, for: .normal)
                 self.advancedModeButton.setTitle("Advanced Mode - OFF", for: .normal)
+                
+                self.setDefaults()
                 
             }
             
@@ -417,6 +433,8 @@ class SettingsViewController: UIViewController {
                 self.simpleMode = true
                 UserDefaults.standard.set(self.simpleMode, forKey: "simpleMode")
                 
+                self.setDefaults()
+                
                 DispatchQueue.main.async {
                     
                     UIView.animate(withDuration: 0.5, animations: {
@@ -550,6 +568,8 @@ class SettingsViewController: UIViewController {
                 self.advancedModeButton.setTitleColor(UIColor.black, for: .normal)
                 self.advancedMode = false
                 UserDefaults.standard.set(self.advancedMode, forKey: "advancedMode")
+                
+                self.setDefaults()
                 
                 DispatchQueue.main.async {
                     

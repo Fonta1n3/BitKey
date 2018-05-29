@@ -11,6 +11,8 @@ import AVFoundation
 
 class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate {
     
+    var simpleMode = Bool()
+    var advancedMode = Bool()
     var testnetMode = Bool()
     var mainnetMode = Bool()
     var coldMode = Bool()
@@ -36,12 +38,62 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     override func viewDidAppear(_ animated: Bool) {
         
         checkUserDefaults()
-        scanQRCode()
+        
+        addHomeButton()
+        
+        print("advancedMode = \(advancedMode)")
+        print("simpleMode = \(simpleMode)")
+        
+        if advancedMode {
+            
+            addMyAddressButton()
+            
+            if UserDefaults.standard.object(forKey: "address") != nil {
+                
+                addresses = UserDefaults.standard.object(forKey: "address") as! String
+                self.addAddressBookButton()
+                
+            }
+            
+        }
+        
+        if advancedMode {
+            
+          scanQRCode()
+            
+        } else {
+            
+            self.addressToDisplay.removeFromSuperview()
+            self.videoPreview.removeFromSuperview()
+            checkMyAddress()
+            
+        }
+        
     }
     
     func checkUserDefaults() {
         
         print("checkUserDefaults")
+        
+        if UserDefaults.standard.object(forKey: "simpleMode") != nil {
+            
+            simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
+            
+        } else {
+            
+            simpleMode = true
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "advancedMode") != nil {
+            
+            advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
+            
+        } else {
+            
+            advancedMode = false
+            
+        }
         
         if UserDefaults.standard.object(forKey: "coldMode") != nil {
             
@@ -126,15 +178,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         self.addressToDisplay.delegate = self
         print("ViewControllerBalanceChecker")
         
-        addHomeButton()
-        addMyAddressButton()
-        
-        if UserDefaults.standard.object(forKey: "address") != nil {
-            
-            addresses = UserDefaults.standard.object(forKey: "address") as! String
-            self.addAddressBookButton()
-            
-        }
     }
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask { return UIInterfaceOrientationMask.portrait }
@@ -323,7 +366,13 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                         
                                         //add label to bottom above button
                                         self.myAddressButton.removeFromSuperview()
+                                        
+                                        if self.advancedMode {
+                                            
                                         self.addBackUpButton()
+                                            
+                                        }
+                                        
                                         self.generateQrCode(key: address)
                                         self.getExchangeRates()
                                         
@@ -541,6 +590,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     }
     
     func addMyAddressButton() {
+        print("addMyAddressButton")
         
         DispatchQueue.main.async {
             self.myAddressButton.removeFromSuperview()

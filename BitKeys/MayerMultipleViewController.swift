@@ -10,6 +10,8 @@ import UIKit
 
 class MayerMultipleViewController: UIViewController {
     
+    var simpleMode = Bool()
+    var advancedMode = Bool()
     var imageView:UIView!
     var button = UIButton(type: .custom)
     
@@ -68,6 +70,28 @@ class MayerMultipleViewController: UIViewController {
     }
     
     override func viewDidAppear(_ animated: Bool) {
+        
+        
+        if UserDefaults.standard.object(forKey: "simpleMode") != nil {
+            
+            simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
+            
+        } else {
+            
+            simpleMode = true
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "advancedMode") != nil {
+            
+            advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
+            
+        } else {
+            
+            advancedMode = false
+            
+        }
+        
         self.addSpinner()
     }
     
@@ -168,17 +192,25 @@ class MayerMultipleViewController: UIViewController {
                                                                     let mayerMultipleLabel = UITextView()
                                                                     mayerMultipleLabel.frame = CGRect(x: self.view.frame.minX + 15, y: self.view.center.y - (self.view.frame.height / 3), width: self.view.frame.width - 30, height: 500)
                                                                     
-                                                                    if priceDifference < 0 {
+                                                                    if self.simpleMode {
                                                                         
-                                                                        mayerMultipleLabel.text = "The Bitcoin Mayer Multiple is \(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100) with a current price of $\(round(100 * exchangeRate) / 100) USD and a 200 day moving average of $\(round(100 * twoHundredDayMovingAverage) / 100) USD.\n\nThe current price is $\(priceDifference) USD below the 200 day moving average.\n\nThat is a \(percentage)% deviation from the 200 day moving average."
+                                                                        mayerMultipleLabel.text = "The Bitcoin price is currently $\(round(100 * exchangeRate) / 100) USD."
                                                                         
-                                                                    } else if priceDifference > 0 {
+                                                                    } else {
                                                                         
-                                                                        mayerMultipleLabel.text = "The Bitcoin Mayer Multiple is \(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100) with a current price of $\(round(100 * exchangeRate) / 100) USD and a 200 day moving average of $\(round(100 * twoHundredDayMovingAverage) / 100) USD.\n\nThe current price is $\(priceDifference) USD above the 200 day moving average.\n\nThat is a \(percentage)% deviation from the 200 day moving average."
-                                                                        
-                                                                    } else if priceDifference == 0 {
-                                                                        
-                                                                        mayerMultipleLabel.text = "The Bitcoin Mayer Multiple is \(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100) with a current price of $\(round(100 * exchangeRate) / 100) USD and a 200 day moving average of $\(round(100 * twoHundredDayMovingAverage) / 100) USD.\n\nThe current price is equal to the 200 day moving average.\n\nThat is a \(percentage)% deviation from the 200 day moving average."
+                                                                        if priceDifference < 0 {
+                                                                            
+                                                                            mayerMultipleLabel.text = "The Bitcoin Mayer Multiple is \(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100) with a current price of $\(round(100 * exchangeRate) / 100) USD and a 200 day moving average of $\(round(100 * twoHundredDayMovingAverage) / 100) USD.\n\nThe current price is $\(priceDifference) USD below the 200 day moving average.\n\nThat is a \(percentage)% deviation from the 200 day moving average."
+                                                                            
+                                                                        } else if priceDifference > 0 {
+                                                                            
+                                                                            mayerMultipleLabel.text = "The Bitcoin Mayer Multiple is \(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100) with a current price of $\(round(100 * exchangeRate) / 100) USD and a 200 day moving average of $\(round(100 * twoHundredDayMovingAverage) / 100) USD.\n\nThe current price is $\(priceDifference) USD above the 200 day moving average.\n\nThat is a \(percentage)% deviation from the 200 day moving average."
+                                                                            
+                                                                        } else if priceDifference == 0 {
+                                                                            
+                                                                            mayerMultipleLabel.text = "The Bitcoin Mayer Multiple is \(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100) with a current price of $\(round(100 * exchangeRate) / 100) USD and a 200 day moving average of $\(round(100 * twoHundredDayMovingAverage) / 100) USD.\n\nThe current price is equal to the 200 day moving average.\n\nThat is a \(percentage)% deviation from the 200 day moving average."
+                                                                            
+                                                                        }
                                                                         
                                                                     }
                                                                     
