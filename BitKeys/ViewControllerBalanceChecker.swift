@@ -11,6 +11,9 @@ import AVFoundation
 
 class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate {
     
+    let segwit = SegwitAddrCoder()
+    var legacyMode = Bool()
+    var segwitMode = Bool()
     var simpleMode = Bool()
     var advancedMode = Bool()
     var testnetMode = Bool()
@@ -24,6 +27,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     var bitcoinAddressQRCode = UIImage()
     var stringURL = String()
     var myAddressButton = UIButton()
+    var addressLabel = UILabel()
     
     //change to an array of dictioanries with nickname, and ability to delete them
     var addresses = String()
@@ -55,11 +59,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 
             }
             
-        }
-        
-        if advancedMode {
-            
-          scanQRCode()
+            scanQRCode()
             
         } else {
             
@@ -75,65 +75,14 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         print("checkUserDefaults")
         
-        if UserDefaults.standard.object(forKey: "simpleMode") != nil {
-            
-            simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
-            
-        } else {
-            
-            simpleMode = true
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "advancedMode") != nil {
-            
-            advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
-            
-        } else {
-            
-            advancedMode = false
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "coldMode") != nil {
-            
-            coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
-            
-        } else {
-            
-            coldMode = true
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "hotMode") != nil {
-            
-            hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
-            
-        } else {
-            
-            hotMode = false
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "testnetMode") != nil {
-            
-            testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
-            
-        } else {
-            
-            testnetMode = false
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "mainnetMode") != nil {
-            
-            mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
-            
-        } else {
-            
-            mainnetMode = true
-            
-        }
+        simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
+        advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
+        coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
+        hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
+        testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
+        mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
+        legacyMode = UserDefaults.standard.object(forKey: "legacyMode") as! Bool
+        segwitMode = UserDefaults.standard.object(forKey: "segwitMode") as! Bool
         
     }
     
@@ -356,13 +305,13 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                         self.view.addSubview(btcBalanceLabel)
                                         
                                         
-                                         let addressLabel = UILabel()
-                                         addressLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.frame.height - 100, width: self.view.frame.width, height: 60)
-                                         addressLabel.text = address
-                                         addressLabel.textColor = UIColor.black
-                                         addressLabel.font = UIFont.systemFont(ofSize: 16)
-                                         addressLabel.textAlignment = .center
-                                         self.view.addSubview(addressLabel)
+                                        
+                                         self.addressLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.frame.height - 100, width: self.view.frame.width, height: 60)
+                                         self.addressLabel.text = address
+                                         self.addressLabel.textColor = UIColor.black
+                                         self.addressLabel.font = UIFont.systemFont(ofSize: 16)
+                                         self.addressLabel.textAlignment = .center
+                                         self.view.addSubview(self.addressLabel)
                                         
                                         //add label to bottom above button
                                         self.myAddressButton.removeFromSuperview()
@@ -525,6 +474,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func addHomeButton() {
         
         DispatchQueue.main.async {
+            
             let button = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
             button.showsTouchWhenHighlighted = true
             button.layer.cornerRadius = 10
@@ -537,10 +487,10 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
             self.view.addSubview(button)
             
-            
         }
         
     }
+    
     @objc func home() {
         
         DispatchQueue.main.async {
@@ -548,12 +498,12 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             self.dismiss(animated: false, completion: nil)
         }
         
-        
     }
     
     func addBackUpButton() {
         
         DispatchQueue.main.async {
+            
             self.backUpButton.removeFromSuperview()
             self.backUpButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
             self.backUpButton.showsTouchWhenHighlighted = true
@@ -566,6 +516,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             self.backUpButton.setTitle("Save/Copy/Share", for: .normal)
             self.backUpButton.addTarget(self, action: #selector(self.airDropImage), for: .touchUpInside)
             self.view.addSubview(self.backUpButton)
+            
         }
         
     }
@@ -573,6 +524,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func addAddressBookButton() {
         
         DispatchQueue.main.async {
+            
             self.backUpButton.removeFromSuperview()
             self.backUpButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 150, y: self.view.frame.maxY - 60, width: 140, height: 55))
             self.backUpButton.showsTouchWhenHighlighted = true
@@ -585,6 +537,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             self.backUpButton.setTitle("Address Book", for: .normal)
             self.backUpButton.addTarget(self, action: #selector(self.openAddressBook), for: .touchUpInside)
             self.view.addSubview(self.backUpButton)
+            
         }
         
     }
@@ -593,6 +546,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         print("addMyAddressButton")
         
         DispatchQueue.main.async {
+            
             self.myAddressButton.removeFromSuperview()
             self.myAddressButton = UIButton(frame: CGRect(x: self.view.frame.minX + 10, y: self.view.frame.maxY - 60, width: 140, height: 55))
             self.myAddressButton.showsTouchWhenHighlighted = true
@@ -605,45 +559,225 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             self.myAddressButton.setTitle("My Address", for: .normal)
             self.myAddressButton.addTarget(self, action: #selector(self.checkMyAddress), for: .touchUpInside)
             self.view.addSubview(self.myAddressButton)
+            
         }
+        
     }
     
     @objc func openAddressBook() {
         print("openAddressBook")
         
-        self.checkBalance(address: self.addresses)
+        if self.addresses.hasPrefix("b") {
+            
+            self.checkBech32Address(address: self.addresses)
+            
+        } else {
+            
+            self.checkBalance(address: self.addresses)
+            
+        }
+        
+        
         
     }
     
     @objc func checkMyAddress() {
         
-        if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
+        print("checkMyAddress")
+        
+        if hotMode || simpleMode {
             
-            if testnetMode {
+            if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
                 
-                let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
-                let key = BTCKey.init(privateKeyAddress: privateKey)
-                key?.isPublicKeyCompressed = true
-                let legacyAddress1 = (key?.addressTestnet.description)!
-                let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                let myAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                print("myAddress = \(myAddress)")
-                self.checkBalance(address: myAddress)
+                if legacyMode {
+                    
+                    if testnetMode {
+                        
+                        let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
+                        let key = BTCKey.init(privateKeyAddress: privateKey)
+                        key?.isPublicKeyCompressed = true
+                        let legacyAddress1 = (key?.addressTestnet.description)!
+                        let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                        let myAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                        print("myAddress = \(myAddress)")
+                        self.checkBalance(address: myAddress)
+                        
+                    } else {
+                        
+                        let privateKey = BTCPrivateKeyAddress(string: wif)
+                        let key = BTCKey.init(privateKeyAddress: privateKey)
+                        key?.isPublicKeyCompressed = true
+                        let legacyAddress1 = (key?.address.description)!
+                        let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                        let myAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                        print("myAddress = \(myAddress)")
+                        self.checkBalance(address: myAddress)
+                    }
+                    
+                } else if segwitMode {
+                    
+                    //get segwit address
+                    let privateKey = BTCPrivateKeyAddress(string: wif)
+                    let key = BTCKey.init(privateKeyAddress: privateKey)
+                    key?.isPublicKeyCompressed = true
+                    
+                    let compressedPKData = BTCRIPEMD160(BTCSHA256(key?.compressedPublicKey as Data!) as Data!) as Data!
+                    
+                    do {
+                        //bc for mainnet and tb for testnet
+                        if mainnetMode {
+                            
+                            let myAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                            print("myAddress = \(myAddress)")
+                            self.checkBech32Address(address: myAddress)
+                            
+                            /*
+                            DispatchQueue.main.async {
+                                self.displayAlert(title: "Under construction", message: "We are working hard to become fully segwit compatible, your segwit address is: \(myAddress), we will be adding more compatibility soon.")
+                            }
+                            */
+                            
+                        } else if testnetMode {
+                            
+                            let myAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
+                            print("myAddress = \(myAddress)")
+                            self.checkBech32Address(address: myAddress)
+                            
+                            DispatchQueue.main.async {
+                                self.displayAlert(title: "Under construction", message: "We are working hard to become fully segwit compatible, your segwit address is: \(myAddress), we will be adding more compatibility soon.")
+                            }
+                            
+                        }
+                        
+                        
+                    } catch {
+                        
+                        self.displayAlert(title: "Error", message: "Please try again.")
+                        
+                    }
+                    
+                }
                 
-            } else {
-                
-                let privateKey = BTCPrivateKeyAddress(string: wif)
-                let key = BTCKey.init(privateKeyAddress: privateKey)
-                key?.isPublicKeyCompressed = true
-                let legacyAddress1 = (key?.address.description)!
-                let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                let myAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                print("myAddress = \(myAddress)")
-                self.checkBalance(address: myAddress)
             }
             
         }
         
+    }
+    
+    func checkBech32Address(address: String) {
+        
+        print("checkBech32Address")
+        
+        self.addSpinner()
+        
+        var url:NSURL!
+        
+        if testnetMode {
+            
+            //find testnet for bech32
+            url = NSURL(string: "https://api.blockchair.com/bitcoin/dashboards/address/\(address)")
+            
+        } else if mainnetMode {
+            
+            url = NSURL(string: "https://api.blockchair.com/bitcoin/dashboards/address/\(address)")
+            
+        }
+        
+        print("url = \(url)")
+        
+        let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
+            
+            do {
+                
+                if error != nil {
+                    
+                    print(error as Any)
+                    self.removeSpinner()
+                    DispatchQueue.main.async {
+                        self.avCaptureSession.startRunning()
+                        self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                    }
+                    
+                } else {
+                    
+                    if let urlContent = data {
+                        
+                        do {
+                            
+                            let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
+                            
+                            print("jsonAddressResult = \(jsonAddressResult)")
+                            
+                           
+                            
+                            if let btcAmount = ((jsonAddressResult["data"] as? NSArray)?[0] as? NSDictionary)?["sum_value_unspent"] as? Double {
+                                    
+                                    print("btcAmount = \(btcAmount)")
+                                
+                                
+                                
+                                self.balance = btcAmount
+                                
+                                DispatchQueue.main.async {
+                                    self.videoPreview.removeFromSuperview()
+                                    self.addressToDisplay.removeFromSuperview()
+                                    
+                                    let btcBalanceLabel = UILabel()
+                                    btcBalanceLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - ((self.view.frame.height / 2) + 120), width: self.view.frame.width, height: self.view.frame.height)
+                                    btcBalanceLabel.text = "\(btcAmount.avoidNotation) BTC"
+                                    btcBalanceLabel.textColor = UIColor.black
+                                    btcBalanceLabel.font = UIFont.systemFont(ofSize: 32)
+                                    btcBalanceLabel.textAlignment = .center
+                                    self.view.addSubview(btcBalanceLabel)
+                                    
+                                    
+                                    self.addressLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.frame.height - 100, width: self.view.frame.width, height: 60)
+                                    self.addressLabel.text = address
+                                    self.addressLabel.textColor = UIColor.black
+                                    self.addressLabel.font = UIFont.systemFont(ofSize: 16)
+                                    self.addressLabel.textAlignment = .center
+                                    self.view.addSubview(self.addressLabel)
+                                    
+                                    //add label to bottom above button
+                                    self.myAddressButton.removeFromSuperview()
+                                    
+                                    if self.advancedMode {
+                                        
+                                        self.addBackUpButton()
+                                        
+                                    }
+                                    
+                                    self.generateQrCode(key: address)
+                                    self.getExchangeRates()
+                                    
+                                }
+ 
+                                
+ 
+                            } else {
+                                
+                                DispatchQueue.main.async {
+                                    self.removeSpinner()
+                                    self.avCaptureSession.startRunning()
+                                    self.displayAlert(title: "Error", message: "Please try again.")
+                                }
+                            }
+ 
+                        } catch {
+                            
+                            print("JSon processing failed")
+                            DispatchQueue.main.async {
+                                self.removeSpinner()
+                                self.avCaptureSession.startRunning()
+                                self.displayAlert(title: "Error", message: "Please try again.")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        task.resume()
     }
     
     @objc func airDropImage() {
@@ -656,7 +790,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Add to Address Book", comment: ""), style: .default, handler: { (action) in
                 
-                UserDefaults.standard.set(self.addresses, forKey: "address")
+                UserDefaults.standard.set(self.addressLabel.text, forKey: "address")
+                print("addressToSave = \(self.addressLabel.text)")
                 
                 DispatchQueue.main.async {
                     

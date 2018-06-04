@@ -39,6 +39,21 @@
             </objects>
             <point key="canvasLocation" x="32.799999999999997" y="-698.5007496251875"/>
         </scene>
+        <!--Sweep View Controller-->
+        <scene sceneID="8bl-yV-rKX">
+            <objects>
+                <viewController id="STO-oE-Ep5" customClass="SweepViewController" customModule="BitKeys" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Bki-6o-rCX">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <viewLayoutGuide key="safeArea" id="mcI-Ne-N5f"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="t8d-pU-bs6" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1074" y="-633"/>
+        </scene>
         <!--Coinbase View Controller-->
         <scene sceneID="96w-gW-kdC">
             <objects>
@@ -97,6 +112,7 @@
                         <segue destination="sI4-9G-NVp" kind="show" identifier="diceKeyCreator" id="VfN-zf-CkG"/>
                         <segue destination="jcU-e8-UqR" kind="show" identifier="transaction" id="YEQ-hz-h2w"/>
                         <segue destination="SeJ-We-4Nh" kind="show" identifier="settings" id="ibZ-1x-xZS"/>
+                        <segue destination="STO-oE-Ep5" kind="show" identifier="sweep" id="ZrG-OA-0fy"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

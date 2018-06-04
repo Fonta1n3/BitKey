@@ -65,34 +65,18 @@ class MayerMultipleViewController: UIViewController {
         self.button.addTarget(self, action: #selector(self.goBack), for: .touchUpInside)
         self.view.addSubview(self.button)
         
-        getMayerMultiple()
+        
         
     }
     
     override func viewDidAppear(_ animated: Bool) {
         
         
-        if UserDefaults.standard.object(forKey: "simpleMode") != nil {
-            
-            simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
-            
-        } else {
-            
-            simpleMode = true
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "advancedMode") != nil {
-            
-            advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
-            
-        } else {
-            
-            advancedMode = false
-            
-        }
-        
+        simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
+        advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
+        getMayerMultiple()
         self.addSpinner()
+        
     }
     
     

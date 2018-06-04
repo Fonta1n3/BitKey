@@ -92,65 +92,12 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         print("checkUserDefaults")
         
-        if UserDefaults.standard.object(forKey: "simpleMode") != nil {
-            
-            simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
-            
-        } else {
-            
-            simpleMode = true
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "advancedMode") != nil {
-            
-            advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
-            
-        } else {
-            
-            advancedMode = false
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "coldMode") != nil {
-            
-            coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
-            
-        } else {
-            
-            coldMode = true
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "hotMode") != nil {
-            
-            hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
-            
-        } else {
-            
-            hotMode = false
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "testnetMode") != nil {
-            
-            testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
-            
-        } else {
-            
-            testnetMode = false
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "mainnetMode") != nil {
-            
-            mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
-            
-        } else {
-            
-            mainnetMode = true
-            
-        }
+        simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
+        advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
+        coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
+        hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
+        testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
+        mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
         
     }
     /*
@@ -398,14 +345,31 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                         
                         if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
                             
-                            let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
-                            let key = BTCKey.init(privateKeyAddress: privateKey)
-                            key?.isPublicKeyCompressed = true
-                            let legacyAddress1 = (key?.addressTestnet.description)!
-                            let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                            self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                            print("self.sendingFromAddress = \(self.sendingFromAddress)")
-                            self.checkBalance(address: self.sendingFromAddress)
+                            if self.testnetMode {
+                                
+                                let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
+                                let key = BTCKey.init(privateKeyAddress: privateKey)
+                                key?.isPublicKeyCompressed = true
+                                let legacyAddress1 = (key?.addressTestnet.description)!
+                                let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                                self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                print("self.sendingFromAddress = \(self.sendingFromAddress)")
+                                self.checkBalance(address: self.sendingFromAddress)
+                                
+                            } else {
+                                
+                                let privateKey = BTCPrivateKeyAddress(string: wif)
+                                let key = BTCKey.init(privateKeyAddress: privateKey)
+                                key?.isPublicKeyCompressed = true
+                                let legacyAddress1 = (key?.address.description)!
+                                let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                                self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                print("self.sendingFromAddress = \(self.sendingFromAddress)")
+                                self.checkBalance(address: self.sendingFromAddress)
+                                
+                            }
+                            
+                            
                         }
                         
                     } else {
@@ -1232,15 +1196,33 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                         //debit wallet programmatically
                         if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
                             
-                            self.recievingAddress = stringURL
-                            print("self.recievingAddress = \(self.recievingAddress)")
-                            let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
-                            let key = BTCKey.init(privateKeyAddress: privateKey)
-                            key?.isPublicKeyCompressed = true
-                            let legacyAddress1 = (key?.addressTestnet.description)!
-                            let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                            self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                            print("self.sendingFromAddress = \(self.sendingFromAddress)")
+                            if self.testnetMode {
+                                
+                                self.recievingAddress = stringURL
+                                print("self.recievingAddress = \(self.recievingAddress)")
+                                let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
+                                let key = BTCKey.init(privateKeyAddress: privateKey)
+                                key?.isPublicKeyCompressed = true
+                                let legacyAddress1 = (key?.addressTestnet.description)!
+                                let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                                self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                print("self.sendingFromAddress = \(self.sendingFromAddress)")
+                                
+                            } else {
+                                
+                                self.recievingAddress = stringURL
+                                print("self.recievingAddress = \(self.recievingAddress)")
+                                let privateKey = BTCPrivateKeyAddress(string: wif)
+                                let key = BTCKey.init(privateKeyAddress: privateKey)
+                                key?.isPublicKeyCompressed = true
+                                let legacyAddress1 = (key?.address.description)!
+                                let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                                self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                print("self.sendingFromAddress = \(self.sendingFromAddress)")
+                                
+                            }
+                            
+                            
                             
                             self.getSignatureMode = true
                             self.removeScanner()
@@ -1312,10 +1294,22 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             
             if self.hotMode || self.sweepMode {
                 
-                let legacyAddress1 = (key?.addressTestnet.description)!
-                let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                self.privateKey = String(describing: privateKey)
+                if self.testnetMode {
+                    
+                    let legacyAddress1 = (key?.addressTestnet.description)!
+                    let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                    self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                    self.privateKey = String(describing: privateKey)
+                    
+                } else {
+                    
+                    let legacyAddress1 = (key?.address.description)!
+                    let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                    self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                    self.privateKey = String(describing: privateKey)
+                }
+                
+                
             }
             
             if self.sweepMode {
