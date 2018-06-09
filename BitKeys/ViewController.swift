@@ -24,6 +24,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     var hotMode = Bool()
     var legacyMode = Bool()
     var segwitMode = Bool()
+    var multiSigButton = UIButton()
     var sweepButton = UIButton()
     var settingsButton = UIButton()
     var exportButton = UIButton()
@@ -247,6 +248,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         let needsConnection = flags.contains(.connectionRequired)
         self.connected = isReachable
         return (isReachable && !needsConnection)
+        
     }
     /*
     func derivePrivateKeyFromMasterKey(keychain: BTCKeychain) -> (privateKeyAddress: String, bitcoinAddress: String) {
@@ -605,18 +607,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 self.diceButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
                 self.view.addSubview(self.diceButton)
                 
-                self.sweepButton.removeFromSuperview()
-                self.sweepButton = UIButton(frame: CGRect(x: 5, y: self.diceButton.frame.maxY + 10, width: 90, height: 55))
-                self.sweepButton.showsTouchWhenHighlighted = true
-                self.sweepButton.layer.cornerRadius = 10
-                self.sweepButton.backgroundColor = UIColor.lightText
-                self.sweepButton.layer.shadowColor = UIColor.black.cgColor
-                self.sweepButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-                self.sweepButton.layer.shadowRadius = 2.5
-                self.sweepButton.layer.shadowOpacity = 0.8
-                self.sweepButton.setTitle("Sweep", for: .normal)
-                self.sweepButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-                self.view.addSubview(self.sweepButton)
+                
             
                 self.importButton.removeFromSuperview()
                 self.importButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.minY + 20, width: 90, height: 55))
@@ -631,10 +622,36 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 self.importButton.addTarget(self, action: #selector(self.importMnemonic), for: .touchUpInside)
                 self.view.addSubview(self.importButton)
                 
-                if UserDefaults.standard.object(forKey: "xpub") != nil && self.hotMode {
+                self.multiSigButton.removeFromSuperview()
+                self.multiSigButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: 20, width: 90, height: 55))
+                self.multiSigButton.showsTouchWhenHighlighted = true
+                self.multiSigButton.layer.cornerRadius = 10
+                self.multiSigButton.backgroundColor = UIColor.lightText
+                self.multiSigButton.layer.shadowColor = UIColor.black.cgColor
+                self.multiSigButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+                self.multiSigButton.layer.shadowRadius = 2.5
+                self.multiSigButton.layer.shadowOpacity = 0.8
+                self.multiSigButton.setTitle("Multi-Sig", for: .normal)
+                self.multiSigButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+                self.view.addSubview(self.multiSigButton)
+                
+                if self.hotMode {
+                    
+                    self.sweepButton.removeFromSuperview()
+                    self.sweepButton = UIButton(frame: CGRect(x: 5, y: self.diceButton.frame.maxY + 10, width: 90, height: 55))
+                    self.sweepButton.showsTouchWhenHighlighted = true
+                    self.sweepButton.layer.cornerRadius = 10
+                    self.sweepButton.backgroundColor = UIColor.lightText
+                    self.sweepButton.layer.shadowColor = UIColor.black.cgColor
+                    self.sweepButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+                    self.sweepButton.layer.shadowRadius = 2.5
+                    self.sweepButton.layer.shadowOpacity = 0.8
+                    self.sweepButton.setTitle("Sweep", for: .normal)
+                    self.sweepButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+                    self.view.addSubview(self.sweepButton)
                     
                     self.newAddressButton.removeFromSuperview()
-                    self.newAddressButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: 20, width: 90, height: 55))
+                    self.newAddressButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.view.frame.minY + 85, width: 90, height: 55))
                     self.newAddressButton.showsTouchWhenHighlighted = true
                     self.newAddressButton.titleLabel?.textAlignment = .center
                     self.newAddressButton.layer.cornerRadius = 10
@@ -705,6 +722,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         DispatchQueue.main.async {
             
+            self.multiSigButton.removeFromSuperview()
             self.sweepButton.removeFromSuperview()
             self.exportButton.removeFromSuperview()
             self.newAddressButton.removeFromSuperview()
@@ -724,6 +742,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     @objc func userCreatesRandomness(gestureRecognizer: UIPanGestureRecognizer) {
         
         //remove buttons when bitcoin gets dragged
+        self.multiSigButton.removeFromSuperview()
         self.sweepButton.removeFromSuperview()
         self.checkAddressButton.removeFromSuperview()
         self.mayerMultipleButton.removeFromSuperview()
@@ -1340,6 +1359,12 @@ class ViewController: UIViewController, UITextFieldDelegate {
             showPrivateKeyAndAddressQRCodes()
             
             
+        } else {
+            
+            DispatchQueue.main.async {
+                self.displayAlert(title: "Create a wallet first!", message: "Just move the Bitcoin around to create your wallet then you can send Bitcoin to anyone in the world.")
+            }
+            
         }
         
     }
@@ -1577,6 +1602,14 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         print("addPrivateKeyAndAddressQRCodes")
         
+        self.removeHomeScreen()
+        self.outputMnemonic.removeFromSuperview()
+        self.inputMnemonic.removeFromSuperview()
+        self.inputPassword.removeFromSuperview()
+        self.clearMnemonicButton.removeFromSuperview()
+        self.button.removeFromSuperview()
+        self.importAction.removeFromSuperview()
+        
         func addButtons() {
             
             self.button.removeFromSuperview()
@@ -1592,6 +1625,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
             self.view.addSubview(self.button)
             
+            self.bitcoinAddressButton.removeFromSuperview()
             self.bitcoinAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 155, y: 20, width: 150 , height: 55))
             self.bitcoinAddressButton.showsTouchWhenHighlighted = true
             self.bitcoinAddressButton.layer.cornerRadius = 10
@@ -1606,18 +1640,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
         }
         
-        self.addressMode = true
-        self.diceButton.removeFromSuperview()
-        self.importButton.removeFromSuperview()
-        self.clearMnemonicButton.removeFromSuperview()
-        self.button.removeFromSuperview()
-        self.importAction.removeFromSuperview()
-        
         self.privateKeyMode = true
         diceMode = false
-        self.outputMnemonic.removeFromSuperview()
-        self.inputMnemonic.removeFromSuperview()
-        self.inputPassword.removeFromSuperview()
         
         DispatchQueue.main.async {
             self.view.addSubview(self.scrollView)
@@ -1643,12 +1667,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
         }, completion: { _ in
             
-            self.removeHomeScreen()
-            
             UIView.animate(withDuration: 0.5, animations: {
                 
                 self.privateKeyQRView.alpha = 1
-                
                 
             }, completion: { _ in
                 
@@ -1873,6 +1894,11 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         switch sender {
             
+        case self.multiSigButton:
+            
+            print("go to multi sig")
+            self.performSegue(withIdentifier: "createMultiSig", sender: self)
+            
         case self.sweepButton:
             
             print("go to sweep")
@@ -2078,7 +2104,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Private Key QR Code", comment: ""), style: .default, handler: { (action) in
                 
-                if let data = UIImagePNGRepresentation(self.privateKeyImage) {
+                if let data = UIImagePNGRepresentation(self.privateKeyQRCode) {
                     
                     let fileName = self.getDocumentsDirectory().appendingPathComponent("privateKey.png")
                     

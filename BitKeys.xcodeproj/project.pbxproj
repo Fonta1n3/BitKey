@@ -17,6 +17,8 @@
 		D00FF6A52083DA1000660D3C /* three.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF69F2083DA1000660D3C /* three.png */; };
 		D00FF6A62083DA1000660D3C /* six.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF6A02083DA1000660D3C /* six.png */; };
 		D00FF6A82083DAC900660D3C /* images-6.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF6A72083DAC900660D3C /* images-6.png */; };
+		D03114D520C90C2B005B0AE1 /* MultiSigCreatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D03114D420C90C2B005B0AE1 /* MultiSigCreatorViewController.swift */; };
+		D04BAB2620CB1B3E00501B6D /* SpendMultiSigViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04BAB2520CB1B3E00501B6D /* SpendMultiSigViewController.swift */; };
 		D055011D2094FE79001C35F0 /* BitKeysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055011C2094FE79001C35F0 /* BitKeysTests.swift */; };
 		D055012720950E9F001C35F0 /* SegwitAddrCoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055012620950E9F001C35F0 /* SegwitAddrCoder.swift */; };
 		D055012B2095134C001C35F0 /* Bech32.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055012A2095134C001C35F0 /* Bech32.swift */; };
@@ -61,6 +63,8 @@
 		D00FF69F2083DA1000660D3C /* three.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = three.png; sourceTree = "<group>"; };
 		D00FF6A02083DA1000660D3C /* six.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = six.png; sourceTree = "<group>"; };
 		D00FF6A72083DAC900660D3C /* images-6.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "images-6.png"; sourceTree = "<group>"; };
+		D03114D420C90C2B005B0AE1 /* MultiSigCreatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiSigCreatorViewController.swift; sourceTree = "<group>"; };
+		D04BAB2520CB1B3E00501B6D /* SpendMultiSigViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendMultiSigViewController.swift; sourceTree = "<group>"; };
 		D055011A2094FE79001C35F0 /* BitKeysTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BitKeysTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D055011C2094FE79001C35F0 /* BitKeysTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitKeysTests.swift; sourceTree = "<group>"; };
 		D055011E2094FE79001C35F0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -169,6 +173,7 @@
 		D0C56F571FCBFBC4004A5F47 /* BitKeys */ = {
 			isa = PBXGroup;
 			children = (
+				D03114D420C90C2B005B0AE1 /* MultiSigCreatorViewController.swift */,
 				D07638F320C5B41F009D08E5 /* SweepViewController.swift */,
 				D003821720B24D4400BC310D /* SettingsViewController.swift */,
 				D055012620950E9F001C35F0 /* SegwitAddrCoder.swift */,
@@ -177,6 +182,7 @@
 				D0C56F5A1FCBFBC4004A5F47 /* ViewController.swift */,
 				D055012A2095134C001C35F0 /* Bech32.swift */,
 				D0C56F5C1FCBFBC4004A5F47 /* Main.storyboard */,
+				D04BAB2520CB1B3E00501B6D /* SpendMultiSigViewController.swift */,
 				D0F8589F202BD39C00560247 /* TransactionBuilderViewController.swift */,
 				D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */,
 				D0C56F621FCBFBC4004A5F47 /* Assets.xcassets */,
@@ -391,9 +397,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0EF966B1FCC07FB004A8E4E /* ObjectiveCHeader.m in Sources */,
+				D04BAB2620CB1B3E00501B6D /* SpendMultiSigViewController.swift in Sources */,
 				D0B597852013E96E000767A7 /* ViewControllerBalanceChecker.swift in Sources */,
 				D003821820B24D4400BC310D /* SettingsViewController.swift in Sources */,
 				D0C663352062627C0061B2FF /* CoinbaseViewController.swift in Sources */,
+				D03114D520C90C2B005B0AE1 /* MultiSigCreatorViewController.swift in Sources */,
 				D0C56F5B1FCBFBC4004A5F47 /* ViewController.swift in Sources */,
 				D055012720950E9F001C35F0 /* SegwitAddrCoder.swift in Sources */,
 				D0F858A0202BD39C00560247 /* TransactionBuilderViewController.swift in Sources */,

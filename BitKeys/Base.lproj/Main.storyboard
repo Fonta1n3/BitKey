@@ -113,6 +113,7 @@
                         <segue destination="jcU-e8-UqR" kind="show" identifier="transaction" id="YEQ-hz-h2w"/>
                         <segue destination="SeJ-We-4Nh" kind="show" identifier="settings" id="ibZ-1x-xZS"/>
                         <segue destination="STO-oE-Ep5" kind="show" identifier="sweep" id="ZrG-OA-0fy"/>
+                        <segue destination="onk-yP-DiO" kind="show" identifier="createMultiSig" id="eaD-2A-ZJa"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
@@ -148,6 +149,21 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="E5y-nH-Tz9" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="34" y="930"/>
+        </scene>
+        <!--Multi Sig Creator View Controller-->
+        <scene sceneID="373-uX-Ohp">
+            <objects>
+                <viewController id="onk-yP-DiO" customClass="MultiSigCreatorViewController" customModule="BitKeys" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Fja-bJ-AaF">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <viewLayoutGuide key="safeArea" id="l4h-Hn-C14"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="96B-sI-Enf" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1108" y="935"/>
         </scene>
         <!--View Controller Balance Checker-->
         <scene sceneID="HXX-dt-ujO">
@@ -193,6 +209,21 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="roD-LG-h1Y" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1100" y="164.16791604197903"/>
+        </scene>
+        <!--Spend Multi Sig View Controller-->
+        <scene sceneID="fwX-nW-AUJ">
+            <objects>
+                <viewController id="JX7-aw-rDK" customClass="SpendMultiSigViewController" customModule="BitKeys" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Crh-ab-jdI">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <viewLayoutGuide key="safeArea" id="X1r-VK-zrY"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="vs9-w3-PZK" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2025" y="174"/>
         </scene>
     </scenes>
 </document>

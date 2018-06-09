@@ -644,7 +644,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             self.checkBech32Address(address: myAddress)
                             
                             DispatchQueue.main.async {
-                                self.displayAlert(title: "Under construction", message: "We are working hard to become fully segwit compatible, your segwit address is: \(myAddress), we will be adding more compatibility soon.")
+                                self.displayAlert(title: "Under construction", message: "We are have not found a testnet that supports bech32 addresses yet, if you know of one please send us an email at tripkeyapp@gmail.com")
                             }
                             
                         }
