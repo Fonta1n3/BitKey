@@ -19,6 +19,15 @@
 		D00FF6A82083DAC900660D3C /* images-6.png in Resources */ = {isa = PBXBuildFile; fileRef = D00FF6A72083DAC900660D3C /* images-6.png */; };
 		D03114D520C90C2B005B0AE1 /* MultiSigCreatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D03114D420C90C2B005B0AE1 /* MultiSigCreatorViewController.swift */; };
 		D04BAB2620CB1B3E00501B6D /* SpendMultiSigViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04BAB2520CB1B3E00501B6D /* SpendMultiSigViewController.swift */; };
+		D04BAB2820CC2A5A00501B6D /* info-512.png in Resources */ = {isa = PBXBuildFile; fileRef = D04BAB2720CC2A5A00501B6D /* info-512.png */; };
+		D04BAB2A20CC2E6C00501B6D /* help.png in Resources */ = {isa = PBXBuildFile; fileRef = D04BAB2920CC2E6C00501B6D /* help.png */; };
+		D04BAB2C20CC2F6B00501B6D /* InfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04BAB2B20CC2F6B00501B6D /* InfoViewController.swift */; };
+		D04BAB2E20CC770000501B6D /* golden-bitcoin-coin-symbol-vector-18449010.jpg in Resources */ = {isa = PBXBuildFile; fileRef = D04BAB2D20CC770000501B6D /* golden-bitcoin-coin-symbol-vector-18449010.jpg */; };
+		D04BAB3020CC77B200501B6D /* 18449010.jpg in Resources */ = {isa = PBXBuildFile; fileRef = D04BAB2F20CC77B100501B6D /* 18449010.jpg */; };
+		D04BAB3220CC796F00501B6D /* bitcoin-512.png in Resources */ = {isa = PBXBuildFile; fileRef = D04BAB3120CC796E00501B6D /* bitcoin-512.png */; };
+		D04BAB3420CC79CF00501B6D /* img_311477.png in Resources */ = {isa = PBXBuildFile; fileRef = D04BAB3320CC79CF00501B6D /* img_311477.png */; };
+		D04BAB3620CC819800501B6D /* back.png in Resources */ = {isa = PBXBuildFile; fileRef = D04BAB3520CC819800501B6D /* back.png */; };
+		D04BAB3820CC876C00501B6D /* tools.png in Resources */ = {isa = PBXBuildFile; fileRef = D04BAB3720CC876C00501B6D /* tools.png */; };
 		D055011D2094FE79001C35F0 /* BitKeysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055011C2094FE79001C35F0 /* BitKeysTests.swift */; };
 		D055012720950E9F001C35F0 /* SegwitAddrCoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055012620950E9F001C35F0 /* SegwitAddrCoder.swift */; };
 		D055012B2095134C001C35F0 /* Bech32.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055012A2095134C001C35F0 /* Bech32.swift */; };
@@ -65,6 +74,15 @@
 		D00FF6A72083DAC900660D3C /* images-6.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "images-6.png"; sourceTree = "<group>"; };
 		D03114D420C90C2B005B0AE1 /* MultiSigCreatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiSigCreatorViewController.swift; sourceTree = "<group>"; };
 		D04BAB2520CB1B3E00501B6D /* SpendMultiSigViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendMultiSigViewController.swift; sourceTree = "<group>"; };
+		D04BAB2720CC2A5A00501B6D /* info-512.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "info-512.png"; sourceTree = "<group>"; };
+		D04BAB2920CC2E6C00501B6D /* help.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = help.png; sourceTree = "<group>"; };
+		D04BAB2B20CC2F6B00501B6D /* InfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoViewController.swift; sourceTree = "<group>"; };
+		D04BAB2D20CC770000501B6D /* golden-bitcoin-coin-symbol-vector-18449010.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "golden-bitcoin-coin-symbol-vector-18449010.jpg"; sourceTree = "<group>"; };
+		D04BAB2F20CC77B100501B6D /* 18449010.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = 18449010.jpg; sourceTree = "<group>"; };
+		D04BAB3120CC796E00501B6D /* bitcoin-512.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "bitcoin-512.png"; sourceTree = "<group>"; };
+		D04BAB3320CC79CF00501B6D /* img_311477.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = img_311477.png; sourceTree = "<group>"; };
+		D04BAB3520CC819800501B6D /* back.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = back.png; sourceTree = "<group>"; };
+		D04BAB3720CC876C00501B6D /* tools.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tools.png; sourceTree = "<group>"; };
 		D055011A2094FE79001C35F0 /* BitKeysTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BitKeysTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D055011C2094FE79001C35F0 /* BitKeysTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitKeysTests.swift; sourceTree = "<group>"; };
 		D055011E2094FE79001C35F0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -129,10 +147,18 @@
 			isa = PBXGroup;
 			children = (
 				D0F3E1A920BCF535000F7A5D /* settings.png */,
+				D04BAB2F20CC77B100501B6D /* 18449010.jpg */,
+				D04BAB3320CC79CF00501B6D /* img_311477.png */,
+				D04BAB3720CC876C00501B6D /* tools.png */,
+				D04BAB3520CC819800501B6D /* back.png */,
+				D04BAB3120CC796E00501B6D /* bitcoin-512.png */,
+				D04BAB2D20CC770000501B6D /* golden-bitcoin-coin-symbol-vector-18449010.jpg */,
+				D04BAB2920CC2E6C00501B6D /* help.png */,
 				D00FF6A72083DAC900660D3C /* images-6.png */,
 				D00FF69B2083DA0F00660D3C /* one.png */,
 				D00FF69C2083DA0F00660D3C /* two.png */,
 				D00FF69F2083DA1000660D3C /* three.png */,
+				D04BAB2720CC2A5A00501B6D /* info-512.png */,
 				D00FF69E2083DA0F00660D3C /* four.png */,
 				D00FF69D2083DA0F00660D3C /* five.png */,
 				D00FF6A02083DA1000660D3C /* six.png */,
@@ -183,6 +209,7 @@
 				D055012A2095134C001C35F0 /* Bech32.swift */,
 				D0C56F5C1FCBFBC4004A5F47 /* Main.storyboard */,
 				D04BAB2520CB1B3E00501B6D /* SpendMultiSigViewController.swift */,
+				D04BAB2B20CC2F6B00501B6D /* InfoViewController.swift */,
 				D0F8589F202BD39C00560247 /* TransactionBuilderViewController.swift */,
 				D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */,
 				D0C56F621FCBFBC4004A5F47 /* Assets.xcassets */,
@@ -304,12 +331,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0F3E1AA20BCF535000F7A5D /* settings.png in Resources */,
+				D04BAB3820CC876C00501B6D /* tools.png in Resources */,
 				D00FF6A22083DA1000660D3C /* two.png in Resources */,
+				D04BAB2820CC2A5A00501B6D /* info-512.png in Resources */,
 				D0C56F661FCBFBC4004A5F47 /* LaunchScreen.storyboard in Resources */,
 				D0C56F631FCBFBC4004A5F47 /* Assets.xcassets in Resources */,
 				D00FF6A52083DA1000660D3C /* three.png in Resources */,
+				D04BAB3220CC796F00501B6D /* bitcoin-512.png in Resources */,
+				D04BAB3020CC77B200501B6D /* 18449010.jpg in Resources */,
+				D04BAB2A20CC2E6C00501B6D /* help.png in Resources */,
+				D04BAB2E20CC770000501B6D /* golden-bitcoin-coin-symbol-vector-18449010.jpg in Resources */,
 				D00FF6A62083DA1000660D3C /* six.png in Resources */,
 				D0C56F5E1FCBFBC4004A5F47 /* Main.storyboard in Resources */,
+				D04BAB3620CC819800501B6D /* back.png in Resources */,
+				D04BAB3420CC79CF00501B6D /* img_311477.png in Resources */,
 				D00FF6A42083DA1000660D3C /* four.png in Resources */,
 				D00FF6A82083DAC900660D3C /* images-6.png in Resources */,
 				D00FF6A32083DA1000660D3C /* five.png in Resources */,
@@ -400,6 +435,7 @@
 				D04BAB2620CB1B3E00501B6D /* SpendMultiSigViewController.swift in Sources */,
 				D0B597852013E96E000767A7 /* ViewControllerBalanceChecker.swift in Sources */,
 				D003821820B24D4400BC310D /* SettingsViewController.swift in Sources */,
+				D04BAB2C20CC2F6B00501B6D /* InfoViewController.swift in Sources */,
 				D0C663352062627C0061B2FF /* CoinbaseViewController.swift in Sources */,
 				D03114D520C90C2B005B0AE1 /* MultiSigCreatorViewController.swift in Sources */,
 				D0C56F5B1FCBFBC4004A5F47 /* ViewController.swift in Sources */,

@@ -248,7 +248,11 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         var url:NSURL!
         
-        if testnetMode {
+        if address.hasPrefix("1") || address.hasPrefix("3") {
+            
+            url = NSURL(string: "https://blockchain.info/rawaddr/\(address)")
+            
+        } else if testnetMode {
             
             url = NSURL(string: "https://testnet.blockchain.info/rawaddr/\(address)")
             
@@ -475,15 +479,16 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         DispatchQueue.main.async {
             
-            let button = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
+            let button = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
             button.showsTouchWhenHighlighted = true
-            button.layer.cornerRadius = 10
+            /*button.layer.cornerRadius = 10
             button.backgroundColor = UIColor.lightText
             button.layer.shadowColor = UIColor.black.cgColor
             button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             button.layer.shadowRadius = 2.5
             button.layer.shadowOpacity = 0.8
-            button.setTitle("Back", for: .normal)
+            button.setTitle("Back", for: .normal)*/
+            button.setImage(#imageLiteral(resourceName: "back.png"), for: .normal)
             button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
             self.view.addSubview(button)
             
@@ -495,7 +500,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         DispatchQueue.main.async {
             
-            self.dismiss(animated: false, completion: nil)
+            self.dismiss(animated: true, completion: nil)
         }
         
     }
@@ -630,12 +635,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             let myAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
                             print("myAddress = \(myAddress)")
                             self.checkBech32Address(address: myAddress)
-                            
-                            /*
-                            DispatchQueue.main.async {
-                                self.displayAlert(title: "Under construction", message: "We are working hard to become fully segwit compatible, your segwit address is: \(myAddress), we will be adding more compatibility soon.")
-                            }
-                            */
                             
                         } else if testnetMode {
                             

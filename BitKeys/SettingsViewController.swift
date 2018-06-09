@@ -83,15 +83,16 @@ class SettingsViewController: UIViewController {
         DispatchQueue.main.async {
             
             self.backButton.removeFromSuperview()
-            self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
+            self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
             self.backButton.showsTouchWhenHighlighted = true
-            self.backButton.layer.cornerRadius = 10
-            self.backButton.backgroundColor = UIColor.lightText
-            self.backButton.layer.shadowColor = UIColor.black.cgColor
-            self.backButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.backButton.layer.shadowRadius = 2.5
-            self.backButton.layer.shadowOpacity = 0.8
-            self.backButton.setTitle("Back", for: .normal)
+            //self.backButton.layer.cornerRadius = 10
+            //self.backButton.backgroundColor = UIColor.lightText
+            //self.backButton.layer.shadowColor = UIColor.black.cgColor
+            //self.backButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            //self.backButton.layer.shadowRadius = 2.5
+            //self.backButton.layer.shadowOpacity = 0.8
+            //self.backButton.setTitle("Back", for: .normal)
+            self.backButton.setImage(#imageLiteral(resourceName: "back.png"), for: .normal)
             self.backButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
             self.view.addSubview(self.backButton)
             
@@ -345,7 +346,7 @@ class SettingsViewController: UIViewController {
         case self.backButton:
             
             print("back button")
-            self.dismiss(animated: false, completion: nil)
+            self.dismiss(animated: true, completion: nil)
             
         case self.advancedModeButton:
             

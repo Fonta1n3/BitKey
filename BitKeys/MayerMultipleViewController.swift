@@ -53,15 +53,16 @@ class MayerMultipleViewController: UIViewController {
         self.imageView.frame = CGRect(x: self.view.center.x - 100, y: self.view.center.y - 100, width: 200, height: 200)
         self.view.addSubview(self.imageView)
         
-        self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 90, height: 55))
+        self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
         self.button.showsTouchWhenHighlighted = true
-        self.button.layer.cornerRadius = 10
+        /*self.button.layer.cornerRadius = 10
         self.button.backgroundColor = UIColor.lightText
         self.button.layer.shadowColor = UIColor.black.cgColor
         self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
         self.button.layer.shadowRadius = 2.5
         self.button.layer.shadowOpacity = 0.8
-        self.button.setTitle("Back", for: .normal)
+        self.button.setTitle("Back", for: .normal)*/
+        self.button.setImage(#imageLiteral(resourceName: "back.png"), for: .normal)
         self.button.addTarget(self, action: #selector(self.goBack), for: .touchUpInside)
         self.view.addSubview(self.button)
         
@@ -83,7 +84,7 @@ class MayerMultipleViewController: UIViewController {
 
     @objc func goBack() {
         
-        self.dismiss(animated: false, completion: nil)
+        self.dismiss(animated: true, completion: nil)
     }
     
     func displayAlert(title: String, message: String) {
