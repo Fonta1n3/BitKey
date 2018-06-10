@@ -341,7 +341,7 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
             self.backButton.layer.shadowRadius = 2.5
             self.backButton.layer.shadowOpacity = 0.8
             self.backButton.setTitle("Back", for: .normal)*/
-            self.backButton.setImage(#imageLiteral(resourceName: "back.png"), for: .normal)
+            self.backButton.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
             self.backButton.addTarget(self, action: #selector(self.home), for: .touchUpInside)
             self.view.addSubview(self.backButton)
         }

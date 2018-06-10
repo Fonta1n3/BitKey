@@ -486,7 +486,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         self.pushRawTransactionButton.showsTouchWhenHighlighted = true
         self.pushRawTransactionButton.titleLabel?.textAlignment = .center
         self.pushRawTransactionButton.layer.cornerRadius = 10
-        self.pushRawTransactionButton.backgroundColor = UIColor.lightText
+        self.pushRawTransactionButton.backgroundColor = UIColor.black//lightText
         self.pushRawTransactionButton.layer.shadowColor = UIColor.black.cgColor
         self.pushRawTransactionButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
         self.pushRawTransactionButton.layer.shadowRadius = 2.5
@@ -499,7 +499,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         self.decodeRawTransactionButton.showsTouchWhenHighlighted = true
         self.decodeRawTransactionButton.titleLabel?.textAlignment = .center
         self.decodeRawTransactionButton.layer.cornerRadius = 10
-        self.decodeRawTransactionButton.backgroundColor = UIColor.lightText
+        self.decodeRawTransactionButton.backgroundColor = UIColor.black
         self.decodeRawTransactionButton.layer.shadowColor = UIColor.black.cgColor
         self.decodeRawTransactionButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
         self.decodeRawTransactionButton.layer.shadowRadius = 2.5
@@ -530,7 +530,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             self.backButton.layer.shadowRadius = 2.5
             self.backButton.layer.shadowOpacity = 0.8
             self.backButton.setTitle("Back", for: .normal)*/
-            self.backButton.setImage(#imageLiteral(resourceName: "back.png"), for: .normal)
+            self.backButton.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
             self.backButton.addTarget(self, action: #selector(self.home), for: .touchUpInside)
             self.view.addSubview(self.backButton)
             
@@ -601,10 +601,10 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         print("addSpinner")
         
         DispatchQueue.main.async {
-            let bitcoinImage = UIImage(named: "bitcoinIcon.png")
+            let bitcoinImage = UIImage(named: "img_311477.png")
             self.imageView = UIImageView(image: bitcoinImage!)
             self.imageView.center = self.view.center
-            self.imageView.frame = CGRect(x: self.view.center.x - 100, y: self.view.center.y - 100, width: 200, height: 200)
+            self.imageView.frame = CGRect(x: self.view.center.x - 50, y: self.view.center.y - 50, width: 100, height: 100)
             self.rotateAnimation(imageView: self.imageView as! UIImageView)
             self.view.addSubview(self.imageView)
         }
@@ -2039,7 +2039,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                         self.refreshButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
                                         self.refreshButton.showsTouchWhenHighlighted = true
                                         self.refreshButton.layer.cornerRadius = 10
-                                        self.refreshButton.backgroundColor = UIColor.lightText
+                                        self.refreshButton.backgroundColor = UIColor.black
                                         self.refreshButton.layer.shadowColor = UIColor.black.cgColor
                                         self.refreshButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
                                         self.refreshButton.layer.shadowRadius = 2.5

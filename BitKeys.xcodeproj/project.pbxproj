@@ -36,6 +36,13 @@
 		D089BFA6207EBDEF0086243B /* BigInt.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D089BFA4207EBDEF0086243B /* BigInt.framework */; };
 		D09FB1DC1FCBFDE000A9630F /* bitcoinIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */; };
 		D0B597852013E96E000767A7 /* ViewControllerBalanceChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B597842013E96E000767A7 /* ViewControllerBalanceChecker.swift */; };
+		D0C47DE220CD48A50076CA3B /* tool2.png in Resources */ = {isa = PBXBuildFile; fileRef = D0C47DE120CD48A50076CA3B /* tool2.png */; };
+		D0C47DE420CD4BAA0076CA3B /* settings2.png in Resources */ = {isa = PBXBuildFile; fileRef = D0C47DE320CD4BAA0076CA3B /* settings2.png */; };
+		D0C47DE620CD4C3B0076CA3B /* help2.png in Resources */ = {isa = PBXBuildFile; fileRef = D0C47DE520CD4C3A0076CA3B /* help2.png */; };
+		D0C47DE820CD7D370076CA3B /* backUp.jpg in Resources */ = {isa = PBXBuildFile; fileRef = D0C47DE720CD7D370076CA3B /* backUp.jpg */; };
+		D0C47DEA20CD7E750076CA3B /* switch.jpg in Resources */ = {isa = PBXBuildFile; fileRef = D0C47DE920CD7E750076CA3B /* switch.jpg */; };
+		D0C47DEC20CD80A10076CA3B /* clear.png in Resources */ = {isa = PBXBuildFile; fileRef = D0C47DEB20CD80A10076CA3B /* clear.png */; };
+		D0C47DEE20CD81E00076CA3B /* back2.png in Resources */ = {isa = PBXBuildFile; fileRef = D0C47DED20CD81E00076CA3B /* back2.png */; };
 		D0C56F591FCBFBC4004A5F47 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C56F581FCBFBC4004A5F47 /* AppDelegate.swift */; };
 		D0C56F5B1FCBFBC4004A5F47 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C56F5A1FCBFBC4004A5F47 /* ViewController.swift */; };
 		D0C56F5E1FCBFBC4004A5F47 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D0C56F5C1FCBFBC4004A5F47 /* Main.storyboard */; };
@@ -94,6 +101,13 @@
 		D09FB1DB1FCBFDE000A9630F /* bitcoinIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bitcoinIcon.png; sourceTree = "<group>"; };
 		D09FB1DD1FCC002200A9630F /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Header.h; sourceTree = "<group>"; };
 		D0B597842013E96E000767A7 /* ViewControllerBalanceChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerBalanceChecker.swift; sourceTree = "<group>"; };
+		D0C47DE120CD48A50076CA3B /* tool2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tool2.png; sourceTree = "<group>"; };
+		D0C47DE320CD4BAA0076CA3B /* settings2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = settings2.png; sourceTree = "<group>"; };
+		D0C47DE520CD4C3A0076CA3B /* help2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = help2.png; sourceTree = "<group>"; };
+		D0C47DE720CD7D370076CA3B /* backUp.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = backUp.jpg; sourceTree = "<group>"; };
+		D0C47DE920CD7E750076CA3B /* switch.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = switch.jpg; sourceTree = "<group>"; };
+		D0C47DEB20CD80A10076CA3B /* clear.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = clear.png; sourceTree = "<group>"; };
+		D0C47DED20CD81E00076CA3B /* back2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = back2.png; sourceTree = "<group>"; };
 		D0C56F551FCBFBC4004A5F47 /* BitKeys.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BitKeys.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0C56F581FCBFBC4004A5F47 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D0C56F5A1FCBFBC4004A5F47 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -147,9 +161,16 @@
 			isa = PBXGroup;
 			children = (
 				D0F3E1A920BCF535000F7A5D /* settings.png */,
+				D0C47DEB20CD80A10076CA3B /* clear.png */,
+				D0C47DE920CD7E750076CA3B /* switch.jpg */,
+				D0C47DE720CD7D370076CA3B /* backUp.jpg */,
 				D04BAB2F20CC77B100501B6D /* 18449010.jpg */,
+				D0C47DE520CD4C3A0076CA3B /* help2.png */,
+				D0C47DE320CD4BAA0076CA3B /* settings2.png */,
+				D0C47DE120CD48A50076CA3B /* tool2.png */,
 				D04BAB3320CC79CF00501B6D /* img_311477.png */,
 				D04BAB3720CC876C00501B6D /* tools.png */,
+				D0C47DED20CD81E00076CA3B /* back2.png */,
 				D04BAB3520CC819800501B6D /* back.png */,
 				D04BAB3120CC796E00501B6D /* bitcoin-512.png */,
 				D04BAB2D20CC770000501B6D /* golden-bitcoin-coin-symbol-vector-18449010.jpg */,
@@ -333,19 +354,26 @@
 				D0F3E1AA20BCF535000F7A5D /* settings.png in Resources */,
 				D04BAB3820CC876C00501B6D /* tools.png in Resources */,
 				D00FF6A22083DA1000660D3C /* two.png in Resources */,
+				D0C47DEC20CD80A10076CA3B /* clear.png in Resources */,
 				D04BAB2820CC2A5A00501B6D /* info-512.png in Resources */,
 				D0C56F661FCBFBC4004A5F47 /* LaunchScreen.storyboard in Resources */,
 				D0C56F631FCBFBC4004A5F47 /* Assets.xcassets in Resources */,
 				D00FF6A52083DA1000660D3C /* three.png in Resources */,
 				D04BAB3220CC796F00501B6D /* bitcoin-512.png in Resources */,
+				D0C47DEE20CD81E00076CA3B /* back2.png in Resources */,
 				D04BAB3020CC77B200501B6D /* 18449010.jpg in Resources */,
 				D04BAB2A20CC2E6C00501B6D /* help.png in Resources */,
+				D0C47DEA20CD7E750076CA3B /* switch.jpg in Resources */,
 				D04BAB2E20CC770000501B6D /* golden-bitcoin-coin-symbol-vector-18449010.jpg in Resources */,
 				D00FF6A62083DA1000660D3C /* six.png in Resources */,
 				D0C56F5E1FCBFBC4004A5F47 /* Main.storyboard in Resources */,
 				D04BAB3620CC819800501B6D /* back.png in Resources */,
+				D0C47DE620CD4C3B0076CA3B /* help2.png in Resources */,
+				D0C47DE820CD7D370076CA3B /* backUp.jpg in Resources */,
+				D0C47DE220CD48A50076CA3B /* tool2.png in Resources */,
 				D04BAB3420CC79CF00501B6D /* img_311477.png in Resources */,
 				D00FF6A42083DA1000660D3C /* four.png in Resources */,
+				D0C47DE420CD4BAA0076CA3B /* settings2.png in Resources */,
 				D00FF6A82083DAC900660D3C /* images-6.png in Resources */,
 				D00FF6A32083DA1000660D3C /* five.png in Resources */,
 				D09FB1DC1FCBFDE000A9630F /* bitcoinIcon.png in Resources */,

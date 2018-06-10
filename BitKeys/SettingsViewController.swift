@@ -85,14 +85,7 @@ class SettingsViewController: UIViewController {
             self.backButton.removeFromSuperview()
             self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
             self.backButton.showsTouchWhenHighlighted = true
-            //self.backButton.layer.cornerRadius = 10
-            //self.backButton.backgroundColor = UIColor.lightText
-            //self.backButton.layer.shadowColor = UIColor.black.cgColor
-            //self.backButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            //self.backButton.layer.shadowRadius = 2.5
-            //self.backButton.layer.shadowOpacity = 0.8
-            //self.backButton.setTitle("Back", for: .normal)
-            self.backButton.setImage(#imageLiteral(resourceName: "back.png"), for: .normal)
+            self.backButton.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
             self.backButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
             self.view.addSubview(self.backButton)
             
@@ -109,7 +102,7 @@ class SettingsViewController: UIViewController {
             
             if self.simpleMode {
                 
-                self.simpleModeButton.backgroundColor = UIColor.lightText
+                self.simpleModeButton.backgroundColor = UIColor.black
                 self.simpleModeButton.setTitle("Simple Mode - ON", for: .normal)
                 
                 self.setDefaults()
@@ -136,8 +129,8 @@ class SettingsViewController: UIViewController {
                 
             } else {
                 
-                self.simpleModeButton.backgroundColor = UIColor.groupTableViewBackground
-                self.simpleModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.simpleModeButton.backgroundColor = UIColor.white
+                self.simpleModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.simpleModeButton.setTitle("Simple Mode - OFF", for: .normal)
                 
             }
@@ -157,13 +150,13 @@ class SettingsViewController: UIViewController {
             
             if self.advancedMode {
                 
-                self.advancedModeButton.backgroundColor = UIColor.lightText
+                self.advancedModeButton.backgroundColor = UIColor.black
                 self.advancedModeButton.setTitle("Advanced Mode - ON", for: .normal)
                 
             } else {
                 
-                self.advancedModeButton.backgroundColor = UIColor.groupTableViewBackground
-                self.advancedModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.advancedModeButton.backgroundColor = UIColor.white
+                self.advancedModeButton.setTitleColor(UIColor.groupTableViewBackground/*black*/, for: .normal)
                 self.advancedModeButton.setTitle("Advanced Mode - OFF", for: .normal)
                 
                 self.setDefaults()
@@ -185,13 +178,13 @@ class SettingsViewController: UIViewController {
             
             if self.segwitMode {
                 
-                self.segwitButton.backgroundColor = UIColor.lightText
+                self.segwitButton.backgroundColor = UIColor.black
                 self.segwitButton.setTitle("Segwit Mode - ON", for: .normal)
                 
             } else {
                 
-                self.segwitButton.backgroundColor = UIColor.groupTableViewBackground
-                self.segwitButton.setTitleColor(UIColor.black, for: .normal)
+                self.segwitButton.backgroundColor = UIColor.white
+                self.segwitButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.segwitButton.setTitle("Segwit Mode - OFF", for: .normal)
                 
             }
@@ -211,13 +204,13 @@ class SettingsViewController: UIViewController {
             
             if self.legacyMode {
                 
-                self.legacyButton.backgroundColor = UIColor.lightText
+                self.legacyButton.backgroundColor = UIColor.black
                 self.legacyButton.setTitle("Legacy Mode - ON", for: .normal)
                 
             } else {
                 
-                self.legacyButton.backgroundColor = UIColor.groupTableViewBackground
-                self.legacyButton.setTitleColor(UIColor.black, for: .normal)
+                self.legacyButton.backgroundColor = UIColor.white
+                self.legacyButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.legacyButton.setTitle("Legacy Mode - OFF", for: .normal)
                 
             }
@@ -237,13 +230,13 @@ class SettingsViewController: UIViewController {
             
             if self.hotMode {
                 
-                self.hotModeButton.backgroundColor = UIColor.lightText
+                self.hotModeButton.backgroundColor = UIColor.black
                 self.hotModeButton.setTitle("Hot Mode - ON", for: .normal)
                 
             } else {
                 
-                self.hotModeButton.backgroundColor = UIColor.groupTableViewBackground
-                self.hotModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.hotModeButton.backgroundColor = UIColor.white
+                self.hotModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.hotModeButton.setTitle("Hot Mode - OFF", for: .normal)
                 //UserDefaults.standard.removeObject(forKey: "wif")
                 
@@ -265,14 +258,14 @@ class SettingsViewController: UIViewController {
             
             if self.coldMode {
                 
-                self.coldModeButton.backgroundColor = UIColor.lightText
+                self.coldModeButton.backgroundColor = UIColor.black
                 self.coldModeButton.setTitle("Cold Mode - ON", for: .normal)
                 //UserDefaults.standard.removeObject(forKey: "wif")
                 
             } else {
                 
-                self.coldModeButton.backgroundColor = UIColor.groupTableViewBackground
-                self.coldModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.coldModeButton.backgroundColor = UIColor.white
+                self.coldModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.coldModeButton.setTitle("Cold Mode - OFF", for: .normal)
                 
             }
@@ -292,13 +285,13 @@ class SettingsViewController: UIViewController {
             
             if self.testnetMode {
                 
-                self.testnetModeButton.backgroundColor = UIColor.lightText
+                self.testnetModeButton.backgroundColor = UIColor.black
                 self.testnetModeButton.setTitle("Testnet Mode - ON", for: .normal)
                 
             } else {
                 
-                self.testnetModeButton.backgroundColor = UIColor.groupTableViewBackground
-                self.testnetModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.testnetModeButton.backgroundColor = UIColor.white
+                self.testnetModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.testnetModeButton.setTitle("Testnet Mode - OFF", for: .normal)
                 
             }
@@ -318,13 +311,13 @@ class SettingsViewController: UIViewController {
             
             if self.mainnetMode {
                 
-                self.mainnetModeButton.backgroundColor = UIColor.lightText
+                self.mainnetModeButton.backgroundColor = UIColor.black
                 self.mainnetModeButton.setTitle("Mainnet Mode - ON", for: .normal)
                 
             } else {
                 
-                self.mainnetModeButton.backgroundColor = UIColor.groupTableViewBackground
-                self.mainnetModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.mainnetModeButton.backgroundColor = UIColor.white
+                self.mainnetModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.mainnetModeButton.setTitle("Mainnet Mode - OFF", for: .normal)
                 
             }
@@ -355,13 +348,13 @@ class SettingsViewController: UIViewController {
             if advancedMode {
                 
                 sender.setTitle("Advanced Mode - OFF", for: .normal)
-                sender.backgroundColor = UIColor.groupTableViewBackground
-                sender.setTitleColor(UIColor.black, for: .normal)
+                sender.backgroundColor = UIColor.white//white
+                sender.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.advancedMode = false
                 UserDefaults.standard.set(self.simpleMode, forKey: "advancedMode")
                 
                 self.simpleModeButton.setTitle("Simple Mode - ON", for: .normal)
-                self.simpleModeButton.backgroundColor = UIColor.lightText
+                self.simpleModeButton.backgroundColor = UIColor.black//black
                 self.simpleModeButton.setTitleColor(UIColor.white, for: .normal)
                 self.simpleMode = true
                 UserDefaults.standard.set(self.simpleMode, forKey: "simpleMode")
@@ -395,14 +388,14 @@ class SettingsViewController: UIViewController {
             } else {
                 
                 sender.setTitle("Advanced Mode - ON", for: .normal)
-                sender.backgroundColor = UIColor.lightText
+                sender.backgroundColor = UIColor.black//black
                 sender.setTitleColor(UIColor.white, for: .normal)
                 self.advancedMode = true
                 UserDefaults.standard.set(self.advancedMode, forKey: "advancedMode")
                 
                 self.simpleModeButton.setTitle("Simple Mode - OFF", for: .normal)
-                self.simpleModeButton.backgroundColor = UIColor.groupTableViewBackground
-                self.simpleModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.simpleModeButton.backgroundColor = UIColor.white//white
+                self.simpleModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.simpleMode = false
                 UserDefaults.standard.set(self.simpleMode, forKey: "simpleMode")
                 
@@ -446,13 +439,13 @@ class SettingsViewController: UIViewController {
             if simpleMode {
                 
                 sender.setTitle("Simple Mode - OFF", for: .normal)
-                sender.backgroundColor = UIColor.groupTableViewBackground
-                sender.setTitleColor(UIColor.black, for: .normal)
+                sender.backgroundColor = UIColor.white
+                sender.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.simpleMode = false
                 UserDefaults.standard.set(self.simpleMode, forKey: "simpleMode")
                 
                 self.advancedModeButton.setTitle("Advanced Mode - ON", for: .normal)
-                self.advancedModeButton.backgroundColor = UIColor.lightText
+                self.advancedModeButton.backgroundColor = UIColor.black
                 self.advancedModeButton.setTitleColor(UIColor.white, for: .normal)
                 self.advancedMode = true
                 UserDefaults.standard.set(self.advancedMode, forKey: "advancedMode")
@@ -491,14 +484,14 @@ class SettingsViewController: UIViewController {
             } else {
                 
                 sender.setTitle("Simple Mode - ON", for: .normal)
-                sender.backgroundColor = UIColor.lightText
+                sender.backgroundColor = UIColor.black//black
                 sender.setTitleColor(UIColor.white, for: .normal)
                 self.simpleMode = true
                 UserDefaults.standard.set(self.simpleMode, forKey: "simpleMode")
                 
                 self.advancedModeButton.setTitle("Advanced Mode - OFF", for: .normal)
-                self.advancedModeButton.backgroundColor = UIColor.groupTableViewBackground
-                self.advancedModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.advancedModeButton.backgroundColor = UIColor.white//white
+                self.advancedModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.advancedMode = false
                 UserDefaults.standard.set(self.advancedMode, forKey: "advancedMode")
                 
@@ -537,13 +530,13 @@ class SettingsViewController: UIViewController {
             if segwitMode {
                 
                 sender.setTitle("Segwit Mode - OFF", for: .normal)
-                sender.backgroundColor = UIColor.groupTableViewBackground
-                sender.setTitleColor(UIColor.black, for: .normal)
+                sender.backgroundColor = UIColor.white
+                sender.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.segwitMode = false
                 UserDefaults.standard.set(self.segwitMode, forKey: "segwitMode")
                 
                 self.legacyButton.setTitle("Legacy Mode - ON", for: .normal)
-                self.legacyButton.backgroundColor = UIColor.lightText
+                self.legacyButton.backgroundColor = UIColor.black
                 self.legacyButton.setTitleColor(UIColor.white, for: .normal)
                 self.legacyMode = true
                 UserDefaults.standard.set(self.legacyMode, forKey: "legacyMode")
@@ -551,14 +544,14 @@ class SettingsViewController: UIViewController {
             } else {
                 
                 sender.setTitle("Segwit Mode - ON", for: .normal)
-                sender.backgroundColor = UIColor.lightText
+                sender.backgroundColor = UIColor.black
                 sender.setTitleColor(UIColor.white, for: .normal)
                 self.segwitMode = true
                 UserDefaults.standard.set(self.segwitMode, forKey: "segwitMode")
                 
                 self.legacyButton.setTitle("Legacy Mode - OFF", for: .normal)
-                self.legacyButton.backgroundColor = UIColor.groupTableViewBackground
-                self.legacyButton.setTitleColor(UIColor.black, for: .normal)
+                self.legacyButton.backgroundColor = UIColor.white
+                self.legacyButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.legacyMode = false
                 UserDefaults.standard.set(self.legacyMode, forKey: "legacyMode")
                 
@@ -571,13 +564,13 @@ class SettingsViewController: UIViewController {
             if legacyMode {
                 
                 sender.setTitle("Legacy Mode - OFF", for: .normal)
-                sender.backgroundColor = UIColor.groupTableViewBackground
-                sender.setTitleColor(UIColor.black, for: .normal)
+                sender.backgroundColor = UIColor.white
+                sender.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.legacyMode = false
                 UserDefaults.standard.set(self.legacyMode, forKey: "legacyMode")
                 
                 self.segwitButton.setTitle("Segwit Mode - ON", for: .normal)
-                self.segwitButton.backgroundColor = UIColor.lightText
+                self.segwitButton.backgroundColor = UIColor.black
                 self.segwitButton.setTitleColor(UIColor.white, for: .normal)
                 self.segwitMode = true
                 UserDefaults.standard.set(self.segwitMode, forKey: "segwitMode")
@@ -585,14 +578,14 @@ class SettingsViewController: UIViewController {
             } else {
                 
                 sender.setTitle("Legacy Mode - ON", for: .normal)
-                sender.backgroundColor = UIColor.lightText
+                sender.backgroundColor = UIColor.black
                 sender.setTitleColor(UIColor.white, for: .normal)
                 self.legacyMode = true
                 UserDefaults.standard.set(self.legacyMode, forKey: "legacyMode")
                 
                 self.segwitButton.setTitle("Segwit Mode - OFF", for: .normal)
-                self.segwitButton.backgroundColor = UIColor.groupTableViewBackground
-                self.segwitButton.setTitleColor(UIColor.black, for: .normal)
+                self.segwitButton.backgroundColor = UIColor.white
+                self.segwitButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.segwitMode = false
                 UserDefaults.standard.set(self.segwitMode, forKey: "segwitMode")
                 
@@ -611,13 +604,13 @@ class SettingsViewController: UIViewController {
                     alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, delete my hot wallet", comment: ""), style: .destructive, handler: { (action) in
                         
                         sender.setTitle("Hot Mode - OFF", for: .normal)
-                        sender.backgroundColor = UIColor.groupTableViewBackground
-                        sender.setTitleColor(UIColor.black, for: .normal)
+                        sender.backgroundColor = UIColor.white
+                        sender.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                         self.hotMode = false
                         UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
                         
                         self.coldModeButton.setTitle("Cold Mode - ON", for: .normal)
-                        self.coldModeButton.backgroundColor = UIColor.lightText
+                        self.coldModeButton.backgroundColor = UIColor.black
                         self.coldModeButton.setTitleColor(UIColor.white, for: .normal)
                         self.coldMode = true
                         UserDefaults.standard.set(self.coldMode, forKey: "coldMode")
@@ -639,14 +632,14 @@ class SettingsViewController: UIViewController {
             } else {
                 
                 sender.setTitle("Hot Mode - ON", for: .normal)
-                sender.backgroundColor = UIColor.lightText
+                sender.backgroundColor = UIColor.black
                 sender.setTitleColor(UIColor.white, for: .normal)
                 self.hotMode = true
                 UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
                 
                 self.coldModeButton.setTitle("Cold Mode - OFF", for: .normal)
-                self.coldModeButton.backgroundColor = UIColor.groupTableViewBackground
-                self.coldModeButton.setTitleColor(UIColor.black, for: .normal)
+                self.coldModeButton.backgroundColor = UIColor.white
+                self.coldModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.coldMode = false
                 UserDefaults.standard.set(self.coldMode, forKey: "coldMode")
                 
@@ -659,13 +652,13 @@ class SettingsViewController: UIViewController {
             if coldMode {
                 
                 sender.setTitle("Cold Mode - OFF", for: .normal)
-                sender.backgroundColor = UIColor.groupTableViewBackground
-                sender.setTitleColor(UIColor.black, for: .normal)
+                sender.backgroundColor = UIColor.white
+                sender.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.coldMode = false
                 UserDefaults.standard.set(self.coldMode, forKey: "coldMode")
                 
                 self.hotModeButton.setTitle("Hot Mode - ON", for: .normal)
-                self.hotModeButton.backgroundColor = UIColor.lightText
+                self.hotModeButton.backgroundColor = UIColor.black
                 self.hotModeButton.setTitleColor(UIColor.white, for: .normal)
                 self.hotMode = true
                 UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
@@ -679,14 +672,14 @@ class SettingsViewController: UIViewController {
                     alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, delete my hot wallet", comment: ""), style: .destructive, handler: { (action) in
                         
                         sender.setTitle("Cold Mode - ON", for: .normal)
-                        sender.backgroundColor = UIColor.lightText
+                        sender.backgroundColor = UIColor.black
                         sender.setTitleColor(UIColor.white, for: .normal)
                         self.coldMode = true
                         UserDefaults.standard.set(self.coldMode, forKey: "coldMode")
                         
                         self.hotModeButton.setTitle("Hot Mode - OFF", for: .normal)
-                        self.hotModeButton.backgroundColor = UIColor.groupTableViewBackground
-                        self.hotModeButton.setTitleColor(UIColor.black, for: .normal)
+                        self.hotModeButton.backgroundColor = UIColor.white
+                        self.hotModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                         self.hotMode = false
                         UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
                         
@@ -717,13 +710,13 @@ class SettingsViewController: UIViewController {
                     alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, delete my hot wallet", comment: ""), style: .destructive, handler: { (action) in
                         
                         sender.setTitle("Testnet Mode - OFF", for: .normal)
-                        sender.backgroundColor = UIColor.groupTableViewBackground
-                        sender.setTitleColor(UIColor.black, for: .normal)
+                        sender.backgroundColor = UIColor.white
+                        sender.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                         self.testnetMode = false
                         UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
                         
                         self.mainnetModeButton.setTitle("Mainnet Mode - ON", for: .normal)
-                        self.mainnetModeButton.backgroundColor = UIColor.lightText
+                        self.mainnetModeButton.backgroundColor = UIColor.black
                         self.mainnetModeButton.setTitleColor(UIColor.white, for: .normal)
                         self.mainnetMode = true
                         UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
@@ -749,14 +742,14 @@ class SettingsViewController: UIViewController {
                     alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, delete my hot wallet", comment: ""), style: .destructive, handler: { (action) in
                         
                         sender.setTitle("Testnet Mode - ON", for: .normal)
-                        sender.backgroundColor = UIColor.lightText
+                        sender.backgroundColor = UIColor.black
                         sender.setTitleColor(UIColor.white, for: .normal)
                         self.testnetMode = true
                         UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
                         
                         self.mainnetModeButton.setTitle("Mainnet Mode - OFF", for: .normal)
-                        self.mainnetModeButton.backgroundColor = UIColor.groupTableViewBackground
-                        self.mainnetModeButton.setTitleColor(UIColor.black, for: .normal)
+                        self.mainnetModeButton.backgroundColor = UIColor.white
+                        self.mainnetModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                         self.mainnetMode = false
                         UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
                         
@@ -787,13 +780,13 @@ class SettingsViewController: UIViewController {
                     alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, delete my hot wallet", comment: ""), style: .destructive, handler: { (action) in
                         
                         sender.setTitle("Mainnet Mode - OFF", for: .normal)
-                        sender.backgroundColor = UIColor.groupTableViewBackground
-                        sender.setTitleColor(UIColor.black, for: .normal)
+                        sender.backgroundColor = UIColor.white
+                        sender.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                         self.mainnetMode = false
                         UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
                         
                         self.testnetModeButton.setTitle("Testnet Mode - ON", for: .normal)
-                        self.testnetModeButton.backgroundColor = UIColor.lightText
+                        self.testnetModeButton.backgroundColor = UIColor.black
                         self.testnetModeButton.setTitleColor(UIColor.white, for: .normal)
                         self.testnetMode = true
                         UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
@@ -819,14 +812,14 @@ class SettingsViewController: UIViewController {
                     alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, delete my hot wallet", comment: ""), style: .destructive, handler: { (action) in
                         
                         sender.setTitle("Mainnet Mode - ON", for: .normal)
-                        sender.backgroundColor = UIColor.lightText
+                        sender.backgroundColor = UIColor.black
                         sender.setTitleColor(UIColor.white, for: .normal)
                         self.mainnetMode = true
                         UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
                         
                         self.testnetModeButton.setTitle("Testnet Mode - OFF", for: .normal)
-                        self.testnetModeButton.backgroundColor = UIColor.groupTableViewBackground
-                        self.testnetModeButton.setTitleColor(UIColor.black, for: .normal)
+                        self.testnetModeButton.backgroundColor = UIColor.white
+                        self.testnetModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                         self.testnetMode = false
                         UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
                         

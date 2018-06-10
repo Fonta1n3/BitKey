@@ -47,10 +47,10 @@ class MayerMultipleViewController: UIViewController {
         // Do any additional setup after loading the view.
         print("MayerMultipleViewController")
         
-        let bitcoinImage = UIImage(named: "bitcoinIcon.png")
+        let bitcoinImage = UIImage(named: "img_311477.png")
         self.imageView = UIImageView(image: bitcoinImage!)
         self.imageView.center = self.view.center
-        self.imageView.frame = CGRect(x: self.view.center.x - 100, y: self.view.center.y - 100, width: 200, height: 200)
+        self.imageView.frame = CGRect(x: self.view.center.x - 50, y: self.view.center.y - 50, width: 100, height: 100)
         self.view.addSubview(self.imageView)
         
         self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
@@ -62,7 +62,7 @@ class MayerMultipleViewController: UIViewController {
         self.button.layer.shadowRadius = 2.5
         self.button.layer.shadowOpacity = 0.8
         self.button.setTitle("Back", for: .normal)*/
-        self.button.setImage(#imageLiteral(resourceName: "back.png"), for: .normal)
+        self.button.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
         self.button.addTarget(self, action: #selector(self.goBack), for: .touchUpInside)
         self.view.addSubview(self.button)
         

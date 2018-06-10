@@ -46,7 +46,7 @@ class InfoViewController: UIViewController, UITextViewDelegate {
             self.button.layer.shadowRadius = 2.5
             self.button.layer.shadowOpacity = 0.8
             self.button.setTitle("Back", for: .normal)*/
-            self.button.setImage(#imageLiteral(resourceName: "back.png"), for: .normal)
+            self.button.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
             self.button.addTarget(self, action: #selector(self.back), for: .touchUpInside)
             self.view.addSubview(self.button)
             

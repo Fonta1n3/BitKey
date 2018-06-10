@@ -90,10 +90,10 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func addSpinner() {
         
         DispatchQueue.main.async {
-            let bitcoinImage = UIImage(named: "bitcoinIcon.png")
+            let bitcoinImage = UIImage(named: "img_311477.png")
             self.imageView = UIImageView(image: bitcoinImage!)
             self.imageView.center = self.view.center
-            self.imageView.frame = CGRect(x: self.view.center.x - 100, y: self.view.center.y - 100, width: 200, height: 200)
+            self.imageView.frame = CGRect(x: self.view.center.x - 50, y: self.view.center.y - 50, width: 100, height: 100)
             self.rotateAnimation(imageView: self.imageView as! UIImageView)
             self.view.addSubview(self.imageView)
         }
@@ -488,7 +488,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             button.layer.shadowRadius = 2.5
             button.layer.shadowOpacity = 0.8
             button.setTitle("Back", for: .normal)*/
-            button.setImage(#imageLiteral(resourceName: "back.png"), for: .normal)
+            button.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
             button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
             self.view.addSubview(button)
             
