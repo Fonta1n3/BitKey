@@ -660,6 +660,9 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 
             }
             
+        } else {
+            
+            self.displayAlert(title: "Error", message: "You are in cold mode so we are not storing your address.")
         }
         
     }

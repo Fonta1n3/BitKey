@@ -340,6 +340,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                 let legacyAddress1 = (key?.addressTestnet.description)!
                                 let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
                                 self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                self.removeSpinner()
                                 self.checkBalance(address: self.sendingFromAddress)
                                 
                             } else {
@@ -350,6 +351,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                 let legacyAddress1 = (key?.address.description)!
                                 let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
                                 self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                self.removeSpinner()
                                 self.checkBalance(address: self.sendingFromAddress)
                                 
                             }
@@ -567,10 +569,34 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     @objc func setFee() {
         print("setFee")
         
-        self.fees = Int(self.amountToSend.text!)!
-        self.amountToSend.resignFirstResponder()
-        self.amountToSend.removeFromSuperview()
+        if self.amountToSend.text != "" {
+            
+            self.fees = Int(self.amountToSend.text!)!
+            self.amountToSend.resignFirstResponder()
+            self.amountToSend.removeFromSuperview()
+            
+        } else {
+            
+            self.shakeAlert(viewToShake: self.amountToSend)
+        }
         
+    }
+    
+    func shakeAlert(viewToShake: UIView) {
+        print("shakeAlert")
+        
+        let animation = CABasicAnimation(keyPath: "position")
+        animation.duration = 0.07
+        animation.repeatCount = 4
+        animation.autoreverses = true
+        animation.fromValue = NSValue(cgPoint: CGPoint(x: viewToShake.center.x - 10, y: viewToShake.center.y))
+        animation.toValue = NSValue(cgPoint: CGPoint(x: viewToShake.center.x + 10, y: viewToShake.center.y))
+        
+        DispatchQueue.main.async {
+            
+            viewToShake.layer.add(animation, forKey: "position")
+            
+        }
     }
     
     func addAmount() {
@@ -589,11 +615,19 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     @objc func saveAmountInSatoshis() {
         print("saveAmountInSatoshis")
         
-        self.amount = self.amountToSend.text!
-        self.amountToSend.text = ""
-        self.amountToSend.resignFirstResponder()
-        self.amountToSend.removeFromSuperview()
-        self.setPreference()
+        if self.amountToSend.text != "" {
+            
+            self.amount = self.amountToSend.text!
+            self.amountToSend.text = ""
+            self.amountToSend.resignFirstResponder()
+            self.amountToSend.removeFromSuperview()
+            self.setPreference()
+            
+        } else {
+            
+           self.shakeAlert(viewToShake: self.amountToSend)
+            
+        }
         
     }
     
@@ -615,7 +649,13 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         print("removeSpinner")
         
         DispatchQueue.main.async {
-            self.imageView.removeFromSuperview()
+            
+            if self.imageView != nil {
+                
+             self.imageView.removeFromSuperview()
+                
+            }
+            
         }
     }
     
@@ -675,57 +715,61 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func textFieldDidEndEditing(_ textField: UITextField) {
         print("textFieldDidEndEditing")
         
-        if textField == self.addressToDisplay {
+        func processKeys() {
             
-            if getReceivingAddressMode {
+            if textField == self.addressToDisplay {
                 
-                self.recievingAddress = self.addressToDisplay.text!
-                
-                self.getReceivingAddressMode = false
-                
-                if self.coldMode {
+                if getReceivingAddressMode {
                     
-                 self.getPayerAddressMode = true
-                    
-                }
-                
-                self.getSignatureMode = true
-                self.removeScanner()
-                
-                if self.simpleMode {
-                    
-                    if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
+                    func processReceivingAddress() {
                         
-                        if self.testnetMode {
+                        self.recievingAddress = self.addressToDisplay.text!
+                        
+                        self.getReceivingAddressMode = false
+                        
+                        if self.coldMode {
                             
-                            let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
-                            let key = BTCKey.init(privateKeyAddress: privateKey)
-                            key?.isPublicKeyCompressed = true
-                            let legacyAddress1 = (key?.addressTestnet.description)!
-                            let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                            self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                            self.getSignatureMode = true
-                            self.removeScanner()
-                            self.makeHTTPPostRequest()
+                            self.getPayerAddressMode = true
+                            
+                        }
+                        
+                        self.getSignatureMode = true
+                        self.removeScanner()
+                        
+                        if self.simpleMode {
+                            
+                            if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
+                                
+                                if self.testnetMode {
+                                    
+                                    let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
+                                    let key = BTCKey.init(privateKeyAddress: privateKey)
+                                    key?.isPublicKeyCompressed = true
+                                    let legacyAddress1 = (key?.addressTestnet.description)!
+                                    let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                                    self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                    self.getSignatureMode = true
+                                    self.removeScanner()
+                                    self.makeHTTPPostRequest()
+                                    
+                                } else {
+                                    
+                                    let privateKey = BTCPrivateKeyAddress(string: wif)
+                                    let key = BTCKey.init(privateKeyAddress: privateKey)
+                                    key?.isPublicKeyCompressed = true
+                                    let legacyAddress1 = (key?.address.description)!
+                                    let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                                    self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                    self.getSignatureMode = true
+                                    self.removeScanner()
+                                    self.makeHTTPPostRequest()
+                                }
+                                
+                            }
                             
                         } else {
                             
-                            let privateKey = BTCPrivateKeyAddress(string: wif)
-                            let key = BTCKey.init(privateKeyAddress: privateKey)
-                            key?.isPublicKeyCompressed = true
-                            let legacyAddress1 = (key?.address.description)!
-                            let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                            self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                            self.getSignatureMode = true
-                            self.removeScanner()
-                            self.makeHTTPPostRequest()
-                        }
-                        
-                    }
-
-                } else {
-                    
-                        if self.hotMode {
+                            if self.hotMode {
                                 
                                 if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
                                     
@@ -762,60 +806,154 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                 self.addressToDisplay.text = ""
                             }
                             
-                }
-                
-            } else if getPayerAddressMode && self.coldMode {
-                
-                self.sendingFromAddress = self.addressToDisplay.text!
-                
-                if sweepMode {
+                        }
+                    }
                     
-                    self.checkBalance(address: self.sendingFromAddress)
-                    
-                }
-                
-                self.getPayerAddressMode = false
-                self.getSignatureMode = true
-                self.removeScanner()
-                self.addressToDisplay.text = ""
-                self.makeHTTPPostRequest()
-                
-                
-            } else if getSignatureMode {
-                
-                DispatchQueue.main.async {
-                    
-                    let alert = UIAlertController(title: NSLocalizedString("Please confirm", comment: ""), message: "We will use private key: \(self.addressToDisplay.text!) to create a signature. You can just check first few and last few characters as if its incorrect the worst that will happen is you'll have to start over.", preferredStyle: UIAlertControllerStyle.actionSheet)
-                    
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Looks Good, please sign", comment: ""), style: .default, handler: { (action) in
+                    if let _ = BTCPublicKeyAddressTestnet.init(string: self.addressToDisplay.text!) {
                         
-                        self.getPrivateKeySignature(key: self.addressToDisplay.text!)
+                        processReceivingAddress()
+                        
+                    } else if let _ = BTCAddress.init(string: self.addressToDisplay.text!) {
+                        
+                        processReceivingAddress()
+                        
+                    } else {
+                        
+                        displayAlert(title: "Error", message: "That is not a valid Bitcoin Address")
+                        
+                    }
+                    
+                } else if getPayerAddressMode && self.coldMode {
+                    
+                    func processPayerAddress() {
+                     
+                        self.sendingFromAddress = self.addressToDisplay.text!
+                        
+                        if sweepMode {
+                            
+                            self.removeSpinner()
+                            self.checkBalance(address: self.sendingFromAddress)
+                            
+                        }
+                        
+                        self.getPayerAddressMode = false
+                        self.getSignatureMode = true
                         self.removeScanner()
+                        self.addressToDisplay.text = ""
+                        self.makeHTTPPostRequest()
                         
-                    }))
+                    }
                     
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                    if let _ = BTCPublicKeyAddressTestnet.init(string: self.addressToDisplay.text!) {
                         
-                        self.dismiss(animated: true, completion: nil)
+                        processPayerAddress()
                         
-                    }))
+                    } else if let _ = BTCAddress.init(string: self.addressToDisplay.text!) {
+                        
+                        processPayerAddress()
+                        
+                    } else {
+                        
+                        displayAlert(title: "Error", message: "That is not a valid Bitcoin Address")
+                        
+                    }
                     
-                    self.present(alert, animated: true, completion: nil)
+                    
+                } else if getSignatureMode {
+                    
+                    func processPrivateKey() {
+                        
+                        DispatchQueue.main.async {
+                            
+                            self.removeSpinner()
+                            self.removeScanner()
+                            
+                            let alert = UIAlertController(title: NSLocalizedString("Please confirm", comment: ""), message: "We will use private key: \(self.addressToDisplay.text!) to create a signature. You can just check first few and last few characters as if its incorrect the worst that will happen is you'll have to start over.", preferredStyle: UIAlertControllerStyle.actionSheet)
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("Looks Good, please sign", comment: ""), style: .default, handler: { (action) in
+                                
+                                self.getPrivateKeySignature(key: self.addressToDisplay.text!)
+                                
+                                
+                            }))
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                
+                                self.dismiss(animated: true, completion: nil)
+                                
+                            }))
+                            
+                            self.present(alert, animated: true, completion: nil)
+                        }
+                    }
+                    
+                    if let _ = BTCPrivateKeyAddressTestnet.init(string: self.addressToDisplay.text!) {
+                        
+                        processPrivateKey()
+                        
+                    } else if let _ = BTCPrivateKeyAddress.init(string: self.addressToDisplay.text!) {
+                        
+                        processPrivateKey()
+                        
+                    } else {
+                        
+                        displayAlert(title: "Error", message: "That is not a valid Bitcoin Address")
+                        
+                    }
                 }
-            }
-            
-        } else if textField == self.amountToSend && self.setFeeMode == false {
-            
-            if self.currency != "BTC" && self.currency != "SAT" {
-              
-              self.getSatoshiAmount()
                 
-            } else {
-               
-                self.getSatsAndBTCs()
+            } else if textField == self.amountToSend && self.setFeeMode == false {
                 
+                if self.currency != "BTC" && self.currency != "SAT" {
+                    
+                    self.getSatoshiAmount()
+                    
+                } else {
+                    
+                    self.getSatsAndBTCs()
+                    
+                }
             }
         }
+        
+        if self.getSignatureMode || self.getPayerAddressMode || self.getReceivingAddressMode && textField != self.amountToSend {
+            
+            if textField.text != "" {
+                
+                if let _ = BTCAddress.init(string: textField.text) {
+                    
+                    processKeys()
+                    
+                } else if let _ = BTCPrivateKeyAddress.init(string: textField.text) {
+                    
+                    processKeys()
+                    
+                } else if let _ = BTCPublicKeyAddressTestnet.init(string: textField.text) {
+                    
+                    processKeys()
+                    
+                } else if let _ = BTCPrivateKeyAddressTestnet.init(string: textField.text) {
+                    
+                    processKeys()
+                    
+                } else {
+                    
+                    self.displayAlert(title: "Error", message: "That is not a valid Bitcoin Key.")
+                    
+                }
+                
+            } else {
+                
+                self.shakeAlert(viewToShake: textField)
+                
+            }
+            
+        } else {
+            
+            processKeys()
+                
+        }
+        
     }
     
     func getSatsAndBTCs() {
@@ -1021,17 +1159,18 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         print("textFieldShouldReturn")
+        
         self.view.endEditing(true)
         return false
     }
     
     func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
         print("textFieldShouldEndEditing")
+        
         addressToDisplay.resignFirstResponder()
+            
         return true
     }
-    
-    
     
     enum error: Error {
         
@@ -1068,110 +1207,176 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 
                 stringURL = machineReadableCode.stringValue!
                 
-                //herehere
-                
-                if getReceivingAddressMode {
-                    print("getReceivingAddressMode")
+                func processKeys() {
                     
-                    if self.coldMode {
+                    if getReceivingAddressMode {
+                        print("getReceivingAddressMode")
                         
-                        self.recievingAddress = stringURL
-                        
-                        
-                        
-                        print("self.recievingAddress = \(self.recievingAddress)")
-                        self.getReceivingAddressMode = false
-                        
-                        self.getPayerAddressMode = true
+                        func processReceivingAddress() {
                             
-                        self.removeScanner()
-                        
-                        self.getSignatureMode = true
-                        self.addScanner()
-                        
-                    } else {
-                        
-                        //debit wallet programmatically
-                        if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
-                            
-                            if self.testnetMode {
+                            if self.coldMode {
                                 
                                 self.recievingAddress = stringURL
-                                print("self.recievingAddress = \(self.recievingAddress)")
-                                let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
-                                let key = BTCKey.init(privateKeyAddress: privateKey)
-                                key?.isPublicKeyCompressed = true
-                                let legacyAddress1 = (key?.addressTestnet.description)!
-                                let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                                self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                                print("self.sendingFromAddress = \(self.sendingFromAddress)")
+                                self.getReceivingAddressMode = false
+                                self.getPayerAddressMode = true
+                                self.removeScanner()
+                                self.getSignatureMode = true
+                                self.addScanner()
                                 
                             } else {
                                 
-                                self.recievingAddress = stringURL
-                                print("self.recievingAddress = \(self.recievingAddress)")
-                                let privateKey = BTCPrivateKeyAddress(string: wif)
-                                let key = BTCKey.init(privateKeyAddress: privateKey)
-                                key?.isPublicKeyCompressed = true
-                                let legacyAddress1 = (key?.address.description)!
-                                let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                                self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                                print("self.sendingFromAddress = \(self.sendingFromAddress)")
-                                
+                                //debit wallet programmatically
+                                if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
+                                    
+                                    if self.testnetMode {
+                                        
+                                        self.recievingAddress = stringURL
+                                        let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
+                                        let key = BTCKey.init(privateKeyAddress: privateKey)
+                                        key?.isPublicKeyCompressed = true
+                                        let legacyAddress1 = (key?.addressTestnet.description)!
+                                        let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                                        self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                        
+                                    } else {
+                                        
+                                        self.recievingAddress = stringURL
+                                        let privateKey = BTCPrivateKeyAddress(string: wif)
+                                        let key = BTCKey.init(privateKeyAddress: privateKey)
+                                        key?.isPublicKeyCompressed = true
+                                        let legacyAddress1 = (key?.address.description)!
+                                        let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
+                                        self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                        
+                                    }
+                                    
+                                    self.getSignatureMode = true
+                                    self.removeScanner()
+                                    self.makeHTTPPostRequest()
+                                    
+                                } else {
+                                    
+                                    DispatchQueue.main.async {
+                                        self.displayAlert(title: "Error", message: "No private key saved.")
+                                    }
+                                }
                             }
+                        }
+                        
+                        if let _ = BTCAddress.init(string: stringURL) {
                             
-                            self.getSignatureMode = true
-                            self.removeScanner()
-                            self.makeHTTPPostRequest()
+                            processReceivingAddress()
+                            
+                        } else if let _ = BTCPublicKeyAddressTestnet.init(string: stringURL) {
+                            
+                            processReceivingAddress()
                             
                         } else {
                             
+                            self.displayAlert(title: "Error", message: "That is not a valid Bitcoin Address.")
+                            
+                        }
+                        
+                    } else if getPayerAddressMode && self.coldMode {
+                        
+                        func processPayerAddress() {
+                            
+                            self.sendingFromAddress = stringURL
+                            print("self.sendingFromAddress = \(self.sendingFromAddress)")
+                            
+                            if sweepMode {
+                                
+                                self.removeSpinner()
+                                self.checkBalance(address: self.sendingFromAddress)
+                                
+                            }
+                            
+                            self.getPayerAddressMode = false
+                            self.getSignatureMode = true
+                            self.removeScanner()
+                            self.makeHTTPPostRequest()
+                        }
+                        
+                        if let _ = BTCAddress.init(string: stringURL) {
+                            
+                            processPayerAddress()
+                            
+                        } else if let _ = BTCPublicKeyAddressTestnet.init(string: stringURL) {
+                            
+                            processPayerAddress()
+                            
+                        } else {
+                            
+                            self.displayAlert(title: "Error", message: "That is not a valid Bitcoin Address.")
+                            
+                        }
+                        
+                    } else if getSignatureMode {
+                        
+                        func processSignatures() {
+                            
                             DispatchQueue.main.async {
-                                self.displayAlert(title: "Error", message: "No private key saved.")
+                                
+                                self.removeScanner()
+                                self.removeSpinner()
+                                
+                                let alert = UIAlertController(title: NSLocalizedString("Please confirm", comment: ""), message: "We will use private key: \(self.stringURL) to create a signature. You can check the first few and last few characters, if its incorrect the worst that will happen is you'll have to start over.", preferredStyle: UIAlertControllerStyle.actionSheet)
+                                
+                                alert.addAction(UIAlertAction(title: NSLocalizedString("Looks Good, please sign", comment: ""), style: .default, handler: { (action) in
+                                    
+                                    print("privateKey = \(self.stringURL)")
+                                    self.getPrivateKeySignature(key: self.stringURL)
+                                    
+                                }))
+                                
+                                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                    
+                                    self.dismiss(animated: true, completion: nil)
+                                    
+                                }))
+                                
+                                self.present(alert, animated: true, completion: nil)
                             }
                         }
-                    }
-                    
-                } else if getPayerAddressMode && self.coldMode {
-                    
-                    self.sendingFromAddress = stringURL
-                    print("self.sendingFromAddress = \(self.sendingFromAddress)")
-                    
-                    if sweepMode {
                         
-                        self.checkBalance(address: self.sendingFromAddress)
-                        
-                    }
-                    
-                    self.getPayerAddressMode = false
-                    self.getSignatureMode = true
-                    self.removeScanner()
-                    self.makeHTTPPostRequest()
-                    
-                } else if getSignatureMode {
-                    
-                    DispatchQueue.main.async {
-                        
-                        self.removeScanner()
-                        
-                        let alert = UIAlertController(title: NSLocalizedString("Please confirm", comment: ""), message: "We will use private key: \(self.stringURL) to create a signature. You can check the first few and last few characters, if its incorrect the worst that will happen is you'll have to start over.", preferredStyle: UIAlertControllerStyle.actionSheet)
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("Looks Good, please sign", comment: ""), style: .default, handler: { (action) in
+                        if let _ = BTCPrivateKeyAddress.init(string: stringURL) {
                             
-                            print("privateKey = \(self.stringURL)")
-                            self.getPrivateKeySignature(key: self.stringURL)
+                            processSignatures()
                             
-                        }))
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                        } else if let _ = BTCPrivateKeyAddress.init(string: stringURL) {
                             
-                            self.dismiss(animated: true, completion: nil)
+                            processSignatures()
                             
-                        }))
-                        
-                        self.present(alert, animated: true, completion: nil)
+                        } else {
+                            
+                            self.displayAlert(title: "Error", message: "That is not a valid Bitcoin Address.")
+                            
+                        }
                     }
                 }
+                
+                if let _ = BTCAddress.init(string: stringURL) {
+                    
+                    processKeys()
+                    
+                } else if let _ = BTCPrivateKeyAddress.init(string: stringURL) {
+                    
+                    processKeys()
+                    
+                } else if let _ = BTCPublicKeyAddressTestnet.init(string: stringURL) {
+                    
+                    processKeys()
+                    
+                } else if let _ = BTCPrivateKeyAddressTestnet.init(string: stringURL) {
+                    
+                    processKeys()
+                    
+                } else {
+                    
+                    self.displayAlert(title: "Error", message: "That is not a valid Bitcoin Key.")
+                    
+                }
+                
             }
         }
     }
@@ -1207,6 +1412,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             
             if self.sweepMode {
                 
+                self.removeSpinner()
                 self.checkBalance(address: self.sendingFromAddress)
             }
             

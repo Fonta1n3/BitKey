@@ -616,6 +616,7 @@ class SettingsViewController: UIViewController {
                         UserDefaults.standard.set(self.coldMode, forKey: "coldMode")
                         
                         UserDefaults.standard.removeObject(forKey: "wif")
+                        UserDefaults.standard.removeObject(forKey: "seed")
                         
                     }))
                     
@@ -684,6 +685,7 @@ class SettingsViewController: UIViewController {
                         UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
                         
                         UserDefaults.standard.removeObject(forKey: "wif")
+                        UserDefaults.standard.removeObject(forKey: "seed")
                         
                     }))
                     
@@ -722,6 +724,7 @@ class SettingsViewController: UIViewController {
                         UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
                         
                         UserDefaults.standard.removeObject(forKey: "wif")
+                        UserDefaults.standard.removeObject(forKey: "seed")
                         
                     }))
                     
@@ -754,6 +757,7 @@ class SettingsViewController: UIViewController {
                         UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
                         
                         UserDefaults.standard.removeObject(forKey: "wif")
+                        UserDefaults.standard.removeObject(forKey: "seed")
                         
                     }))
                     
@@ -792,6 +796,7 @@ class SettingsViewController: UIViewController {
                         UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
                         
                         UserDefaults.standard.removeObject(forKey: "wif")
+                        UserDefaults.standard.removeObject(forKey: "seed")
                         
                     }))
                     
@@ -824,6 +829,7 @@ class SettingsViewController: UIViewController {
                         UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
                         
                         UserDefaults.standard.removeObject(forKey: "wif")
+                        UserDefaults.standard.removeObject(forKey: "seed")
                         
                     }))
                     
