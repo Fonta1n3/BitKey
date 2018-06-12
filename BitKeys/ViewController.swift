@@ -12,7 +12,7 @@ import SystemConfiguration
 import BigInt
 
 
-class ViewController: UIViewController, UITextFieldDelegate {
+class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate {
     
     var password = ""
     var toolBoxTapped = Bool()
@@ -255,160 +255,131 @@ class ViewController: UIViewController, UITextFieldDelegate {
         return (isReachable && !needsConnection)
         
     }
-    /*
-    func derivePrivateKeyFromMasterKey(keychain: BTCKeychain) -> (privateKeyAddress: String, bitcoinAddress: String) {
-        
-        print("derivePrivateKeyFromMasterKey")
-        
-        keychain.key.isPublicKeyCompressed = true
-        
-        var privateKeyHD = String()
-        var addressHD = String()
-        
-        if testnetMode {
-            
-            privateKeyHD = (keychain.key(at: 0).privateKeyAddressTestnet.description)
-            addressHD = (keychain.key(at: 0).addressTestnet.description)
-            
-        } else if mainnetMode {
-            
-            privateKeyHD = (keychain.key(at: 0).privateKeyAddress.description)
-            addressHD = (keychain.key(at: 0).address.description)
-            
-        }
-        
-        var privateKey3 = privateKeyHD.components(separatedBy: " ")
-        self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
-        
-        if self.hotMode {
-            
-            UserDefaults.standard.set(self.privateKeyWIF, forKey: "wif")
-            
-        }
-        
-        if self.legacyMode {
-            
-            let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-            self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-            
-        }
-        
-        let xpub = keychain.extendedPublicKey
-        let xpriv = keychain.extendedPrivateKey
-        print("xpub = \(String(describing: xpub))")
-        print("xpriv = \(String(describing: xpriv))")
-        UserDefaults.standard.set(xpub, forKey: "xpub")
-        UserDefaults.standard.set(0, forKey: "int")
-        
-        if segwitMode {
-            
-            let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain.key(at: 0).compressedPublicKey as Data!) as Data!) as Data!
-            
-            do {
-                //bc for mainnet and tb for testnet
-                if mainnetMode {
-                    
-                    self.bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
-                    
-                } else if testnetMode {
-                    
-                    self.bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
-                    
-                }
-                
-            } catch {
-                
-                self.displayAlert(title: "Error", message: "Please try again.")
-                
-            }
-            
-        }
-        
-        keychain.key.clear()
-        
-        return (self.privateKeyWIF, self.bitcoinAddress)
-        
-    }
-    */
+    
     
     func createPrivateKey(userRandomness: BigInt) -> (privateKeyAddress: String, publicKeyAddress: String) {
         
         var data = BigUInt(userRandomness).serialize()
-        let mnemonic = BTCMnemonic.init(entropy: data, password: "", wordListType: BTCMnemonicWordListType.english)
-        self.words = (mnemonic?.words.description)!
-        print("self.words = \(self.words)")
-        let formatMnemonic1 = self.words.replacingOccurrences(of: "[", with: "")
-        let formatMnemonic2 = formatMnemonic1.replacingOccurrences(of: "]", with: "")
-        self.recoveryPhrase = formatMnemonic2.replacingOccurrences(of: ",", with: "")
-        let keychain = mnemonic?.keychain.derivedKeychain(withPath: "m/44'/0'/0'/0")
-        keychain?.key.isPublicKeyCompressed = true
         
-        var privateKeyHD = String()
-        var addressHD = String()
+        print("data.count = \(data.count)")
         
-        if testnetMode {
-           
-            privateKeyHD = (keychain?.key(at: 0).privateKeyAddressTestnet.description)!
-            addressHD = (keychain?.key(at: 0).addressTestnet.description)!
+        if data.count == 32 {
             
-        } else if mainnetMode {
-            
-            privateKeyHD = (keychain?.key(at: 0).privateKeyAddress.description)!
-            addressHD = (keychain?.key(at: 0).address.description)!
-            
-        }
-        
-        var privateKey3 = privateKeyHD.components(separatedBy: " ")
-        self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
-        
-        if self.hotMode {
-            
-            UserDefaults.standard.set(self.privateKeyWIF, forKey: "wif")
-            
-        }
-        
-        if self.legacyMode {
-            
-            let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-            self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-            
-        }
-        
-        let xpub = keychain?.extendedPublicKey
-        let xpriv = keychain?.extendedPrivateKey
-        print("xpub = \(String(describing: xpub))")
-        print("xpriv = \(String(describing: xpriv))")
-        UserDefaults.standard.set(xpub, forKey: "xpub")
-        UserDefaults.standard.set(0, forKey: "int")
-        
-        if segwitMode {
-          
-            let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain?.key(at: 0).compressedPublicKey as Data!) as Data!) as Data!
-            
-            do {
-                //bc for mainnet and tb for testnet
-                if mainnetMode {
+            if let mnemonic = BTCMnemonic.init(entropy: data, password: "", wordListType: BTCMnemonicWordListType.english) {
+                
+                self.words = mnemonic.words.description
+                print("self.words = \(self.words)")
+                let formatMnemonic1 = self.words.replacingOccurrences(of: "[", with: "")
+                let formatMnemonic2 = formatMnemonic1.replacingOccurrences(of: "]", with: "")
+                self.recoveryPhrase = formatMnemonic2.replacingOccurrences(of: ",", with: "")
+                let keychain = mnemonic.keychain.derivedKeychain(withPath: "m/44'/0'/0'/0")
+                keychain?.key.isPublicKeyCompressed = true
+                
+                var privateKeyHD = String()
+                var addressHD = String()
+                
+                if testnetMode {
                     
-                  self.bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                    privateKeyHD = (keychain?.key(at: 0).privateKeyAddressTestnet.description)!
+                    addressHD = (keychain?.key(at: 0).addressTestnet.description)!
                     
-                } else if testnetMode {
+                } else if mainnetMode {
                     
-                   self.bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
+                    privateKeyHD = (keychain?.key(at: 0).privateKeyAddress.description)!
+                    addressHD = (keychain?.key(at: 0).address.description)!
                     
                 }
                 
-            } catch {
+                var privateKey3 = privateKeyHD.components(separatedBy: " ")
+                self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
                 
-                self.displayAlert(title: "Error", message: "Please try again.")
+                if self.legacyMode {
+                    
+                    let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
+                    self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                    
+                }
+                
+                let xpub = keychain?.extendedPublicKey
+                let xpriv = keychain?.extendedPrivateKey
+                print("xpub = \(String(describing: xpub))")
+                print("xpriv = \(String(describing: xpriv))")
+                UserDefaults.standard.set(xpub, forKey: "xpub")
+                UserDefaults.standard.set(0, forKey: "int")
+                
+                if segwitMode {
+                    
+                    let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain?.key(at: 0).compressedPublicKey as Data!) as Data!) as Data!
+                    
+                    do {
+                        //bc for mainnet and tb for testnet
+                        if mainnetMode {
+                            
+                            self.bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                            
+                        } else if testnetMode {
+                            
+                            self.bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
+                            
+                        }
+                        
+                    } catch {
+                        
+                        self.displayAlert(title: "Error", message: "Please try again.")
+                        return("", "")
+                        
+                    }
+                    
+                }
+                
+                if self.hotMode && UserDefaults.standard.object(forKey: "wif") != nil {
+                    
+                    //alert to see if they want that private key to replace their hot wallet
+                    
+                    DispatchQueue.main.async {
+                        
+                        let alert = UIAlertController(title: "Alert!", message: "Do you want this Private Key to overwrite your existing wallet?", preferredStyle: UIAlertControllerStyle.alert)
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, overwrite my wallet", comment: ""), style: .destructive, handler: { (action) in
+                            
+                            UserDefaults.standard.set(self.privateKeyWIF, forKey: "wif")
+                            
+                        }))
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("No, keep exisiting wallet", comment: ""), style: .default, handler: { (action) in
+                            
+                        }))
+                        
+                        self.present(alert, animated: true, completion: nil)
+                        
+                    }
+                    
+                } else if self.hotMode {
+                    
+                    UserDefaults.standard.set(self.privateKeyWIF, forKey: "wif")
+                    
+                }
+                
+                keychain?.key.clear()
+                data.removeAll()
+                return (self.privateKeyWIF, self.bitcoinAddress)
+                
+            } else {
+                
+                data.removeAll()
                 return("", "")
                 
             }
             
+        } else {
+            
+            data.removeAll()
+            return("", "")
+            
         }
         
-        keychain?.key.clear()
-        data.removeAll()
-        return (self.privateKeyWIF, self.bitcoinAddress)
+        
+        
         
     }
     
@@ -538,8 +509,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.bitField.font = .systemFont(ofSize: 24)
             self.view.addSubview(self.bitField)
             
-            
-            
             if self.imageView != nil {
                 self.imageView.removeFromSuperview()
             }
@@ -550,138 +519,24 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.imageView.center = self.view.center
             self.imageView.frame = CGRect(x: self.view.center.x - 100, y: self.view.center.y - 100, width: 200, height: 200)
             let bitcoinDragged = UIPanGestureRecognizer(target: self, action: #selector(self.userCreatesRandomness(gestureRecognizer:)))
+            bitcoinDragged.delegate = self
             self.imageView.isUserInteractionEnabled = true
-            
             self.imageView.addGestureRecognizer(bitcoinDragged)
-                
+            self.imageView.layer.shadowColor = UIColor.black.cgColor
+            self.imageView.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            self.imageView.layer.shadowRadius = 2.5
+            self.imageView.layer.shadowOpacity = 0.8
             self.view.addSubview(self.imageView)
             
-            self.checkAddressButton.removeFromSuperview()
-            self.checkAddressButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.maxY - 60, width: 90, height: 55))
-            self.checkAddressButton.showsTouchWhenHighlighted = true
-            self.checkAddressButton.layer.cornerRadius = 10
-            self.checkAddressButton.backgroundColor = UIColor.black//UIColor.lightText
-            //self.checkAddressButton.layer.shadowColor = UIColor.black.cgColor
-            //self.checkAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            //self.checkAddressButton.layer.shadowRadius = 2.5
-            //self.checkAddressButton.layer.shadowOpacity = 0.8
-            self.checkAddressButton.setTitle("Balance", for: .normal)
-            self.checkAddressButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-            self.view.addSubview(self.checkAddressButton)
-            
-            /*self.mayerMultipleButton.removeFromSuperview()
-            self.mayerMultipleButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.view.frame.minY + 85, width: 90, height: 55))//UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.maxY - 60, width: 90, height: 55))
-            self.mayerMultipleButton.showsTouchWhenHighlighted = true
-            self.mayerMultipleButton.layer.cornerRadius = 10
-            self.mayerMultipleButton.backgroundColor = UIColor.black//UIColor.lightText
-            //self.mayerMultipleButton.layer.shadowColor = UIColor.black.cgColor
-            //self.mayerMultipleButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            //self.mayerMultipleButton.layer.shadowRadius = 2.5
-            //self.mayerMultipleButton.layer.shadowOpacity = 0.8
-            self.mayerMultipleButton.setTitle("Price", for: .normal)
-            self.mayerMultipleButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-            self.view.addSubview(self.mayerMultipleButton)*/
-            
-            self.transactionsButton.removeFromSuperview()
-            self.transactionsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.maxY - 60, width: 90, height: 55))//UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.view.frame.maxY - 60, width: 90, height: 55))
-            self.transactionsButton.showsTouchWhenHighlighted = true
-            self.transactionsButton.layer.cornerRadius = 10
-            self.transactionsButton.backgroundColor = UIColor.black//UIColor.lightText
-            //self.transactionsButton.layer.shadowColor = UIColor.black.cgColor
-            //self.transactionsButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            //self.transactionsButton.layer.shadowRadius = 2.5
-            //self.transactionsButton.layer.shadowOpacity = 0.8
-            self.transactionsButton.setTitle("Pay", for: .normal)
-            self.transactionsButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-            self.view.addSubview(self.transactionsButton)
+            self.addCheckAddressButton()
+            self.addPayButton()
             
             if self.advancedMode {
-                /*
-                self.diceButton.removeFromSuperview()
-                self.diceButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.minY + 20, width: 90, height: 55))
-                self.diceButton.showsTouchWhenHighlighted = true
-                self.diceButton.layer.cornerRadius = 10
-                self.diceButton.backgroundColor = UIColor.black//UIColor.lightText
-                //self.diceButton.layer.shadowColor = UIColor.black.cgColor
-                //self.diceButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-                //self.diceButton.layer.shadowRadius = 2.5
-                //self.diceButton.layer.shadowOpacity = 0.8
-                self.diceButton.setTitle("Dice", for: .normal)
-                self.diceButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-                self.view.addSubview(self.diceButton)
-                
-                
-            
-                self.importButton.removeFromSuperview()
-                self.importButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.minY + 20, width: 90, height: 55))
-                self.importButton.showsTouchWhenHighlighted = true
-                self.importButton.layer.cornerRadius = 10
-                self.importButton.backgroundColor = UIColor.black//UIColor.lightText
-                //self.importButton.layer.shadowColor = UIColor.black.cgColor
-                //self.importButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-                //self.importButton.layer.shadowRadius = 2.5
-                //self.importButton.layer.shadowOpacity = 0.8
-                self.importButton.setTitle("Import", for: .normal)
-                self.importButton.addTarget(self, action: #selector(self.importMnemonic), for: .touchUpInside)
-                self.view.addSubview(self.importButton)
-                
-                self.multiSigButton.removeFromSuperview()
-                self.multiSigButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: 20, width: 90, height: 55))
-                self.multiSigButton.showsTouchWhenHighlighted = true
-                self.multiSigButton.layer.cornerRadius = 10
-                self.multiSigButton.backgroundColor = UIColor.black//UIColor.lightText
-                //self.multiSigButton.layer.shadowColor = UIColor.black.cgColor
-                //self.multiSigButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-                //self.multiSigButton.layer.shadowRadius = 2.5
-                //self.multiSigButton.layer.shadowOpacity = 0.8
-                self.multiSigButton.setTitle("Multi-Sig", for: .normal)
-                self.multiSigButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-                self.view.addSubview(self.multiSigButton)
-                */
                 
                 if self.hotMode {
-                    /*
-                    self.sweepButton.removeFromSuperview()
-                    self.sweepButton = UIButton(frame: CGRect(x: 5, y: self.diceButton.frame.maxY + 10, width: 90, height: 55))
-                    self.sweepButton.showsTouchWhenHighlighted = true
-                    self.sweepButton.layer.cornerRadius = 10
-                    self.sweepButton.backgroundColor = UIColor.black//UIColor.lightText
-                    //self.sweepButton.layer.shadowColor = UIColor.black.cgColor
-                    //self.sweepButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-                    //self.sweepButton.layer.shadowRadius = 2.5
-                    //self.sweepButton.layer.shadowOpacity = 0.8
-                    self.sweepButton.setTitle("Sweep", for: .normal)
-                    self.sweepButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-                    self.view.addSubview(self.sweepButton)
-                    */
-                    self.newAddressButton.removeFromSuperview()
-                    self.newAddressButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.view.frame.maxY - 60, width: 90, height: 55))//UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.view.frame.minY + 85, width: 90, height: 55))
-                    self.newAddressButton.showsTouchWhenHighlighted = true
-                    self.newAddressButton.titleLabel?.textAlignment = .center
-                    self.newAddressButton.layer.cornerRadius = 10
-                    self.newAddressButton.backgroundColor = UIColor.black//UIColor.lightText
-                    //self.newAddressButton.layer.shadowColor = UIColor.black.cgColor
-                    //self.newAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-                    //self.newAddressButton.layer.shadowRadius = 2.5
-                    //self.newAddressButton.layer.shadowOpacity = 0.8
-                    self.newAddressButton.setTitle("Receive", for: .normal)
-                    self.newAddressButton.addTarget(self, action: #selector(self.newAddress), for: .touchUpInside)
-                    self.view.addSubview(self.newAddressButton)
-                    /*
-                    self.exportButton.removeFromSuperview()
-                    self.exportButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.minY + 85, width: 90, height: 55))
-                    self.exportButton.showsTouchWhenHighlighted = true
-                    self.exportButton.titleLabel?.textAlignment = .center
-                    self.exportButton.layer.cornerRadius = 10
-                    self.exportButton.backgroundColor = UIColor.black//UIColor.lightText
-                    //self.exportButton.layer.shadowColor = UIColor.black.cgColor
-                    //self.exportButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-                    //self.exportButton.layer.shadowRadius = 2.5
-                    //self.exportButton.layer.shadowOpacity = 0.8
-                    self.exportButton.setTitle("Export", for: .normal)
-                    self.exportButton.addTarget(self, action: #selector(self.export), for: .touchUpInside)
-                    self.view.addSubview(self.exportButton)
-                    */
+                    
+                    self.addReceiveButton()
+                    
                 }
                 
             }
@@ -712,46 +567,18 @@ class ViewController: UIViewController, UITextFieldDelegate {
             
             if self.simpleMode {
                 
-                self.newAddressButton.removeFromSuperview()
-                self.newAddressButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.view.frame.maxY - 60, width: 90, height: 55))//UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.minY + 20, width: 90, height: 55))
-                self.newAddressButton.showsTouchWhenHighlighted = true
-                self.newAddressButton.titleLabel?.textAlignment = .center
-                self.newAddressButton.layer.cornerRadius = 10
-                self.newAddressButton.backgroundColor = UIColor.black//UIColor.lightText
-                self.newAddressButton.setTitle("Receive", for: .normal)
-                self.newAddressButton.addTarget(self, action: #selector(self.newAddress), for: .touchUpInside)
-                self.view.addSubview(self.newAddressButton)
+                self.addReceiveButton()
                 
             }
             
             if self.toolBoxTapped == false {
                 
-                //self.toolBoxTapped = true
-                
                 if self.hotMode {
                     
                     DispatchQueue.main.async {
                         
-                        self.sweepButton.removeFromSuperview()
-                        self.sweepButton = UIButton(frame: CGRect(x: 5, y: self.checkAddressButton.frame.minY - 65, width: 90, height: 55))
-                        //self.sweepButton.alpha = 1
-                        self.sweepButton.showsTouchWhenHighlighted = true
-                        self.sweepButton.layer.cornerRadius = 10
-                        self.sweepButton.backgroundColor = UIColor.black//UIColor.lightText
-                        self.sweepButton.setTitle("Sweep", for: .normal)
-                        self.sweepButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-                        self.view.addSubview(self.sweepButton)
-                        
-                        self.exportButton.removeFromSuperview()
-                        self.exportButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.transactionsButton.frame.minY - 65, width: 90, height: 55))
-                        //self.exportButton.alpha = 1
-                        self.exportButton.showsTouchWhenHighlighted = true
-                        self.exportButton.titleLabel?.textAlignment = .center
-                        self.exportButton.layer.cornerRadius = 10
-                        self.exportButton.backgroundColor = UIColor.black//UIColor.lightText
-                        self.exportButton.setTitle("Export", for: .normal)
-                        self.exportButton.addTarget(self, action: #selector(self.export), for: .touchUpInside)
-                        self.view.addSubview(self.exportButton)
+                        self.addSweepButton()
+                        self.addExportButton()
                         
                     }
                     
@@ -759,52 +586,177 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 
                 DispatchQueue.main.async {
                     
-                    self.importButton.removeFromSuperview()
-                    self.importButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.exportButton.frame.minY - 65, width: 90, height: 55))
-                    //self.importButton.alpha = 1
-                    self.importButton.showsTouchWhenHighlighted = true
-                    self.importButton.layer.cornerRadius = 10
-                    self.importButton.backgroundColor = UIColor.black//UIColor.lightText
-                    self.importButton.setTitle("Import", for: .normal)
-                    self.importButton.addTarget(self, action: #selector(self.importMnemonic), for: .touchUpInside)
-                    self.view.addSubview(self.importButton)
-                    
-                    self.mayerMultipleButton.removeFromSuperview()
-                    self.mayerMultipleButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.newAddressButton.frame.minY - 65, width: 90, height: 55))//UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.maxY - 60, width: 90, height: 55))
-                    //self.mayerMultipleButton.alpha = 1
-                    self.mayerMultipleButton.showsTouchWhenHighlighted = true
-                    self.mayerMultipleButton.layer.cornerRadius = 10
-                    self.mayerMultipleButton.backgroundColor = UIColor.black//UIColor.lightText
-                    self.mayerMultipleButton.setTitle("Price", for: .normal)
-                    self.mayerMultipleButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-                    self.view.addSubview(self.mayerMultipleButton)
-                    
-                    self.multiSigButton.removeFromSuperview()
-                    self.multiSigButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.mayerMultipleButton.frame.minY - 65, width: 90, height: 55))
-                    self.multiSigButton.showsTouchWhenHighlighted = true
-                    //self.multiSigButton.alpha = 1
-                    self.multiSigButton.layer.cornerRadius = 10
-                    self.multiSigButton.backgroundColor = UIColor.black//UIColor.lightText
-                    self.multiSigButton.setTitle("Multi-Sig", for: .normal)
-                    self.multiSigButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-                    self.view.addSubview(self.multiSigButton)
-                    
-                    self.diceButton.removeFromSuperview()
-                    self.diceButton = UIButton(frame: CGRect(x: 5, y: self.sweepButton.frame.minY - 65, width: 90, height: 55))
-                    //self.diceButton.alpha = 1
-                    self.diceButton.showsTouchWhenHighlighted = true
-                    self.diceButton.layer.cornerRadius = 10
-                    self.diceButton.backgroundColor = UIColor.black//UIColor.lightText
-                    self.diceButton.setTitle("Dice", for: .normal)
-                    self.diceButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-                    self.view.addSubview(self.diceButton)
-                    
-                    
+                    self.addImportButton()
+                    self.addCheckPriceButton()
+                    self.addMultiSigButton()
+                    self.addDiceButton()
                     
                 }
+                
             }
             
         }
+        
+    }
+    
+    func addPayButton() {
+        
+        self.transactionsButton.removeFromSuperview()
+        self.transactionsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.view.frame.maxY - 55, width: 85, height: 50))//UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.view.frame.maxY - 60, width: 85, height: 50))
+        self.transactionsButton.showsTouchWhenHighlighted = true
+        self.transactionsButton.layer.cornerRadius = 10
+        self.transactionsButton.backgroundColor = UIColor.black//UIColor.lightText
+        self.transactionsButton.layer.shadowColor = UIColor.black.cgColor
+        self.transactionsButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.transactionsButton.layer.shadowRadius = 2.5
+        self.transactionsButton.layer.shadowOpacity = 0.8
+        self.transactionsButton.setTitle("Pay", for: .normal)
+        self.transactionsButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+        self.view.addSubview(self.transactionsButton)
+        
+    }
+    
+    func addReceiveButton() {
+       
+        self.newAddressButton.removeFromSuperview()
+        self.newAddressButton = UIButton(frame: CGRect(x: self.view.center.x - (85/2), y: self.view.frame.maxY - 55, width: 85, height: 50))//UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.minY + 20, width: 85, height: 50))
+        self.newAddressButton.showsTouchWhenHighlighted = true
+        self.newAddressButton.titleLabel?.textAlignment = .center
+        self.newAddressButton.layer.cornerRadius = 10
+        self.newAddressButton.backgroundColor = UIColor.black//UIColor.lightText
+        self.newAddressButton.layer.shadowColor = UIColor.black.cgColor
+        self.newAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.newAddressButton.layer.shadowRadius = 2.5
+        self.newAddressButton.layer.shadowOpacity = 0.8
+        self.newAddressButton.setTitle("Receive", for: .normal)
+        self.newAddressButton.addTarget(self, action: #selector(self.newAddress), for: .touchUpInside)
+        self.view.addSubview(self.newAddressButton)
+        
+    }
+    
+    func addSweepButton() {
+        
+        self.sweepButton.removeFromSuperview()
+        self.sweepButton = UIButton(frame: CGRect(x: 5, y: self.checkAddressButton.frame.minY - 60, width: 85, height: 50))
+        //self.sweepButton.alpha = 1
+        self.sweepButton.showsTouchWhenHighlighted = true
+        self.sweepButton.layer.cornerRadius = 10
+        self.sweepButton.backgroundColor = UIColor.black//UIColor.lightText
+        self.sweepButton.layer.shadowColor = UIColor.black.cgColor
+        self.sweepButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.sweepButton.layer.shadowRadius = 2.5
+        self.sweepButton.layer.shadowOpacity = 0.8
+        self.sweepButton.setTitle("Sweep", for: .normal)
+        self.sweepButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+        self.view.addSubview(self.sweepButton)
+        
+    }
+    
+    func addExportButton() {
+        
+        self.exportButton.removeFromSuperview()
+        self.exportButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.transactionsButton.frame.minY - 60, width: 85, height: 50))
+        //self.exportButton.alpha = 1
+        self.exportButton.showsTouchWhenHighlighted = true
+        self.exportButton.titleLabel?.textAlignment = .center
+        self.exportButton.layer.cornerRadius = 10
+        self.exportButton.backgroundColor = UIColor.black//UIColor.lightText
+        self.exportButton.layer.shadowColor = UIColor.black.cgColor
+        self.exportButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.exportButton.layer.shadowRadius = 2.5
+        self.exportButton.layer.shadowOpacity = 0.8
+        self.exportButton.setTitle("Export", for: .normal)
+        self.exportButton.addTarget(self, action: #selector(self.export), for: .touchUpInside)
+        self.view.addSubview(self.exportButton)
+        
+    }
+    
+    func addImportButton() {
+        
+        self.importButton.removeFromSuperview()
+        self.importButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.exportButton.frame.minY - 60, width: 85, height: 50))
+        //self.importButton.alpha = 1
+        self.importButton.showsTouchWhenHighlighted = true
+        self.importButton.layer.cornerRadius = 10
+        self.importButton.backgroundColor = UIColor.black//UIColor.lightText
+        self.importButton.layer.shadowColor = UIColor.black.cgColor
+        self.importButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.importButton.layer.shadowRadius = 2.5
+        self.importButton.layer.shadowOpacity = 0.8
+        self.importButton.setTitle("Import", for: .normal)
+        self.importButton.addTarget(self, action: #selector(self.importMnemonic), for: .touchUpInside)
+        self.view.addSubview(self.importButton)
+        
+    }
+    
+    func addCheckPriceButton() {
+        
+        self.mayerMultipleButton.removeFromSuperview()
+        self.mayerMultipleButton = UIButton(frame: CGRect(x: self.view.center.x - (85/2), y: self.newAddressButton.frame.minY - 60, width: 85, height: 50))//UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.maxY - 60, width: 85, height: 50))
+        //self.mayerMultipleButton.alpha = 1
+        self.mayerMultipleButton.showsTouchWhenHighlighted = true
+        self.mayerMultipleButton.layer.cornerRadius = 10
+        self.mayerMultipleButton.backgroundColor = UIColor.black//UIColor.lightText
+        self.mayerMultipleButton.layer.shadowColor = UIColor.black.cgColor
+        self.mayerMultipleButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.mayerMultipleButton.layer.shadowRadius = 2.5
+        self.mayerMultipleButton.layer.shadowOpacity = 0.8
+        self.mayerMultipleButton.setTitle("Price", for: .normal)
+        self.mayerMultipleButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+        self.view.addSubview(self.mayerMultipleButton)
+        
+    }
+    
+    func addMultiSigButton() {
+        
+        self.multiSigButton.removeFromSuperview()
+        self.multiSigButton = UIButton(frame: CGRect(x: self.view.center.x - (85/2), y: self.mayerMultipleButton.frame.minY - 60, width: 85, height: 50))
+        self.multiSigButton.showsTouchWhenHighlighted = true
+        //self.multiSigButton.alpha = 1
+        self.multiSigButton.layer.cornerRadius = 10
+        self.multiSigButton.backgroundColor = UIColor.black//UIColor.lightText
+        self.multiSigButton.layer.shadowColor = UIColor.black.cgColor
+        self.multiSigButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.multiSigButton.layer.shadowRadius = 2.5
+        self.multiSigButton.layer.shadowOpacity = 0.8
+        self.multiSigButton.setTitle("Multi-Sig", for: .normal)
+        self.multiSigButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+        self.view.addSubview(self.multiSigButton)
+        
+    }
+    
+    func addDiceButton() {
+        
+        self.diceButton.removeFromSuperview()
+        self.diceButton = UIButton(frame: CGRect(x: 5, y: self.sweepButton.frame.minY - 60, width: 85, height: 50))
+        //self.diceButton.alpha = 1
+        self.diceButton.showsTouchWhenHighlighted = true
+        self.diceButton.layer.cornerRadius = 10
+        self.diceButton.backgroundColor = UIColor.black//UIColor.lightText
+        self.diceButton.layer.shadowColor = UIColor.black.cgColor
+        self.diceButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.diceButton.layer.shadowRadius = 2.5
+        self.diceButton.layer.shadowOpacity = 0.8
+        self.diceButton.setTitle("Dice", for: .normal)
+        self.diceButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+        self.view.addSubview(self.diceButton)
+        
+    }
+    
+    func addCheckAddressButton() {
+        
+        self.checkAddressButton.removeFromSuperview()
+        self.checkAddressButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.maxY - 55, width: 85, height: 50))
+        self.checkAddressButton.showsTouchWhenHighlighted = true
+        self.checkAddressButton.layer.cornerRadius = 10
+        self.checkAddressButton.backgroundColor = UIColor.black//UIColor.lightText
+        self.checkAddressButton.layer.shadowColor = UIColor.black.cgColor
+        self.checkAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.checkAddressButton.layer.shadowRadius = 2.5
+        self.checkAddressButton.layer.shadowOpacity = 0.8
+        self.checkAddressButton.setTitle("Balance", for: .normal)
+        self.checkAddressButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+        self.view.addSubview(self.checkAddressButton)
         
     }
     
@@ -881,231 +833,15 @@ class ViewController: UIViewController, UITextFieldDelegate {
             }
         }
         
-        //senses user has stopped dragging the bitcoin
+        if nineToBits.count > 800 {
+            
+            self.imageView.alpha = 0
+        }
+        
+       //senses user has stopped dragging the bitcoin
         if gestureRecognizer.state == UIGestureRecognizerState.ended {
             
-            self.isInternetAvailable()
-            
-            for character in nineToBits {
-                
-                self.zero = self.zero + 1
-                self.bitArray.append(String(character))
-                
-                if self.zero == 256 {
-                    
-                    let bits = self.bitArray.joined()
-                    
-                    print("bitnumber = \(bitArray.count)")
-                    
-                    self.parseBitResult = self.parseBinary(binary: bits)!
-                    
-                    UIView.animate(withDuration: 0.5, animations: {
-                        
-                        bitcoinView.center =  self.view.center
-                        
-                    }, completion: { _ in
-                        
-                        if self.hotMode && UserDefaults.standard.object(forKey: "wif") != nil {
-                            
-                            //alert to overwrite
-                            DispatchQueue.main.async {
-                                
-                                let alert = UIAlertController(title: "Alert!", message: "This will overwrite your existing Private Key and Bitcoin Address and you will lose your Bitcoin if you have'nt backed them up, are you sure you want to proceed?", preferredStyle: UIAlertControllerStyle.alert)
-                                
-                                alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, Create a new wallet", comment: ""), style: .destructive, handler: { (action) in
-                                    
-                                    self.privateKeyWIF = self.createPrivateKey(userRandomness: self.parseBitResult).privateKeyAddress
-                                    
-                                    if self.privateKeyWIF != "" {
-                                        
-                                        if self.advancedMode {
-                                            
-                                            self.showPrivateKeyAndAddressQRCodes()
-                                            
-                                            if self.connected == true {
-                                                
-                                                DispatchQueue.main.async {
-                                                    
-                                                    self.displayAlert(title: "Security Alert", message: "You should only create private keys offline. Please enable airplane mode, turn off wifi and try again.")
-                                                }
-                                                
-                                            }
-                                            
-                                        } else if self.simpleMode {
-                                            
-                                            DispatchQueue.main.async {
-                                                
-                                                self.displayAlert(title: "Success", message: "You've created a Bitcoin wallet, congratulations!")
-                                                
-                                                self.bitField.removeFromSuperview()
-                                                self.privateKeyQRCode = nil
-                                                self.privateKeyImage = nil
-                                                //self.privateKeyQRView.image = nil
-                                                self.privateKeyTitle.text = ""
-                                                //self.myField.text = ""
-                                                self.imageView.removeFromSuperview()
-                                                self.imageView = nil
-                                                self.button.removeFromSuperview()
-                                                self.backUpButton.removeFromSuperview()
-                                                self.numberArray.removeAll()
-                                                self.joinedArray = ""
-                                                self.privateKeyText = ""
-                                                self.zero = 0
-                                                self.bitArray.removeAll()
-                                                self.addHomeScreen()
-                                                
-                                            }
-                                            
-                                        }
-                                        
-                                    } else {
-                                        
-                                        DispatchQueue.main.async {
-                                            
-                                            let alert = UIAlertController(title: "There was an error", message: "Please try again.", preferredStyle: UIAlertControllerStyle.alert)
-                                            
-                                            alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .destructive, handler: { (action) in
-                                                
-                                                self.bitField.removeFromSuperview()
-                                                self.privateKeyQRCode = nil
-                                                self.privateKeyImage = nil
-                                                self.privateKeyQRView.image = nil
-                                                self.privateKeyTitle.text = ""
-                                                self.myField.text = ""
-                                                self.imageView.removeFromSuperview()
-                                                self.imageView = nil
-                                                self.button.removeFromSuperview()
-                                                self.backUpButton.removeFromSuperview()
-                                                self.numberArray.removeAll()
-                                                self.joinedArray = ""
-                                                self.privateKeyText = ""
-                                                self.zero = 0
-                                                self.bitArray.removeAll()
-                                                self.addHomeScreen()
-                                                
-                                            }))
-                                            
-                                            self.present(alert, animated: true, completion: nil)
-                                        }
-                                    }
-                                    
-                                }))
-                                
-                                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                                    
-                                    self.bitField.removeFromSuperview()
-                                    self.privateKeyQRCode = nil
-                                    self.privateKeyImage = nil
-                                    //self.privateKeyQRView.image = nil
-                                    //self.privateKeyTitle.text = ""
-                                    //self.myField.text = ""
-                                    //self.imageView.removeFromSuperview()
-                                    //self.imageView = nil
-                                    self.button.removeFromSuperview()
-                                    self.backUpButton.removeFromSuperview()
-                                    self.numberArray.removeAll()
-                                    self.joinedArray = ""
-                                    self.privateKeyText = ""
-                                    self.zero = 0
-                                    self.bitArray.removeAll()
-                                    self.addHomeScreen()
-                                    
-                                }))
-                                
-                                self.present(alert, animated: true, completion: nil)
-                            }
-                            
-                        } else {
-                            
-                            if self.connected == true {
-                                
-                                if self.advancedMode {
-                                    
-                                    DispatchQueue.main.async {
-                                        
-                                        self.displayAlert(title: "Security Alert", message: "You should only create private keys offline. Please enable airplane mode, turn off wifi and try again.")
-                                    }
-                                    
-                                }
-                                
-                            }
-                            
-                            self.privateKeyWIF = self.createPrivateKey(userRandomness: self.parseBitResult).privateKeyAddress
-                            
-                            if self.privateKeyWIF != "" {
-                                
-                                if self.advancedMode {
-                                    
-                                    self.showPrivateKeyAndAddressQRCodes()
-                                    
-                                } else {
-                                    
-                                    DispatchQueue.main.async {
-                                        
-                                        self.displayAlert(title: "Success", message: "You've created a Bitcoin wallet, congratulations!")
-                                        
-                                        self.bitField.removeFromSuperview()
-                                        self.privateKeyQRCode = nil
-                                        self.privateKeyImage = nil
-                                        //self.privateKeyQRView.image = nil
-                                        self.privateKeyTitle.text = ""
-                                        //self.myField.text = ""
-                                        self.imageView.removeFromSuperview()
-                                        self.imageView = nil
-                                        self.button.removeFromSuperview()
-                                        self.backUpButton.removeFromSuperview()
-                                        self.numberArray.removeAll()
-                                        self.joinedArray = ""
-                                        self.privateKeyText = ""
-                                        self.zero = 0
-                                        self.bitArray.removeAll()
-                                        self.addHomeScreen()
-                                        
-                                    }
-                                    
-                                }
-                                
-                            } else {
-                                
-                                DispatchQueue.main.async {
-                                    
-                                    let alert = UIAlertController(title: "There was an error", message: "Please try again.", preferredStyle: UIAlertControllerStyle.alert)
-                                    
-                                    alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .destructive, handler: { (action) in
-                                        
-                                        self.bitField.removeFromSuperview()
-                                        self.privateKeyQRCode = nil
-                                        self.privateKeyImage = nil
-                                        self.privateKeyQRView.image = nil
-                                        self.privateKeyTitle.text = ""
-                                        self.myField.text = ""
-                                        self.imageView.removeFromSuperview()
-                                        self.imageView = nil
-                                        self.button.removeFromSuperview()
-                                        self.backUpButton.removeFromSuperview()
-                                        self.numberArray.removeAll()
-                                        self.joinedArray = ""
-                                        self.privateKeyText = ""
-                                        self.zero = 0
-                                        self.bitArray.removeAll()
-                                        self.addHomeScreen()
-                                        
-                                    }))
-                                    
-                                    self.present(alert, animated: true, completion: nil)
-                                }
-                                
-                            }
-
-                        }
-                            
-                    })
-                    
-                }
-                
-            }
-            
-            if self.zero < 256 {
+            if nineToBits.count < 800 {
                 
                 UIView.animate(withDuration: 0.5, animations: {
                     
@@ -1113,13 +849,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     
                 }, completion: { _ in
                     
-                    self.zero = 0
-                    self.bitArray.removeAll()
-                    
                     DispatchQueue.main.async {
-                        //self.displayAlert(title: "Keep Going!", message: "Please move the Bitcoin around more so we have a large enough number to generate a private key.")
                         
-                        let alert = UIAlertController(title: "Keep Going!", message: "Please move the Bitcoin around more so we have a large enough number to generate a private key.", preferredStyle: UIAlertControllerStyle.alert)
+                        let alert = UIAlertController(title: "Keep Going!", message: "Please move the Bitcoin around more so we have a large enough number to generate a private key, it should not take more then 10 seconds of your time, this ensures we create a really large really random number that makes your Bitcoin ultra secure.", preferredStyle: UIAlertControllerStyle.alert)
                         
                         alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
                             
@@ -1130,11 +862,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
                             self.bitField.removeFromSuperview()
                             self.privateKeyQRCode = nil
                             self.privateKeyImage = nil
-                            //self.privateKeyQRView.image = nil
-                            //self.privateKeyTitle.text = ""
-                            //self.myField.text = ""
-                            //self.imageView.removeFromSuperview()
-                            //self.imageView = nil
                             self.button.removeFromSuperview()
                             self.backUpButton.removeFromSuperview()
                             self.numberArray.removeAll()
@@ -1151,6 +878,209 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     
                 })
                 
+            } else {
+                
+                self.imageView.removeFromSuperview()
+                self.isInternetAvailable()
+                
+                for character in nineToBits {
+                    
+                    self.zero = self.zero + 1
+                    self.bitArray.append(String(character))
+                    
+                }
+                
+                    var bit256Array = [String]()
+                    
+                    for (index, bit) in self.bitArray.enumerated() {
+                        
+                        if index < 256 {
+                            
+                            bit256Array.append(bit)
+                            
+                            if bit256Array.count == 256 {
+                                
+                                let bits = bit256Array.joined()
+                                
+                                print("bitnumber = \(bits.count)")
+                                
+                                self.parseBitResult = self.parseBinary(binary: bits)!
+                                
+                                UIView.animate(withDuration: 0.5, animations: {
+                                    
+                                    bitcoinView.center =  self.view.center
+                                    
+                                }, completion: { _ in
+                                    
+                                    if self.hotMode && UserDefaults.standard.object(forKey: "wif") != nil {
+                                        
+                                        self.privateKeyWIF = self.createPrivateKey(userRandomness: self.parseBitResult).privateKeyAddress
+                                        
+                                        if self.privateKeyWIF != "" {
+                                            
+                                            if self.advancedMode {
+                                                
+                                                self.showPrivateKeyAndAddressQRCodes()
+                                                
+                                                if self.connected == true {
+                                                    
+                                                    DispatchQueue.main.async {
+                                                        
+                                                        self.displayAlert(title: "Security Alert", message: "You should only create private keys offline. Please enable airplane mode, turn off wifi and try again.")
+                                                    }
+                                                    
+                                                }
+                                                
+                                            } else if self.simpleMode {
+                                                
+                                                DispatchQueue.main.async {
+                                                    
+                                                    self.displayAlert(title: "Success", message: "You've created a Bitcoin wallet, congratulations!")
+                                                    
+                                                    self.bitField.removeFromSuperview()
+                                                    self.privateKeyQRCode = nil
+                                                    self.privateKeyImage = nil
+                                                    //self.privateKeyQRView.image = nil
+                                                    self.privateKeyTitle.text = ""
+                                                    //self.myField.text = ""
+                                                    self.imageView.removeFromSuperview()
+                                                    self.imageView = nil
+                                                    self.button.removeFromSuperview()
+                                                    self.backUpButton.removeFromSuperview()
+                                                    self.numberArray.removeAll()
+                                                    self.joinedArray = ""
+                                                    self.privateKeyText = ""
+                                                    self.zero = 0
+                                                    self.bitArray.removeAll()
+                                                    self.addHomeScreen()
+                                                    
+                                                }
+                                                
+                                            }
+                                            
+                                        } else {
+                                            
+                                            DispatchQueue.main.async {
+                                                
+                                                let alert = UIAlertController(title: "There was an error", message: "Please try again.", preferredStyle: UIAlertControllerStyle.alert)
+                                                
+                                                alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
+                                                    
+                                                    self.bitField.removeFromSuperview()
+                                                    self.privateKeyQRCode = nil
+                                                    self.privateKeyImage = nil
+                                                    self.imageView.removeFromSuperview()
+                                                    self.imageView = nil
+                                                    self.button.removeFromSuperview()
+                                                    self.backUpButton.removeFromSuperview()
+                                                    self.numberArray.removeAll()
+                                                    self.joinedArray = ""
+                                                    self.privateKeyText = ""
+                                                    self.zero = 0
+                                                    self.bitArray.removeAll()
+                                                    self.addHomeScreen()
+                                                    
+                                                }))
+                                                
+                                                self.present(alert, animated: true, completion: nil)
+                                            }
+                                        }
+                                    } else {
+                                        
+                                        if self.connected == true {
+                                            
+                                            if self.advancedMode {
+                                                
+                                                DispatchQueue.main.async {
+                                                    
+                                                    self.displayAlert(title: "Security Alert", message: "You should only create private keys offline. Please enable airplane mode, turn off wifi and try again.")
+                                                }
+                                                
+                                            }
+                                            
+                                        }
+                                        
+                                        self.privateKeyWIF = self.createPrivateKey(userRandomness: self.parseBitResult).privateKeyAddress
+                                        
+                                        if self.privateKeyWIF != "" {
+                                            
+                                            if self.advancedMode {
+                                                
+                                                self.showPrivateKeyAndAddressQRCodes()
+                                                
+                                            } else {
+                                                
+                                                DispatchQueue.main.async {
+                                                    
+                                                    self.displayAlert(title: "Success", message: "You've created a Bitcoin wallet, congratulations!")
+                                                    
+                                                    self.bitField.removeFromSuperview()
+                                                    self.privateKeyQRCode = nil
+                                                    self.privateKeyImage = nil
+                                                    //self.privateKeyQRView.image = nil
+                                                    self.privateKeyTitle.text = ""
+                                                    //self.myField.text = ""
+                                                    self.imageView.removeFromSuperview()
+                                                    self.imageView = nil
+                                                    self.button.removeFromSuperview()
+                                                    self.backUpButton.removeFromSuperview()
+                                                    self.numberArray.removeAll()
+                                                    self.joinedArray = ""
+                                                    self.privateKeyText = ""
+                                                    self.zero = 0
+                                                    self.bitArray.removeAll()
+                                                    self.addHomeScreen()
+                                                    
+                                                }
+                                                
+                                            }
+                                            
+                                        } else {
+                                            
+                                            DispatchQueue.main.async {
+                                                
+                                                let alert = UIAlertController(title: "There was an error", message: "Please try again.", preferredStyle: UIAlertControllerStyle.alert)
+                                                
+                                                alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .destructive, handler: { (action) in
+                                                    
+                                                    self.bitField.removeFromSuperview()
+                                                    self.privateKeyQRCode = nil
+                                                    self.privateKeyImage = nil
+                                                    self.privateKeyQRView.image = nil
+                                                    self.privateKeyTitle.text = ""
+                                                    self.myField.text = ""
+                                                    self.imageView.removeFromSuperview()
+                                                    self.imageView = nil
+                                                    self.button.removeFromSuperview()
+                                                    self.backUpButton.removeFromSuperview()
+                                                    self.numberArray.removeAll()
+                                                    self.joinedArray = ""
+                                                    self.privateKeyText = ""
+                                                    self.zero = 0
+                                                    self.bitArray.removeAll()
+                                                    self.addHomeScreen()
+                                                    
+                                                }))
+                                                
+                                                self.present(alert, animated: true, completion: nil)
+                                            }
+                                            
+                                        }
+                                        
+                                    }
+                                    
+                                })
+                                
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                    
+                    
+                    
+                //}
             }
             
         }
@@ -2038,8 +1968,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func showHideTools() {
         print("showHideTools")
         
-        print("toolBoxTapped =\(self.toolBoxTapped)")
-        
         if toolBoxTapped == false {
             
             toolBoxTapped = true
@@ -2076,26 +2004,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     
                     DispatchQueue.main.async {
                         
-                        self.sweepButton.removeFromSuperview()
-                        self.sweepButton = UIButton(frame: CGRect(x: 5, y: self.checkAddressButton.frame.minY - 65, width: 90, height: 55))
-                        self.sweepButton.alpha = 0
-                        self.sweepButton.showsTouchWhenHighlighted = true
-                        self.sweepButton.layer.cornerRadius = 10
-                        self.sweepButton.backgroundColor = UIColor.black//UIColor.lightText
-                        self.sweepButton.setTitle("Sweep", for: .normal)
-                        self.sweepButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-                        self.view.addSubview(self.sweepButton)
-                        
-                        self.exportButton.removeFromSuperview()
-                        self.exportButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.transactionsButton.frame.minY - 65, width: 90, height: 55))
-                        self.exportButton.alpha = 0
-                        self.exportButton.showsTouchWhenHighlighted = true
-                        self.exportButton.titleLabel?.textAlignment = .center
-                        self.exportButton.layer.cornerRadius = 10
-                        self.exportButton.backgroundColor = UIColor.black//UIColor.lightText
-                        self.exportButton.setTitle("Export", for: .normal)
-                        self.exportButton.addTarget(self, action: #selector(self.export), for: .touchUpInside)
-                        self.view.addSubview(self.exportButton)
+                        self.addSweepButton()
+                        self.addExportButton()
                         
                     }
                     
@@ -2103,45 +2013,10 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 
                 DispatchQueue.main.async {
                     
-                    self.importButton.removeFromSuperview()
-                    self.importButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.exportButton.frame.minY - 65, width: 90, height: 55))
-                    self.importButton.alpha = 0
-                    self.importButton.showsTouchWhenHighlighted = true
-                    self.importButton.layer.cornerRadius = 10
-                    self.importButton.backgroundColor = UIColor.black//UIColor.lightText
-                    self.importButton.setTitle("Import", for: .normal)
-                    self.importButton.addTarget(self, action: #selector(self.importMnemonic), for: .touchUpInside)
-                    self.view.addSubview(self.importButton)
-                    
-                    self.mayerMultipleButton.removeFromSuperview()
-                    self.mayerMultipleButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.newAddressButton.frame.minY - 65, width: 90, height: 55))//UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.maxY - 60, width: 90, height: 55))
-                    self.mayerMultipleButton.alpha = 0
-                    self.mayerMultipleButton.showsTouchWhenHighlighted = true
-                    self.mayerMultipleButton.layer.cornerRadius = 10
-                    self.mayerMultipleButton.backgroundColor = UIColor.black//UIColor.lightText
-                    self.mayerMultipleButton.setTitle("Price", for: .normal)
-                    self.mayerMultipleButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-                    self.view.addSubview(self.mayerMultipleButton)
-                    
-                    self.multiSigButton.removeFromSuperview()
-                    self.multiSigButton = UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.mayerMultipleButton.frame.minY - 65, width: 90, height: 55))
-                    self.multiSigButton.showsTouchWhenHighlighted = true
-                    self.multiSigButton.alpha = 0
-                    self.multiSigButton.layer.cornerRadius = 10
-                    self.multiSigButton.backgroundColor = UIColor.black//UIColor.lightText
-                    self.multiSigButton.setTitle("Multi-Sig", for: .normal)
-                    self.multiSigButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-                    self.view.addSubview(self.multiSigButton)
-                    
-                    self.diceButton.removeFromSuperview()
-                    self.diceButton = UIButton(frame: CGRect(x: 5, y: self.sweepButton.frame.minY - 65, width: 90, height: 55))
-                    self.diceButton.alpha = 0
-                    self.diceButton.showsTouchWhenHighlighted = true
-                    self.diceButton.layer.cornerRadius = 10
-                    self.diceButton.backgroundColor = UIColor.black//UIColor.lightText
-                    self.diceButton.setTitle("Dice", for: .normal)
-                    self.diceButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-                    self.view.addSubview(self.diceButton)
+                    self.addImportButton()
+                    self.addCheckPriceButton()
+                    self.addMultiSigButton()
+                    self.addDiceButton()
                     
                     UIView.animate(withDuration: 0.2, animations: {
                         

@@ -510,15 +510,16 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         DispatchQueue.main.async {
             
             self.backUpButton.removeFromSuperview()
-            self.backUpButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
-            self.backUpButton.showsTouchWhenHighlighted = true
-            self.backUpButton.layer.cornerRadius = 10
-            self.backUpButton.backgroundColor = UIColor.lightText
-            self.backUpButton.layer.shadowColor = UIColor.black.cgColor
-            self.backUpButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.backUpButton.layer.shadowRadius = 2.5
-            self.backUpButton.layer.shadowOpacity = 0.8
-            self.backUpButton.setTitle("Save/Copy/Share", for: .normal)
+            self.backUpButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: self.view.frame.maxY - 60, width: 55, height: 55))
+            //self.backUpButton.showsTouchWhenHighlighted = true
+            //self.backUpButton.layer.cornerRadius = 10
+            //self.backUpButton.backgroundColor = UIColor.black
+            //self.backUpButton.layer.shadowColor = UIColor.black.cgColor
+            //self.backUpButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+            //self.backUpButton.layer.shadowRadius = 2.5
+            //self.backUpButton.layer.shadowOpacity = 0.8
+            //self.backUpButton.setTitle("Save/Copy/Share", for: .normal)
+            self.backUpButton.setImage(#imageLiteral(resourceName: "backUp.jpg"), for: .normal)
             self.backUpButton.addTarget(self, action: #selector(self.airDropImage), for: .touchUpInside)
             self.view.addSubview(self.backUpButton)
             
@@ -534,7 +535,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             self.backUpButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 150, y: self.view.frame.maxY - 60, width: 140, height: 55))
             self.backUpButton.showsTouchWhenHighlighted = true
             self.backUpButton.layer.cornerRadius = 10
-            self.backUpButton.backgroundColor = UIColor.lightText
+            self.backUpButton.backgroundColor = UIColor.black
             self.backUpButton.layer.shadowColor = UIColor.black.cgColor
             self.backUpButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.backUpButton.layer.shadowRadius = 2.5
@@ -556,7 +557,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             self.myAddressButton = UIButton(frame: CGRect(x: self.view.frame.minX + 10, y: self.view.frame.maxY - 60, width: 140, height: 55))
             self.myAddressButton.showsTouchWhenHighlighted = true
             self.myAddressButton.layer.cornerRadius = 10
-            self.myAddressButton.backgroundColor = UIColor.lightText
+            self.myAddressButton.backgroundColor = UIColor.black
             self.myAddressButton.layer.shadowColor = UIColor.black.cgColor
             self.myAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.myAddressButton.layer.shadowRadius = 2.5
