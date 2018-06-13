@@ -10,10 +10,13 @@ import UIKit
 import Security
 import SystemConfiguration
 import BigInt
+import AVFoundation
 
-
-class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate {
+class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate, AVCaptureMetadataOutputObjectsDelegate {
     
+    var videoPreview:UIView!
+    let avCaptureSession = AVCaptureSession()
+    var stringURL = String()
     var password = ""
     var toolBoxTapped = Bool()
     var simpleMode = Bool()
@@ -25,9 +28,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     var hotMode = Bool()
     var legacyMode = Bool()
     var segwitMode = Bool()
+    var addressBookButton = UIButton()
     var infoButton = UIButton()
     var priceButton = UIButton()
     var lockButton = UIButton()
+    var scanQRCodeButton = UIButton()
     var toolboxButton = UIButton()
     var multiSigButton = UIButton()
     var sweepButton = UIButton()
@@ -281,98 +286,168 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 let formatMnemonic1 = self.words.replacingOccurrences(of: "[", with: "")
                 let formatMnemonic2 = formatMnemonic1.replacingOccurrences(of: "]", with: "")
                 self.recoveryPhrase = formatMnemonic2.replacingOccurrences(of: ",", with: "")
-                let keychain = mnemonic.keychain.derivedKeychain(withPath: "m/44'/0'/0'/0")
-                keychain?.key.isPublicKeyCompressed = true
-                
-                var privateKeyHD = String()
-                var addressHD = String()
                 
                 if testnetMode {
+                    
+                    let keychain = mnemonic.keychain.derivedKeychain(withPath: "m/44'/0'/0'/0")
+                    keychain?.key.isPublicKeyCompressed = true
+                    
+                    var privateKeyHD = String()
+                    var addressHD = String()
                     
                     privateKeyHD = (keychain?.key(at: 0).privateKeyAddressTestnet.description)!
                     addressHD = (keychain?.key(at: 0).addressTestnet.description)!
                     
+                    let xpub = keychain?.bitcoinTestnet.extendedPublicKey
+                    let xpriv = keychain?.bitcoinTestnet.extendedPrivateKey
+                    print("xpub = \(String(describing: xpub))")
+                    print("xpriv = \(String(describing: xpriv))")
+                    UserDefaults.standard.set(xpub, forKey: "xpub")
+                    UserDefaults.standard.set(0, forKey: "int")
+                    let watchOnlyTestKey = BTCKeychain.init(extendedKey: xpub)
+                    let childkeychain = watchOnlyTestKey?.key(at: 2).addressTestnet
+                    print("childkeychain address = \(String(describing: childkeychain))")
+                    
+                    var privateKey3 = privateKeyHD.components(separatedBy: " ")
+                    self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
+                    
+                    if self.legacyMode {
+                        
+                        let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
+                        self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                        
+                    }
+                    
+                    if segwitMode {
+                        
+                        let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain?.key(at: 0).compressedPublicKey as Data!) as Data!) as Data!
+                        
+                        do {
+                            
+                            self.bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
+                            
+                        } catch {
+                            
+                            self.displayAlert(title: "Error", message: "Please try again.")
+                            return("", "")
+                            
+                        }
+                        
+                    }
+                    
+                    if self.hotMode && UserDefaults.standard.object(forKey: "wif") != nil {
+                        
+                        DispatchQueue.main.async {
+                            
+                            let alert = UIAlertController(title: "Alert!", message: "Do you want this Private Key to overwrite your existing wallet?", preferredStyle: UIAlertControllerStyle.alert)
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, overwrite my wallet", comment: ""), style: .destructive, handler: { (action) in
+                                
+                                UserDefaults.standard.set(self.privateKeyWIF, forKey: "wif")
+                                UserDefaults.standard.set(self.words, forKey: "seed")
+                                
+                            }))
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("No, keep exisiting wallet", comment: ""), style: .default, handler: { (action) in
+                                
+                            }))
+                            
+                            self.present(alert, animated: true, completion: nil)
+                            
+                        }
+                        
+                    } else if self.hotMode {
+                        
+                        UserDefaults.standard.set(self.privateKeyWIF, forKey: "wif")
+                        UserDefaults.standard.set(self.words, forKey: "seed")
+                        
+                    }
+                    
+                    keychain?.key.clear()
+                    data.removeAll()
+                    return (self.privateKeyWIF, self.bitcoinAddress)
+                    
                 } else if mainnetMode {
+                    
+                    let keychain = mnemonic.keychain.derivedKeychain(withPath: "m/44'/0'/0'/0")
+                    keychain?.key.isPublicKeyCompressed = true
+                    
+                    var privateKeyHD = String()
+                    var addressHD = String()
                     
                     privateKeyHD = (keychain?.key(at: 0).privateKeyAddress.description)!
                     addressHD = (keychain?.key(at: 0).address.description)!
                     
-                }
-                
-                var privateKey3 = privateKeyHD.components(separatedBy: " ")
-                self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
-                
-                if self.legacyMode {
+                    let xpub = keychain?.extendedPublicKey
+                    let xpriv = keychain?.extendedPrivateKey
+                    print("xpub = \(String(describing: xpub))")
+                    print("xpriv = \(String(describing: xpriv))")
+                    UserDefaults.standard.set(xpub, forKey: "xpub")
+                    UserDefaults.standard.set(0, forKey: "int")
+                    let watchOnlyTestKey = BTCKeychain.init(extendedKey: xpub)
+                    let childkeychain = watchOnlyTestKey?.key(at: 2).address
+                    print("childkeychain address = \(String(describing: childkeychain))")
                     
-                    let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                    self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                    var privateKey3 = privateKeyHD.components(separatedBy: " ")
+                    self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
                     
-                }
-                
-                let xpub = keychain?.extendedPublicKey
-                let xpriv = keychain?.extendedPrivateKey
-                print("xpub = \(String(describing: xpub))")
-                print("xpriv = \(String(describing: xpriv))")
-                UserDefaults.standard.set(xpub, forKey: "xpub")
-                UserDefaults.standard.set(0, forKey: "int")
-                
-                if segwitMode {
+                    if self.legacyMode {
+                        
+                        let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
+                        self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                        
+                    }
                     
-                    let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain?.key(at: 0).compressedPublicKey as Data!) as Data!) as Data!
-                    
-                    do {
-                        //bc for mainnet and tb for testnet
-                        if mainnetMode {
+                    if segwitMode {
+                        
+                        let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain?.key(at: 0).compressedPublicKey as Data!) as Data!) as Data!
+                        
+                        do {
                             
                             self.bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
                             
-                        } else if testnetMode {
+                        } catch {
                             
-                            self.bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
+                            self.displayAlert(title: "Error", message: "Please try again.")
+                            return("", "")
                             
                         }
                         
-                    } catch {
+                    }
+                    
+                    if self.hotMode && UserDefaults.standard.object(forKey: "wif") != nil {
                         
-                        self.displayAlert(title: "Error", message: "Please try again.")
-                        return("", "")
+                        DispatchQueue.main.async {
+                            
+                            let alert = UIAlertController(title: "Alert!", message: "Do you want this Private Key to overwrite your existing wallet?", preferredStyle: UIAlertControllerStyle.alert)
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, overwrite my wallet", comment: ""), style: .destructive, handler: { (action) in
+                                
+                                UserDefaults.standard.set(self.privateKeyWIF, forKey: "wif")
+                                UserDefaults.standard.set(self.words, forKey: "seed")
+                                
+                            }))
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("No, keep exisiting wallet", comment: ""), style: .default, handler: { (action) in
+                                
+                            }))
+                            
+                            self.present(alert, animated: true, completion: nil)
+                            
+                        }
+                        
+                    } else if self.hotMode {
+                        
+                        UserDefaults.standard.set(self.privateKeyWIF, forKey: "wif")
+                        UserDefaults.standard.set(self.words, forKey: "seed")
                         
                     }
                     
-                }
-                
-                if self.hotMode && UserDefaults.standard.object(forKey: "wif") != nil {
-                    
-                    //alert to see if they want that private key to replace their hot wallet
-                    
-                    DispatchQueue.main.async {
-                        
-                        let alert = UIAlertController(title: "Alert!", message: "Do you want this Private Key to overwrite your existing wallet?", preferredStyle: UIAlertControllerStyle.alert)
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, overwrite my wallet", comment: ""), style: .destructive, handler: { (action) in
-                            
-                            UserDefaults.standard.set(self.privateKeyWIF, forKey: "wif")
-                            UserDefaults.standard.set(self.words, forKey: "seed")
-                            
-                        }))
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("No, keep exisiting wallet", comment: ""), style: .default, handler: { (action) in
-                            
-                        }))
-                        
-                        self.present(alert, animated: true, completion: nil)
-                        
-                    }
-                    
-                } else if self.hotMode {
-                    
-                    UserDefaults.standard.set(self.privateKeyWIF, forKey: "wif")
+                    keychain?.key.clear()
+                    data.removeAll()
+                    return (self.privateKeyWIF, self.bitcoinAddress)
                     
                 }
-                
-                keychain?.key.clear()
-                data.removeAll()
-                return (self.privateKeyWIF, self.bitcoinAddress)
                 
             } else {
                 
@@ -388,7 +463,8 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
         }
         
-        
+        data.removeAll()
+        return("", "")
         
         
     }
@@ -458,6 +534,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         self.addBackButton()
         self.addImportActionButton()
+        self.addScanQRCodeButton()
         self.addClearMnemonicButton()
         
     }
@@ -551,8 +628,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
             }
             
-            
-            
             self.settingsButton.removeFromSuperview()
             self.settingsButton = UIButton(frame: CGRect(x: 5, y: 20, width: 45, height: 45))
             self.settingsButton.showsTouchWhenHighlighted = true
@@ -562,7 +637,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.view.addSubview(self.settingsButton)
             
             self.infoButton.removeFromSuperview()
-            self.infoButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 50, y: 20, width: 45, height: 45))//UIButton(frame: CGRect(x: self.view.frame.width / 2 - (55/2), y: 20, width: 55, height: 55))
+            self.infoButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 50, y: 20, width: 45, height: 45))
             self.infoButton.showsTouchWhenHighlighted = true
             self.infoButton.layer.cornerRadius = 28
             self.infoButton.setImage(#imageLiteral(resourceName: "help2.png"), for: .normal)
@@ -570,7 +645,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.view.addSubview(self.infoButton)
             
             self.lockButton.removeFromSuperview()
-            self.lockButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 4 - (35/2)) + 5, y: 20, width: 35, height: 35))//UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: 20, width: 45, height: 45))
+            self.lockButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 5 - (35/2)) + 5, y: 20, width: 35, height: 35))
             self.lockButton.showsTouchWhenHighlighted = true
             self.lockButton.layer.cornerRadius = 28
             self.lockButton.setImage(#imageLiteral(resourceName: "lock.jpg"), for: .normal)
@@ -578,7 +653,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.view.addSubview(self.lockButton)
             
             self.priceButton.removeFromSuperview()
-            self.priceButton = UIButton(frame: CGRect(x: (self.view.center.x - (40/2)), y: 16, width: 50, height: 50))
+            self.priceButton = UIButton(frame: CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 3 - (40/2)) - 5, y: 16, width: 50, height: 50))
             self.priceButton.showsTouchWhenHighlighted = true
             self.priceButton.layer.cornerRadius = 28
             self.priceButton.setImage(#imageLiteral(resourceName: "price.png"), for: .normal)
@@ -586,12 +661,20 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.view.addSubview(self.priceButton)
             
             self.toolboxButton.removeFromSuperview()
-            self.toolboxButton = UIButton(frame: CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 4 - (40/2)) - 5, y: 20, width: 40, height: 40))//UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: 20, width: 45, height: 45))
+            self.toolboxButton = UIButton(frame: CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 5 - (40/2)) - 5, y: 20, width: 40, height: 40))
             self.toolboxButton.showsTouchWhenHighlighted = true
             self.toolboxButton.layer.cornerRadius = 28
             self.toolboxButton.setImage(#imageLiteral(resourceName: "keys.png"), for: .normal)
             self.toolboxButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.toolboxButton)
+            
+            self.addressBookButton.removeFromSuperview()
+            self.addressBookButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 3 - (35/2)) + 5, y: 22, width: 35, height: 35))
+            self.addressBookButton.showsTouchWhenHighlighted = true
+            self.addressBookButton.layer.cornerRadius = 28
+            self.addressBookButton.setImage(#imageLiteral(resourceName: "addressBook.png"), for: .normal)
+            self.addressBookButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+            self.view.addSubview(self.addressBookButton)
             
             if self.simpleMode {
                 
@@ -615,7 +698,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 DispatchQueue.main.async {
                     
                     self.addImportButton()
-                    //self.addCheckPriceButton()
                     self.addMultiSigButton()
                     self.addDiceButton()
                     
@@ -630,7 +712,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     func addPayButton() {
         
         self.transactionsButton.removeFromSuperview()
-        self.transactionsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.view.frame.maxY - 55, width: 85, height: 50))//UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.view.frame.maxY - 60, width: 85, height: 50))
+        self.transactionsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.view.frame.maxY - 55, width: 85, height: 50))
         self.transactionsButton.showsTouchWhenHighlighted = true
         self.transactionsButton.layer.cornerRadius = 10
         self.transactionsButton.backgroundColor = UIColor.black//UIColor.lightText
@@ -647,7 +729,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     func addReceiveButton() {
         
         self.newAddressButton.removeFromSuperview()
-        self.newAddressButton = UIButton(frame: CGRect(x: self.view.center.x - (85/2), y: self.view.frame.maxY - 55, width: 85, height: 50))//UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.minY + 20, width: 85, height: 50))
+        self.newAddressButton = UIButton(frame: CGRect(x: self.view.center.x - (85/2), y: self.view.frame.maxY - 55, width: 85, height: 50))
         self.newAddressButton.showsTouchWhenHighlighted = true
         self.newAddressButton.titleLabel?.textAlignment = .center
         self.newAddressButton.layer.cornerRadius = 10
@@ -666,7 +748,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         self.sweepButton.removeFromSuperview()
         self.sweepButton = UIButton(frame: CGRect(x: 5, y: self.diceButton.frame.maxY + 10, width: 85, height: 50))
-        //self.sweepButton.alpha = 1
         self.sweepButton.showsTouchWhenHighlighted = true
         self.sweepButton.layer.cornerRadius = 10
         self.sweepButton.backgroundColor = UIColor.black//UIColor.lightText
@@ -684,7 +765,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         self.exportButton.removeFromSuperview()
         self.exportButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.transactionsButton.frame.minY - 60, width: 85, height: 50))
-        //self.exportButton.alpha = 1
         self.exportButton.showsTouchWhenHighlighted = true
         self.exportButton.titleLabel?.textAlignment = .center
         self.exportButton.layer.cornerRadius = 10
@@ -703,7 +783,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         self.importButton.removeFromSuperview()
         self.importButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.exportButton.frame.minY - 60, width: 85, height: 50))
-        //self.importButton.alpha = 1
         self.importButton.showsTouchWhenHighlighted = true
         self.importButton.layer.cornerRadius = 10
         self.importButton.backgroundColor = UIColor.black//UIColor.lightText
@@ -716,32 +795,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         self.view.addSubview(self.importButton)
         
     }
-    /*
-    func addCheckPriceButton() {
-        
-        self.mayerMultipleButton.removeFromSuperview()
-        self.mayerMultipleButton = UIButton(frame: CGRect(x: self.view.center.x - (85/2), y: self.newAddressButton.frame.minY - 60, width: 85, height: 50))//UIButton(frame: CGRect(x: self.view.frame.maxX - 95, y: self.view.frame.maxY - 60, width: 85, height: 50))
-        //self.mayerMultipleButton.alpha = 1
-        self.mayerMultipleButton.showsTouchWhenHighlighted = true
-        self.mayerMultipleButton.layer.cornerRadius = 10
-        self.mayerMultipleButton.backgroundColor = UIColor.black//UIColor.lightText
-        self.mayerMultipleButton.layer.shadowColor = UIColor.black.cgColor
-        self.mayerMultipleButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.mayerMultipleButton.layer.shadowRadius = 2.5
-        self.mayerMultipleButton.layer.shadowOpacity = 0.8
-        self.mayerMultipleButton.setTitle("Price", for: .normal)
-        self.mayerMultipleButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-        self.view.addSubview(self.mayerMultipleButton)
-        
-    }
-    */
     
     func addMultiSigButton() {
         
         self.multiSigButton.removeFromSuperview()
         self.multiSigButton = UIButton(frame: CGRect(x: self.view.center.x - (85/2), y: self.newAddressButton.frame.minY - 60, width: 85, height: 50))
         self.multiSigButton.showsTouchWhenHighlighted = true
-        //self.multiSigButton.alpha = 1
         self.multiSigButton.layer.cornerRadius = 10
         self.multiSigButton.backgroundColor = UIColor.black//UIColor.lightText
         self.multiSigButton.layer.shadowColor = UIColor.black.cgColor
@@ -758,7 +817,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         self.diceButton.removeFromSuperview()
         self.diceButton = UIButton(frame: CGRect(x: 5, y: self.settingsButton.frame.minY + 60, width: 85, height: 50))
-        //self.diceButton.alpha = 1
         self.diceButton.showsTouchWhenHighlighted = true
         self.diceButton.layer.cornerRadius = 10
         self.diceButton.backgroundColor = UIColor.black//UIColor.lightText
@@ -794,6 +852,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         DispatchQueue.main.async {
             
+            self.addressBookButton.removeFromSuperview()
             self.priceButton.removeFromSuperview()
             self.lockButton.removeFromSuperview()
             self.toolboxButton.removeFromSuperview()
@@ -805,7 +864,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.importButton.removeFromSuperview()
             self.transactionsButton.removeFromSuperview()
             self.diceButton.removeFromSuperview()
-            //self.mayerMultipleButton.removeFromSuperview()
             self.checkAddressButton.removeFromSuperview()
             self.settingsButton.removeFromSuperview()
             self.bitField.removeFromSuperview()
@@ -818,6 +876,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     @objc func userCreatesRandomness(gestureRecognizer: UIPanGestureRecognizer) {
         
         //remove buttons when bitcoin gets dragged
+        self.addressBookButton.removeFromSuperview()
         self.toolboxButton.removeFromSuperview()
         self.priceButton.removeFromSuperview()
         self.lockButton.removeFromSuperview()
@@ -880,8 +939,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                         let alert = UIAlertController(title: "Keep Going!", message: "Please move the Bitcoin around more so we have a large enough number to generate a private key, it should not take more then 10 seconds of your time, this ensures we create a really large really random number that makes your Bitcoin ultra secure.", preferredStyle: UIAlertControllerStyle.alert)
                         
                         alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
-                            
-                            //self.shakeAlert(viewToShake: self.imageView)
                             
                         }))
                         
@@ -1051,9 +1108,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         self.bitField.removeFromSuperview()
         self.privateKeyQRCode = nil
         self.privateKeyImage = nil
-        //self.privateKeyQRView.image = nil
         self.privateKeyTitle.text = ""
-        //self.myField.text = ""
         self.imageView.removeFromSuperview()
         self.imageView = nil
         self.button.removeFromSuperview()
@@ -1188,7 +1243,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain?.key(at: 0).compressedPublicKey as Data!) as Data!) as Data!
                 
                 do {
-                    //bc for mainnet and tb for testnet
+                    
                     if mainnetMode {
                         
                         self.bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
@@ -1202,15 +1257,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 } catch {
                     
                     self.displayAlert(title: "Error", message: "Please try again.")
-                    //return("", "")
                     
                 }
                 
             }
             
             if self.hotMode && UserDefaults.standard.object(forKey: "wif") != nil {
-                
-                //alert to see if they want that private key to replace their hot wallet
                 
                 DispatchQueue.main.async {
                     
@@ -1269,13 +1321,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 self.button.removeFromSuperview()
                 self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
                 self.button.showsTouchWhenHighlighted = true
-                //self.button.layer.cornerRadius = 10
-                //self.button.backgroundColor = UIColor.lightText
-                //self.button.layer.shadowColor = UIColor.black.cgColor
-                //self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-                //self.button.layer.shadowRadius = 2.5
-                //self.button.layer.shadowOpacity = 0.8
-                //self.button.setTitle("Back", for: .normal)
                 self.button.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
                 self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
                 self.view.addSubview(self.button)
@@ -1283,26 +1328,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 if self.coldMode {
                     
                     self.bitcoinAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: 20, width: 55 , height: 55))
-                    /*self.bitcoinAddressButton.showsTouchWhenHighlighted = true
-                    self.bitcoinAddressButton.layer.cornerRadius = 10
-                    self.bitcoinAddressButton.backgroundColor = UIColor.lightText
-                    self.bitcoinAddressButton.layer.shadowColor = UIColor.black.cgColor
-                    self.bitcoinAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-                    self.bitcoinAddressButton.layer.shadowRadius = 2.5
-                    self.bitcoinAddressButton.layer.shadowOpacity = 0.8*/
                     self.bitcoinAddressButton.setImage(#imageLiteral(resourceName: "switch.jpg"), for: .normal)
-                    
-                    if self.watchOnlyMode {
-                        
-                        //self.bitcoinAddressButton.setTitle("Show XPUB", for: .normal)
-                        
-                        
-                    } else {
-                        
-                        //self.bitcoinAddressButton.setTitle("Show Address", for: .normal)
-                        
-                    }
-                    
                     self.bitcoinAddressButton.addTarget(self, action: #selector(self.getAddress), for: .touchUpInside)
                     self.view.addSubview(self.bitcoinAddressButton)
                 }
@@ -1312,19 +1338,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
         } else {
             
-            
             DispatchQueue.main.async {
                 
                 self.button.removeFromSuperview()
                 self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
                 self.button.showsTouchWhenHighlighted = true
-                //self.button.layer.cornerRadius = 10
-                //self.button.backgroundColor = UIColor.lightText
-                //self.button.layer.shadowColor = UIColor.black.cgColor
-                //self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-                //self.button.layer.shadowRadius = 2.5
-                //self.button.layer.shadowOpacity = 0.8
-                //self.button.setTitle("Back", for: .normal)
                 self.button.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
                 self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
                 self.view.addSubview(self.button)
@@ -1332,7 +1350,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             }
             
         }
-        
         
     }
     
@@ -1344,7 +1361,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.importAction.showsTouchWhenHighlighted = true
             self.importAction.titleLabel?.textAlignment = .center
             self.importAction.layer.cornerRadius = 10
-            self.importAction.backgroundColor = UIColor.lightText
+            self.importAction.backgroundColor = UIColor.black
             self.importAction.layer.shadowColor = UIColor.black.cgColor
             self.importAction.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
             self.importAction.layer.shadowRadius = 2.5
@@ -1354,6 +1371,132 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.view.addSubview(self.importAction)
         }
         
+    }
+    
+    func addScanQRCodeButton() {
+        print("addScanQRCodeButton")
+        
+        DispatchQueue.main.async {
+            self.scanQRCodeButton.removeFromSuperview()
+            self.scanQRCodeButton = UIButton(frame: CGRect(x: self.view.center.x - 25, y: 20, width: 50, height: 50))
+            self.scanQRCodeButton.showsTouchWhenHighlighted = true
+            self.scanQRCodeButton.titleLabel?.textAlignment = .center
+            self.scanQRCodeButton.layer.cornerRadius = 10
+            self.scanQRCodeButton.setImage(#imageLiteral(resourceName: "qr.png"), for: .normal)
+            self.scanQRCodeButton.addTarget(self, action: #selector(self.scanRecoveryPhrase), for: .touchUpInside)
+            self.view.addSubview(self.scanQRCodeButton)
+        }
+    }
+    
+    @objc func scanRecoveryPhrase() {
+        
+        self.inputMnemonic.resignFirstResponder()
+        
+        self.imageView.frame = CGRect(x: 10, y: self.importAction.frame.maxY + 10, width: self.view.frame.width - 20, height: self.view.frame.width - 20)
+        
+        DispatchQueue.main.async {
+            self.view.addSubview(self.imageView)
+        }
+        
+        func scanQRCode() {
+            
+            do {
+                
+                try scanQRNow()
+                print("scanQRNow")
+                
+            } catch {
+                
+                print("Failed to scan QR Code")
+            }
+        }
+        
+        scanQRCode()
+        
+    }
+    
+    enum error: Error {
+        
+        case noCameraAvailable
+        case videoInputInitFail
+        
+    }
+    
+    func scanQRNow() throws {
+        
+        guard let avCaptureDevice = AVCaptureDevice.default(for: AVMediaType.video) else {
+            
+            print("no camera")
+            throw error.noCameraAvailable
+            
+        }
+        
+        guard let avCaptureInput = try? AVCaptureDeviceInput(device: avCaptureDevice) else {
+            
+            print("failed to int camera")
+            throw error.videoInputInitFail
+        }
+        
+        
+        let avCaptureMetadataOutput = AVCaptureMetadataOutput()
+        avCaptureMetadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
+        
+        if let inputs = self.avCaptureSession.inputs as? [AVCaptureDeviceInput] {
+            for input in inputs {
+                self.avCaptureSession.removeInput(input)
+            }
+        }
+        
+        if let outputs = self.avCaptureSession.outputs as? [AVCaptureMetadataOutput] {
+            for output in outputs {
+                self.avCaptureSession.removeOutput(output)
+            }
+        }
+        
+        self.avCaptureSession.addInput(avCaptureInput)
+        self.avCaptureSession.addOutput(avCaptureMetadataOutput)
+        
+        avCaptureMetadataOutput.metadataObjectTypes = [AVMetadataObject.ObjectType.qr]
+        
+        let avCaptureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: avCaptureSession)
+        avCaptureVideoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
+        avCaptureVideoPreviewLayer.frame = self.imageView.bounds
+        self.imageView.layer.addSublayer(avCaptureVideoPreviewLayer)
+        
+        self.avCaptureSession.startRunning()
+        
+    }
+    
+    func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+        if metadataObjects.count > 0 {
+            print("metadataOutput")
+            
+            let machineReadableCode = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
+            
+            if machineReadableCode.type == AVMetadataObject.ObjectType.qr {
+                
+                stringURL = machineReadableCode.stringValue!
+                print("stringURL = \(stringURL)")
+                
+                DispatchQueue.main.async {
+                    
+                    self.scanQRCodeButton.removeFromSuperview()
+                    self.outputMnemonic.text = self.stringURL
+                    self.wordArray = self.stringURL.wordList
+                    
+                    for word in self.wordArray {
+                        
+                        self.listArray.append(word + " ")
+                        
+                    }
+                    
+                }
+                
+                self.imageView.removeFromSuperview()
+                self.avCaptureSession.stopRunning()
+                
+            }
+        }
     }
     
     @objc func export() {
@@ -1385,7 +1528,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     
                     do {
                         
-                        //bc for mainnet and tb for testnet
                         self.bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
                         
                     } catch {
@@ -1394,7 +1536,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     }
                     
                 }
-                
                 
             } else if mainnetMode {
                 
@@ -1413,7 +1554,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     
                     do {
                         
-                        //bc for mainnet and tb for testnet
                         self.bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
                             
                     } catch {
@@ -1427,10 +1567,8 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
             showPrivateKeyAndAddressQRCodes()
             
-            
         } else {
             
-            //shake bitcoin instead of alert
             self.shakeAlert(viewToShake: self.imageView)
             
         }
@@ -1481,7 +1619,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     
                     do {
                         
-                        //bc for mainnet and tb for testnet
                         self.bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
                         self.showAddressQRCodes()
                         print("myAddress = \(self.bitcoinAddress)")
@@ -1502,7 +1639,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     
                     do {
                         
-                        //bc for mainnet and tb for testnet
                         self.bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
                         self.showAddressQRCodes()
                         print("myAddress = \(self.bitcoinAddress)")
@@ -1554,13 +1690,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.button.removeFromSuperview()
             self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
             self.button.showsTouchWhenHighlighted = true
-            /*self.button.layer.cornerRadius = 10
-            self.button.backgroundColor = UIColor.lightText
-            self.button.layer.shadowColor = UIColor.black.cgColor
-            self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.button.layer.shadowRadius = 2.5
-            self.button.layer.shadowOpacity = 0.8
-            self.button.setTitle("Back", for: .normal)*/
             self.button.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
             self.button.addTarget(self, action: #selector(self.back), for: .touchUpInside)
             self.view.addSubview(self.button)
@@ -1575,6 +1704,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         for dice in self.diceArray {
             dice.removeFromSuperview()
         }
+        self.imageView.removeFromSuperview()
         self.diceArray.removeAll()
         self.tappedIndex = 0
         self.percentageLabel.removeFromSuperview()
@@ -1609,7 +1739,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     self.myField.text = xpub
                     self.privateKeyQRCode = self.generateQrCode(key: xpub)
                     self.privateKeyQRView.image = self.privateKeyQRCode!
-                    //self.bitcoinAddressButton.setTitle("Show Address", for: .normal)
                     self.addressMode = false
                     
                 }
@@ -1625,7 +1754,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     self.privateKeyTitle.text = "Legacy Bitcoin Address"
                     self.WIFprivateKeyFieldLabel.text = "Legacy Format:"
                     self.privateKeyTitle.adjustsFontSizeToFitWidth = true
-                    //self.bitcoinAddressButton.setTitle("Show XPUB", for: .normal)
                     self.addressMode = true
                     
                 }
@@ -1660,7 +1788,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     }
                     
                     self.privateKeyTitle.adjustsFontSizeToFitWidth = true
-                    //self.bitcoinAddressButton.setTitle("Show Private Key", for: .normal)
                     self.privateKeyMode = false
                     
                 }
@@ -1675,7 +1802,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     self.myField.text = self.privateKeyText
                     self.privateKeyQRCode = self.generateQrCode(key: self.privateKeyText)
                     self.privateKeyQRView.image = self.privateKeyQRCode!
-                    //self.bitcoinAddressButton.setTitle("Show Address", for: .normal)
                     self.privateKeyMode = true
                     
                 }
@@ -1703,27 +1829,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.button.removeFromSuperview()
             self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
             self.button.showsTouchWhenHighlighted = true
-            /*self.button.layer.cornerRadius = 10
-            self.button.backgroundColor = UIColor.lightText
-            self.button.layer.shadowColor = UIColor.black.cgColor
-            self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.button.layer.shadowRadius = 2.5
-            self.button.layer.shadowOpacity = 0.8
-            self.button.setTitle("Back", for: .normal)*/
             self.button.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
             self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
             self.view.addSubview(self.button)
             
             self.bitcoinAddressButton.removeFromSuperview()
             self.bitcoinAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: 20, width: 55 , height: 55))
-            //self.bitcoinAddressButton.showsTouchWhenHighlighted = true
-            //self.bitcoinAddressButton.layer.cornerRadius = 10
-            //self.bitcoinAddressButton.backgroundColor = UIColor.lightText
-            //self.bitcoinAddressButton.layer.shadowColor = UIColor.black.cgColor
-            //self.bitcoinAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            //self.bitcoinAddressButton.layer.shadowRadius = 2.5
-            //self.bitcoinAddressButton.layer.shadowOpacity = 0.8
-            //self.bitcoinAddressButton.setTitle("Show Address", for: .normal)
             self.bitcoinAddressButton.setImage(#imageLiteral(resourceName: "switch.jpg"), for: .normal)
             self.bitcoinAddressButton.addTarget(self, action: #selector(self.getAddress), for: .touchUpInside)
             self.view.addSubview(self.bitcoinAddressButton)
@@ -2015,7 +2126,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 DispatchQueue.main.async {
                     
                     self.addImportButton()
-                    //self.addCheckPriceButton()
                     self.addMultiSigButton()
                     self.addDiceButton()
                     
@@ -2160,6 +2270,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         switch sender {
             
+        case self.addressBookButton:
+            
+            print("addressBookButton")
+            self.addressBookAlert()
+            
         case self.lockButton:
             
             print("lock button")
@@ -2244,7 +2359,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
             if simpleMode && UserDefaults.standard.object(forKey: "wif") == nil {
                 
-                //shake bitcoin instead of alert
                 self.shakeAlert(viewToShake: self.imageView)
                 
             } else {
@@ -2253,13 +2367,16 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
             }
             
-            
-            
         default:
             break
         }
         
-       
+    }
+    
+    func addressBookAlert() {
+        
+        print("addressBookAlert")
+        
     }
     
     @objc func airDropImage() {
@@ -2650,14 +2767,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         DispatchQueue.main.async {
             self.clearButton.removeFromSuperview()
             self.clearButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: 20, width: 55 , height: 55))
-            /*self.clearButton.showsTouchWhenHighlighted = true
-            self.clearButton.backgroundColor = UIColor.lightText
-            self.clearButton.layer.cornerRadius = 10
-            self.clearButton.layer.shadowColor = UIColor.black.cgColor
-            self.clearButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.clearButton.layer.shadowRadius = 2.5
-            self.clearButton.layer.shadowOpacity = 0.8
-            self.clearButton.setTitle("Clear", for: .normal)*/
             self.clearButton.setImage(#imageLiteral(resourceName: "clear.png"), for: .normal)
             self.clearButton.addTarget(self, action: #selector(self.tapClearDice), for: .touchUpInside)
             self.view.addSubview(self.clearButton)
@@ -2671,14 +2780,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         DispatchQueue.main.async {
             self.clearMnemonicButton.removeFromSuperview()
             self.clearMnemonicButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: 20, width: 55 , height: 55))
-            /*self.clearMnemonicButton.showsTouchWhenHighlighted = true
-            self.clearMnemonicButton.backgroundColor = UIColor.lightText
-            self.clearMnemonicButton.layer.cornerRadius = 10
-            self.clearMnemonicButton.layer.shadowColor = UIColor.black.cgColor
-            self.clearMnemonicButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.clearMnemonicButton.layer.shadowRadius = 2.5
-            self.clearMnemonicButton.layer.shadowOpacity = 0.8*/
-            //self.clearMnemonicButton.setTitle("Clear", for: .normal)
             self.clearMnemonicButton.setImage(#imageLiteral(resourceName: "clear.png"), for: .normal)
             self.clearMnemonicButton.addTarget(self, action: #selector(self.tapClearMnemonic), for: .touchUpInside)
             self.view.addSubview(self.clearMnemonicButton)
@@ -3014,5 +3115,11 @@ extension Sequence {
     }
 }
 
-
+extension String {
+    var wordList: [String] {
+        return components(separatedBy: .punctuationCharacters)
+            .joined()
+            .components(separatedBy: .whitespaces)
+    }
+}
 
