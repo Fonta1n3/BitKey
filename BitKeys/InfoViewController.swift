@@ -39,13 +39,6 @@ class InfoViewController: UIViewController, UITextViewDelegate {
             self.button.removeFromSuperview()
             self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
             self.button.showsTouchWhenHighlighted = true
-            /*self.button.layer.cornerRadius = 10
-            self.button.backgroundColor = UIColor.lightText
-            self.button.layer.shadowColor = UIColor.black.cgColor
-            self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.button.layer.shadowRadius = 2.5
-            self.button.layer.shadowOpacity = 0.8
-            self.button.setTitle("Back", for: .normal)*/
             self.button.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
             self.button.addTarget(self, action: #selector(self.back), for: .touchUpInside)
             self.view.addSubview(self.button)

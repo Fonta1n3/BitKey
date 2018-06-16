@@ -19,15 +19,22 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
     var videoPreview = UIView()
     var privateKeyImportText = UITextField()
     var stringURL = String()
+    var addressBook: [[String: Any]] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         print("SweepViewController")
         privateKeyImportText.delegate = self
-        checkUserDefaults()
+        getUserDefaults()
         addScanner()
         addBackButton()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        
+       getUserDefaults()
+        
     }
 
     override func didReceiveMemoryWarning() {
@@ -72,9 +79,7 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
         self.privateKeyImportText.autocapitalizationType = .none
         self.privateKeyImportText.backgroundColor = UIColor.groupTableViewBackground
         self.privateKeyImportText.returnKeyType = UIReturnKeyType.go
-        
         self.privateKeyImportText.placeholder = "Scan or Type Private Key"
-            
         self.view.addSubview(self.privateKeyImportText)
         
     }
@@ -225,9 +230,15 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
         
     }
     
-    func checkUserDefaults() {
+    func getUserDefaults() {
         
         print("checkUserDefaults")
+        
+        if UserDefaults.standard.object(forKey: "addressBook") != nil {
+            
+            addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String: Any]]
+            
+        }
         
         testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
         mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
@@ -265,9 +276,10 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                                 
                                 alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, import this wallet", comment: ""), style: .destructive, handler: { (action) in
                                     
-                                    UserDefaults.standard.set(self.stringURL, forKey: "wif")
-                                    UserDefaults.standard.removeObject(forKey: "seed")
-                                    self.dismiss(animated: true, completion: nil)
+                                    let address = key.addressTestnet
+                                    let legacyAddress2 = (address?.description)?.components(separatedBy: " ")
+                                    let bitcoinAddress = legacyAddress2![1].replacingOccurrences(of: ">", with: "")
+                                    saveWallet(viewController: self, address: bitcoinAddress, privateKey: self.stringURL, publicKey: "", redemptionScript: "", network: "testnet", type: "hot")
                                     
                                 }))
                                 
@@ -303,9 +315,10 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                                 
                                 alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, import this wallet", comment: ""), style: .destructive, handler: { (action) in
                                     
-                                    UserDefaults.standard.set(self.stringURL, forKey: "wif")
-                                    UserDefaults.standard.removeObject(forKey: "seed")
-                                    self.dismiss(animated: true, completion: nil)
+                                    let address = key.address
+                                    let legacyAddress2 = (address?.description)?.components(separatedBy: " ")
+                                    let bitcoinAddress = legacyAddress2![1].replacingOccurrences(of: ">", with: "")
+                                    saveWallet(viewController: self, address: bitcoinAddress, privateKey: self.stringURL, publicKey: "", redemptionScript: "", network: "mainnet", type: "hot")
                                     
                                 }))
                                 
@@ -347,5 +360,67 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
         self.dismiss(animated: true, completion: nil)
         
     }
+    /*
+    func saveToAddressBookAlert(address: String, privateKey: String, network: String, type: String) {
+        
+        let alert = UIAlertController(title: "Save this wallet for later use?", message: "If you do not save the wallet it will not get saved to your address book and won't be stored on your device in anyway.", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Yes", comment: ""), style: .default, handler: { (action) in
+            
+            self.saveWalletToAddressBook(address: address, privateKey: privateKey, network: network, type: type)
+            
+        }))
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("No", comment: ""), style: .destructive, handler: { (action) in
+            
+            self.dismiss(animated: true, completion: nil)
+            
+        }))
+        
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    func saveWalletToAddressBook(address: String, privateKey: String, network: String, type: String) {
+        
+        let alert = UIAlertController(title: "Add a label?", message: "Adding a label will make it easier to differentiate between the addresses in your address book.", preferredStyle: .alert)
+        
+        alert.addTextField { (textField1) in
+            
+            textField1.placeholder = "Optional"
+            
+        }
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Add", comment: ""), style: .default, handler: { (action) in
+            
+            let label = alert.textFields![0].text!
+            
+            self.addressBook.append(["address": "\(address)", "label": "\(label)",  "balance": "", "network": "\(network)", "privateKey": "\(privateKey)", "redemptionScript": "", "type":"\(type)"])
+            
+            UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+            
+            self.displayAlert(title: "Success", message: "You added \"\(address)\" with label \"\(label)\" to your address book.")
+            //self.dismiss(animated: true, completion: nil)
+            
+        }))
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+            
+            self.dismiss(animated: true, completion: nil)
+            
+        }))
+        
+        self.present(alert, animated: true, completion: nil)
+        
+        
+    }
+    
+    func displayAlert(title: String, message: String) {
+        
+        let alertcontroller = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alertcontroller.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: nil))
+        self.present(alertcontroller, animated: true, completion: nil)
+        
+    }
+    */
 
 }

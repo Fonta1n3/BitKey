@@ -44,11 +44,11 @@ class SettingsViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         
-        checkUserDefaults()
+        getUserDefaults()
         addButtons()
     }
     
-    func checkUserDefaults() {
+    func getUserDefaults() {
         
         print("checkUserDefaults")
         
@@ -61,21 +61,17 @@ class SettingsViewController: UIViewController {
         testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
         mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
         
+        print("advancedMode = \(advancedMode)")
+        print("simpleMode = \(simpleMode)")
+        print("hotMode = \(hotMode)")
+        print("coldMode = \(coldMode)")
+        print("legacyMode = \(legacyMode)")
+        print("segwitMode = \(segwitMode)")
+        print("mainnetMode = \(mainnetMode)")
+        print("testnetMode = \(testnetMode)")
+        
     }
  
-    func setDefaults() {
-        
-        UserDefaults.standard.set(true, forKey: "legacyMode")
-        UserDefaults.standard.set(false, forKey: "segwitMode")
-        UserDefaults.standard.set(true, forKey: "hotMode")
-        UserDefaults.standard.set(false, forKey: "coldMode")
-        //UserDefaults.standard.set(true, forKey: "mainnetMode")
-        //UserDefaults.standard.set(false, forKey: "testnetMode")
-        UserDefaults.standard.set(false, forKey: "advancedMode")
-        UserDefaults.standard.set(true, forKey: "simpleMode")
-        
-    }
-
     func addButtons() {
         
         print("addButtons")
@@ -104,8 +100,6 @@ class SettingsViewController: UIViewController {
                 
                 self.simpleModeButton.backgroundColor = UIColor.black
                 self.simpleModeButton.setTitle("Simple Mode - ON", for: .normal)
-                
-                self.setDefaults()
                 
                 UIView.animate(withDuration: 0.5, animations: {
                     
@@ -158,8 +152,6 @@ class SettingsViewController: UIViewController {
                 self.advancedModeButton.backgroundColor = UIColor.white
                 self.advancedModeButton.setTitleColor(UIColor.groupTableViewBackground/*black*/, for: .normal)
                 self.advancedModeButton.setTitle("Advanced Mode - OFF", for: .normal)
-                
-                self.setDefaults()
                 
             }
             
@@ -238,7 +230,6 @@ class SettingsViewController: UIViewController {
                 self.hotModeButton.backgroundColor = UIColor.white
                 self.hotModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
                 self.hotModeButton.setTitle("Hot Mode - OFF", for: .normal)
-                //UserDefaults.standard.removeObject(forKey: "wif")
                 
             }
             
@@ -260,7 +251,6 @@ class SettingsViewController: UIViewController {
                 
                 self.coldModeButton.backgroundColor = UIColor.black
                 self.coldModeButton.setTitle("Cold Mode - ON", for: .normal)
-                //UserDefaults.standard.removeObject(forKey: "wif")
                 
             } else {
                 
@@ -358,8 +348,6 @@ class SettingsViewController: UIViewController {
                 self.simpleModeButton.setTitleColor(UIColor.white, for: .normal)
                 self.simpleMode = true
                 UserDefaults.standard.set(self.simpleMode, forKey: "simpleMode")
-                
-                self.setDefaults()
                 
                 DispatchQueue.main.async {
                     
@@ -495,9 +483,7 @@ class SettingsViewController: UIViewController {
                 self.advancedMode = false
                 UserDefaults.standard.set(self.advancedMode, forKey: "advancedMode")
                 
-                self.setDefaults()
-                
-                DispatchQueue.main.async {
+               DispatchQueue.main.async {
                     
                     UIView.animate(withDuration: 0.5, animations: {
                         
@@ -597,38 +583,17 @@ class SettingsViewController: UIViewController {
             
             if hotMode {
                 
-                DispatchQueue.main.async {
-                    
-                    let alert = UIAlertController(title: "Alert!", message: "This will overwrite your existing Private Key and Bitcoin Address and you will lose your Bitcoin if you have not backed them up, are you sure you want to proceed?", preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, delete my hot wallet", comment: ""), style: .destructive, handler: { (action) in
-                        
-                        sender.setTitle("Hot Mode - OFF", for: .normal)
-                        sender.backgroundColor = UIColor.white
-                        sender.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
-                        self.hotMode = false
-                        UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
-                        
-                        self.coldModeButton.setTitle("Cold Mode - ON", for: .normal)
-                        self.coldModeButton.backgroundColor = UIColor.black
-                        self.coldModeButton.setTitleColor(UIColor.white, for: .normal)
-                        self.coldMode = true
-                        UserDefaults.standard.set(self.coldMode, forKey: "coldMode")
-                        
-                        UserDefaults.standard.removeObject(forKey: "wif")
-                        UserDefaults.standard.removeObject(forKey: "seed")
-                        
-                    }))
-                    
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                        
-                    }))
-                    
-                    self.present(alert, animated: true, completion: nil)
-                    
-                }
+                sender.setTitle("Hot Mode - OFF", for: .normal)
+                sender.backgroundColor = UIColor.white
+                sender.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
+                self.hotMode = false
+                UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
                 
-                
+                self.coldModeButton.setTitle("Cold Mode - ON", for: .normal)
+                self.coldModeButton.backgroundColor = UIColor.black
+                self.coldModeButton.setTitleColor(UIColor.white, for: .normal)
+                self.coldMode = true
+                UserDefaults.standard.set(self.coldMode, forKey: "coldMode")
                 
             } else {
                 
@@ -666,36 +631,17 @@ class SettingsViewController: UIViewController {
                 
             } else {
                 
-                DispatchQueue.main.async {
-                    
-                    let alert = UIAlertController(title: "Alert!", message: "This will overwrite your existing Private Key and Bitcoin Address and you will lose your Bitcoin if you have not backed them up, are you sure you want to proceed?", preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, delete my hot wallet", comment: ""), style: .destructive, handler: { (action) in
-                        
-                        sender.setTitle("Cold Mode - ON", for: .normal)
-                        sender.backgroundColor = UIColor.black
-                        sender.setTitleColor(UIColor.white, for: .normal)
-                        self.coldMode = true
-                        UserDefaults.standard.set(self.coldMode, forKey: "coldMode")
-                        
-                        self.hotModeButton.setTitle("Hot Mode - OFF", for: .normal)
-                        self.hotModeButton.backgroundColor = UIColor.white
-                        self.hotModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
-                        self.hotMode = false
-                        UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
-                        
-                        UserDefaults.standard.removeObject(forKey: "wif")
-                        UserDefaults.standard.removeObject(forKey: "seed")
-                        
-                    }))
-                    
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                        
-                    }))
-                    
-                    self.present(alert, animated: true, completion: nil)
-                    
-                }
+                sender.setTitle("Cold Mode - ON", for: .normal)
+                sender.backgroundColor = UIColor.black
+                sender.setTitleColor(UIColor.white, for: .normal)
+                self.coldMode = true
+                UserDefaults.standard.set(self.coldMode, forKey: "coldMode")
+                
+                self.hotModeButton.setTitle("Hot Mode - OFF", for: .normal)
+                self.hotModeButton.backgroundColor = UIColor.white
+                self.hotModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
+                self.hotMode = false
+                UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
                 
             }
             
@@ -705,69 +651,31 @@ class SettingsViewController: UIViewController {
             
             if testnetMode {
                 
-                DispatchQueue.main.async {
-                    
-                    let alert = UIAlertController(title: "Alert!", message: "This will overwrite your existing Private Key and Bitcoin Address and you will lose your Bitcoin if you have not backed them up, are you sure you want to proceed?", preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, delete my hot wallet", comment: ""), style: .destructive, handler: { (action) in
-                        
-                        sender.setTitle("Testnet Mode - OFF", for: .normal)
-                        sender.backgroundColor = UIColor.white
-                        sender.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
-                        self.testnetMode = false
-                        UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
-                        
-                        self.mainnetModeButton.setTitle("Mainnet Mode - ON", for: .normal)
-                        self.mainnetModeButton.backgroundColor = UIColor.black
-                        self.mainnetModeButton.setTitleColor(UIColor.white, for: .normal)
-                        self.mainnetMode = true
-                        UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
-                        
-                        UserDefaults.standard.removeObject(forKey: "wif")
-                        UserDefaults.standard.removeObject(forKey: "seed")
-                        
-                    }))
-                    
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                        
-                    }))
-                    
-                    self.present(alert, animated: true, completion: nil)
-                    
-                }
+                sender.setTitle("Testnet Mode - OFF", for: .normal)
+                sender.backgroundColor = UIColor.white
+                sender.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
+                self.testnetMode = false
+                UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
+                
+                self.mainnetModeButton.setTitle("Mainnet Mode - ON", for: .normal)
+                self.mainnetModeButton.backgroundColor = UIColor.black
+                self.mainnetModeButton.setTitleColor(UIColor.white, for: .normal)
+                self.mainnetMode = true
+                UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
                 
             } else {
                 
-                DispatchQueue.main.async {
-                    
-                    let alert = UIAlertController(title: "Alert!", message: "This will overwrite your existing Private Key and Bitcoin Address and you will lose your Bitcoin if you have not backed them up, are you sure you want to proceed?", preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, delete my hot wallet", comment: ""), style: .destructive, handler: { (action) in
-                        
-                        sender.setTitle("Testnet Mode - ON", for: .normal)
-                        sender.backgroundColor = UIColor.black
-                        sender.setTitleColor(UIColor.white, for: .normal)
-                        self.testnetMode = true
-                        UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
-                        
-                        self.mainnetModeButton.setTitle("Mainnet Mode - OFF", for: .normal)
-                        self.mainnetModeButton.backgroundColor = UIColor.white
-                        self.mainnetModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
-                        self.mainnetMode = false
-                        UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
-                        
-                        UserDefaults.standard.removeObject(forKey: "wif")
-                        UserDefaults.standard.removeObject(forKey: "seed")
-                        
-                    }))
-                    
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                        
-                    }))
-                    
-                    self.present(alert, animated: true, completion: nil)
-                    
-                }
+                sender.setTitle("Testnet Mode - ON", for: .normal)
+                sender.backgroundColor = UIColor.black
+                sender.setTitleColor(UIColor.white, for: .normal)
+                self.testnetMode = true
+                UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
+                
+                self.mainnetModeButton.setTitle("Mainnet Mode - OFF", for: .normal)
+                self.mainnetModeButton.backgroundColor = UIColor.white
+                self.mainnetModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
+                self.mainnetMode = false
+                UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
                 
             }
             
@@ -777,69 +685,31 @@ class SettingsViewController: UIViewController {
             
             if mainnetMode {
                 
-                DispatchQueue.main.async {
-                    
-                    let alert = UIAlertController(title: "Alert!", message: "This will overwrite your existing Private Key and Bitcoin Address and you will lose your Bitcoin if you have not backed them up, are you sure you want to proceed?", preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, delete my hot wallet", comment: ""), style: .destructive, handler: { (action) in
-                        
-                        sender.setTitle("Mainnet Mode - OFF", for: .normal)
-                        sender.backgroundColor = UIColor.white
-                        sender.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
-                        self.mainnetMode = false
-                        UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
-                        
-                        self.testnetModeButton.setTitle("Testnet Mode - ON", for: .normal)
-                        self.testnetModeButton.backgroundColor = UIColor.black
-                        self.testnetModeButton.setTitleColor(UIColor.white, for: .normal)
-                        self.testnetMode = true
-                        UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
-                        
-                        UserDefaults.standard.removeObject(forKey: "wif")
-                        UserDefaults.standard.removeObject(forKey: "seed")
-                        
-                    }))
-                    
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                        
-                    }))
-                    
-                    self.present(alert, animated: true, completion: nil)
-                    
-                }
+                sender.setTitle("Mainnet Mode - OFF", for: .normal)
+                sender.backgroundColor = UIColor.white
+                sender.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
+                self.mainnetMode = false
+                UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
+                
+                self.testnetModeButton.setTitle("Testnet Mode - ON", for: .normal)
+                self.testnetModeButton.backgroundColor = UIColor.black
+                self.testnetModeButton.setTitleColor(UIColor.white, for: .normal)
+                self.testnetMode = true
+                UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
                 
             } else {
                 
-                DispatchQueue.main.async {
-                    
-                    let alert = UIAlertController(title: "Alert!", message: "This will overwrite your existing Private Key and Bitcoin Address and you will lose your Bitcoin if you have not backed them up, are you sure you want to proceed?", preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, delete my hot wallet", comment: ""), style: .destructive, handler: { (action) in
-                        
-                        sender.setTitle("Mainnet Mode - ON", for: .normal)
-                        sender.backgroundColor = UIColor.black
-                        sender.setTitleColor(UIColor.white, for: .normal)
-                        self.mainnetMode = true
-                        UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
-                        
-                        self.testnetModeButton.setTitle("Testnet Mode - OFF", for: .normal)
-                        self.testnetModeButton.backgroundColor = UIColor.white
-                        self.testnetModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
-                        self.testnetMode = false
-                        UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
-                        
-                        UserDefaults.standard.removeObject(forKey: "wif")
-                        UserDefaults.standard.removeObject(forKey: "seed")
-                        
-                    }))
-                    
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                        
-                    }))
-                    
-                    self.present(alert, animated: true, completion: nil)
-                    
-                }
+                sender.setTitle("Mainnet Mode - ON", for: .normal)
+                sender.backgroundColor = UIColor.black
+                sender.setTitleColor(UIColor.white, for: .normal)
+                self.mainnetMode = true
+                UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
+                
+                self.testnetModeButton.setTitle("Testnet Mode - OFF", for: .normal)
+                self.testnetModeButton.backgroundColor = UIColor.white
+                self.testnetModeButton.setTitleColor(UIColor.groupTableViewBackground, for: .normal)
+                self.testnetMode = false
+                UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
                 
             }
             

@@ -54,6 +54,51 @@
             </objects>
             <point key="canvasLocation" x="1074" y="-633"/>
         </scene>
+        <!--Address Book View Controller-->
+        <scene sceneID="Tu2-Z1-KWm">
+            <objects>
+                <viewController id="F6x-1u-Bqd" customClass="AddressBookViewController" customModule="BitKeys" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bd-Zr-NCF">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" translatesAutoresizingMaskIntoConstraints="NO" id="bfP-bv-nbk">
+                                <rect key="frame" x="0.0" y="83" width="375" height="584"/>
+                                <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
+                                <prototypes>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="LabelCell" id="Mbf-sk-u8b">
+                                        <rect key="frame" x="0.0" y="55.5" width="375" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Mbf-sk-u8b" id="ANz-xc-uNS">
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </prototypes>
+                                <sections/>
+                                <connections>
+                                    <outlet property="dataSource" destination="F6x-1u-Bqd" id="WlJ-RG-WN9"/>
+                                    <outlet property="delegate" destination="F6x-1u-Bqd" id="pyM-EQ-qlR"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="bfP-bv-nbk" firstAttribute="leading" secondItem="zRc-ca-5k7" secondAttribute="leading" id="Ipj-1y-sk6"/>
+                            <constraint firstItem="bfP-bv-nbk" firstAttribute="bottom" secondItem="zRc-ca-5k7" secondAttribute="bottom" id="JMj-Fz-0E9"/>
+                            <constraint firstItem="bfP-bv-nbk" firstAttribute="trailing" secondItem="zRc-ca-5k7" secondAttribute="trailing" id="Wto-B5-RHm"/>
+                            <constraint firstItem="bfP-bv-nbk" firstAttribute="top" secondItem="zRc-ca-5k7" secondAttribute="top" constant="63" id="Zxm-eK-vmy"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="zRc-ca-5k7"/>
+                    </view>
+                    <connections>
+                        <outlet property="addressBookTable" destination="bfP-bv-nbk" id="spf-Jy-tN3"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="mDi-4H-cwH" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2023.2" y="-635.53223388305855"/>
+        </scene>
         <!--Coinbase View Controller-->
         <scene sceneID="96w-gW-kdC">
             <objects>
@@ -130,6 +175,7 @@
                         <segue destination="STO-oE-Ep5" kind="show" identifier="sweep" id="ZrG-OA-0fy"/>
                         <segue destination="onk-yP-DiO" kind="show" identifier="createMultiSig" id="eaD-2A-ZJa"/>
                         <segue destination="KVg-KK-0te" kind="show" identifier="goToInfo" id="Ow5-v1-NRl"/>
+                        <segue destination="F6x-1u-Bqd" kind="show" identifier="goToAddressBook" id="Arx-D4-IXd"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

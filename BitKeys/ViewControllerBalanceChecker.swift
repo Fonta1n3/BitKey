@@ -24,12 +24,13 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     let avCaptureSession = AVCaptureSession()
     var balance = Double()
     var backUpButton = UIButton(type: .custom)
+    var addressBookButton = UIButton()
     var bitcoinAddressQRCode = UIImage()
     var stringURL = String()
     var myAddressButton = UIButton()
     var addressLabel = UILabel()
+    var addressBook: [[String: Any]] = []
     
-    //change to an array of dictioanries with nickname, and ability to delete them
     var addresses = String()
 
     
@@ -41,39 +42,20 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     
     override func viewDidAppear(_ animated: Bool) {
         
-        checkUserDefaults()
-        
+        getUserDefaults()
         addHomeButton()
+        addAddressBookButton()
+        scanQRCode()
         
-        print("advancedMode = \(advancedMode)")
-        print("simpleMode = \(simpleMode)")
-        
-        if advancedMode {
-            
-            addMyAddressButton()
-            
-            if UserDefaults.standard.object(forKey: "address") != nil {
-                
-                addresses = UserDefaults.standard.object(forKey: "address") as! String
-                self.addAddressBookButton()
-                
-            }
-            
-            scanQRCode()
-            
-        } else {
-            
-            self.addressToDisplay.removeFromSuperview()
-            self.videoPreview.removeFromSuperview()
-            checkMyAddress()
-            
-        }
+        self.addressLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2 - 20), y: 100, width: self.view.frame.width - 40, height: 60)
         
     }
     
-    func checkUserDefaults() {
+    func getUserDefaults() {
         
         print("checkUserDefaults")
+        
+        addressBook = checkUserDefaults().addressBook
         
         simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
         advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
@@ -93,20 +75,11 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             let bitcoinImage = UIImage(named: "img_311477.png")
             self.imageView = UIImageView(image: bitcoinImage!)
             self.imageView.center = self.view.center
-            self.imageView.frame = CGRect(x: self.view.center.x - 50, y: self.view.center.y - 50, width: 100, height: 100)
-            self.rotateAnimation(imageView: self.imageView as! UIImageView)
+            self.imageView.frame = CGRect(x: self.view.center.x - 25, y: 20, width: 50, height: 50)
+            rotateAnimation(imageView: self.imageView as! UIImageView)
             self.view.addSubview(self.imageView)
         }
         
-    }
-    
-    func rotateAnimation(imageView:UIImageView,duration: CFTimeInterval = 2.0) {
-        let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
-        rotateAnimation.fromValue = 0.0
-        rotateAnimation.toValue = CGFloat(.pi * 8.0)
-        rotateAnimation.duration = duration
-        rotateAnimation.repeatCount = Float.greatestFiniteMagnitude;
-        imageView.layer.add(rotateAnimation, forKey: nil)
     }
     
     func removeSpinner() {
@@ -152,6 +125,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         print("textFieldShouldReturn")
         self.addresses = self.addressToDisplay.text!
+        self.addressLabel.text = self.addressToDisplay.text!
         self.view.endEditing(true)
         return false
     }
@@ -200,6 +174,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 }
                 
                 self.addresses = stringURL
+                
+                self.addressLabel.text = self.addresses
                 
                 self.avCaptureSession.stopRunning()
                 self.checkBalance(address: stringURL)
@@ -280,7 +256,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     self.removeSpinner()
                     DispatchQueue.main.async {
                         self.avCaptureSession.startRunning()
-                        self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                        displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
                     }
                     
                 } else {
@@ -309,23 +285,15 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                         self.view.addSubview(btcBalanceLabel)
                                         
                                         
+                                        self.addressLabel.adjustsFontSizeToFitWidth = true
+                                        self.addressLabel.textColor = UIColor.black
+                                        self.addressLabel.font = UIFont.systemFont(ofSize: 23)
+                                        self.addressLabel.textAlignment = .center
+                                        self.view.addSubview(self.addressLabel)
                                         
-                                         self.addressLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.frame.height - 100, width: self.view.frame.width, height: 60)
-                                         self.addressLabel.text = address
-                                         self.addressLabel.textColor = UIColor.black
-                                         self.addressLabel.font = UIFont.systemFont(ofSize: 16)
-                                         self.addressLabel.textAlignment = .center
-                                         self.view.addSubview(self.addressLabel)
-                                        
-                                        //add label to bottom above button
+                                        self.addressBookButton.removeFromSuperview()
                                         self.myAddressButton.removeFromSuperview()
-                                        
-                                        if self.advancedMode {
-                                            
                                         self.addBackUpButton()
-                                            
-                                        }
-                                        
                                         self.generateQrCode(key: address)
                                         self.getExchangeRates()
                                         
@@ -335,9 +303,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                 
                                 DispatchQueue.main.async {
                                     self.removeSpinner()
-                                    //self.view.addSubview(self.addressToDisplay)
                                     self.avCaptureSession.startRunning()
-                                    self.displayAlert(title: "Error", message: "Please try again.")
+                                    displayAlert(viewController: self, title: "Error", message: "Please try again.")
                                 }
                             }
                             
@@ -346,9 +313,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             print("JSon processing failed")
                             DispatchQueue.main.async {
                                 self.removeSpinner()
-                                //self.view.addSubview(self.addressToDisplay)
                                 self.avCaptureSession.startRunning()
-                                self.displayAlert(title: "Error", message: "Please try again.")
+                                displayAlert(viewController: self, title: "Error", message: "Please try again.")
                             }
                         }
                     }
@@ -373,9 +339,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     print(error as Any)
                     self.removeSpinner()
                     DispatchQueue.main.async {
-                        //self.view.addSubview(self.addressToDisplay)
                         self.avCaptureSession.startRunning()
-                        self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                        displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
                     }
                     
                 } else {
@@ -461,9 +426,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             print("JSon processing failed")
                             DispatchQueue.main.async {
                                 self.removeSpinner()
-                                //self.view.addSubview(self.addressToDisplay)
                                 self.avCaptureSession.startRunning()
-                                self.displayAlert(title: "Error", message: "Please try again.")
+                                displayAlert(viewController: self, title: "Error", message: "Please try again.")
                             }
                         }
                     }
@@ -481,13 +445,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             
             let button = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
             button.showsTouchWhenHighlighted = true
-            /*button.layer.cornerRadius = 10
-            button.backgroundColor = UIColor.lightText
-            button.layer.shadowColor = UIColor.black.cgColor
-            button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            button.layer.shadowRadius = 2.5
-            button.layer.shadowOpacity = 0.8
-            button.setTitle("Back", for: .normal)*/
             button.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
             button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
             self.view.addSubview(button)
@@ -511,14 +468,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             
             self.backUpButton.removeFromSuperview()
             self.backUpButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: self.view.frame.maxY - 60, width: 55, height: 55))
-            //self.backUpButton.showsTouchWhenHighlighted = true
-            //self.backUpButton.layer.cornerRadius = 10
-            //self.backUpButton.backgroundColor = UIColor.black
-            //self.backUpButton.layer.shadowColor = UIColor.black.cgColor
-            //self.backUpButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            //self.backUpButton.layer.shadowRadius = 2.5
-            //self.backUpButton.layer.shadowOpacity = 0.8
-            //self.backUpButton.setTitle("Save/Copy/Share", for: .normal)
             self.backUpButton.setImage(#imageLiteral(resourceName: "backUp.jpg"), for: .normal)
             self.backUpButton.addTarget(self, action: #selector(self.airDropImage), for: .touchUpInside)
             self.view.addSubview(self.backUpButton)
@@ -531,40 +480,12 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         DispatchQueue.main.async {
             
-            self.backUpButton.removeFromSuperview()
-            self.backUpButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 150, y: self.view.frame.maxY - 60, width: 140, height: 55))
-            self.backUpButton.showsTouchWhenHighlighted = true
-            self.backUpButton.layer.cornerRadius = 10
-            self.backUpButton.backgroundColor = UIColor.black
-            self.backUpButton.layer.shadowColor = UIColor.black.cgColor
-            self.backUpButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.backUpButton.layer.shadowRadius = 2.5
-            self.backUpButton.layer.shadowOpacity = 0.8
-            self.backUpButton.setTitle("Address Book", for: .normal)
-            self.backUpButton.addTarget(self, action: #selector(self.openAddressBook), for: .touchUpInside)
-            self.view.addSubview(self.backUpButton)
-            
-        }
-        
-    }
-    
-    func addMyAddressButton() {
-        print("addMyAddressButton")
-        
-        DispatchQueue.main.async {
-            
-            self.myAddressButton.removeFromSuperview()
-            self.myAddressButton = UIButton(frame: CGRect(x: self.view.frame.minX + 10, y: self.view.frame.maxY - 60, width: 140, height: 55))
-            self.myAddressButton.showsTouchWhenHighlighted = true
-            self.myAddressButton.layer.cornerRadius = 10
-            self.myAddressButton.backgroundColor = UIColor.black
-            self.myAddressButton.layer.shadowColor = UIColor.black.cgColor
-            self.myAddressButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.myAddressButton.layer.shadowRadius = 2.5
-            self.myAddressButton.layer.shadowOpacity = 0.8
-            self.myAddressButton.setTitle("My Address", for: .normal)
-            self.myAddressButton.addTarget(self, action: #selector(self.checkMyAddress), for: .touchUpInside)
-            self.view.addSubview(self.myAddressButton)
+            self.addressBookButton.removeFromSuperview()
+            self.addressBookButton = UIButton(frame: CGRect(x: 10, y: self.view.frame.maxY - 60, width: 50, height: 50))
+            self.addressBookButton.showsTouchWhenHighlighted = true
+            self.addressBookButton.setImage(#imageLiteral(resourceName: "addressBook.png"), for: .normal)
+            self.addressBookButton.addTarget(self, action: #selector(self.openAddressBook), for: .touchUpInside)
+            self.view.addSubview(self.addressBookButton)
             
         }
         
@@ -573,98 +494,82 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     @objc func openAddressBook() {
         print("openAddressBook")
         
-        if self.addresses.hasPrefix("b") {
+        DispatchQueue.main.async {
             
-            self.checkBech32Address(address: self.addresses)
-            
-        } else {
-            
-            self.checkBalance(address: self.addresses)
-            
-        }
-        
-        
-        
-    }
-    
-    @objc func checkMyAddress() {
-        
-        print("checkMyAddress")
-        
-        if hotMode || simpleMode {
-            
-            if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
+            if self.addressBook.count > 1 {
                 
-                if legacyMode {
+                let alert = UIAlertController(title: "Which Wallet?", message: "Please select which wallet you'd like to check the balance for", preferredStyle: UIAlertControllerStyle.actionSheet)
+                
+                for (index, wallet) in self.addressBook.enumerated() {
                     
-                    if testnetMode {
+                    let walletName = wallet["label"] as! String
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
                         
-                        let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
-                        let key = BTCKey.init(privateKeyAddress: privateKey)
-                        key?.isPublicKeyCompressed = true
-                        let legacyAddress1 = (key?.addressTestnet.description)!
-                        let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                        let myAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                        print("myAddress = \(myAddress)")
-                        self.checkBalance(address: myAddress)
+                        let bitcoinAddress = self.addressBook[index]["address"] as! String
                         
-                    } else {
-                        
-                        let privateKey = BTCPrivateKeyAddress(string: wif)
-                        let key = BTCKey.init(privateKeyAddress: privateKey)
-                        key?.isPublicKeyCompressed = true
-                        let legacyAddress1 = (key?.address.description)!
-                        let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                        let myAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                        print("myAddress = \(myAddress)")
-                        self.checkBalance(address: myAddress)
-                    }
-                    
-                } else if segwitMode {
-                    
-                    //get segwit address
-                    let privateKey = BTCPrivateKeyAddress(string: wif)
-                    let key = BTCKey.init(privateKeyAddress: privateKey)
-                    key?.isPublicKeyCompressed = true
-                    
-                    let compressedPKData = BTCRIPEMD160(BTCSHA256(key?.compressedPublicKey as Data!) as Data!) as Data!
-                    
-                    do {
-                        //bc for mainnet and tb for testnet
-                        if mainnetMode {
+                        if bitcoinAddress.hasPrefix("b") {
                             
-                            let myAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
-                            print("myAddress = \(myAddress)")
-                            self.checkBech32Address(address: myAddress)
+                            self.checkBech32Address(address: bitcoinAddress)
                             
-                        } else if testnetMode {
+                        } else {
                             
-                            let myAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
-                            print("myAddress = \(myAddress)")
-                            self.checkBech32Address(address: myAddress)
-                            
-                            DispatchQueue.main.async {
-                                self.displayAlert(title: "Under construction", message: "We are have not found a testnet that supports bech32 addresses yet, if you know of one please send us an email at tripkeyapp@gmail.com")
-                            }
+                            self.checkBalance(address: bitcoinAddress)
                             
                         }
                         
+                        if walletName != "" {
+                            
+                           self.addressLabel.text = walletName
+                            
+                        } else {
+                            
+                           self.addressLabel.text = bitcoinAddress
+                        }
                         
-                    } catch {
-                        
-                        self.displayAlert(title: "Error", message: "Please try again.")
-                        
-                    }
+                    }))
                     
                 }
                 
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                    
+                }))
+                
+                self.present(alert, animated: true, completion: nil)
+                
+            } else if self.addressBook.count == 1 {
+                
+                let walletName = self.addressBook[0]["label"] as! String
+                let bitcoinAddress = self.addressBook[0]["address"] as! String
+                
+                if walletName != "" {
+                    
+                    self.addressLabel.text = walletName
+                    
+                } else {
+                    
+                    self.addressLabel.text = bitcoinAddress
+                }
+                
+                if bitcoinAddress.hasPrefix("b") {
+                    
+                    self.checkBech32Address(address: bitcoinAddress)
+                    
+                } else {
+                    
+                    self.checkBalance(address: bitcoinAddress)
+                    
+                }
+                
+            } else if self.addressBook.count == 0 {
+                
+                shakeAlert(viewToShake: self.imageView)
+                
             }
             
-        } else {
             
-            self.displayAlert(title: "Error", message: "You are in cold mode so we are not storing your address.")
         }
-        
+
     }
     
     func checkBech32Address(address: String) {
@@ -698,7 +603,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     self.removeSpinner()
                     DispatchQueue.main.async {
                         self.avCaptureSession.startRunning()
-                        self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                        displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
                     }
                     
                 } else {
@@ -715,13 +620,12 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             
                             if let btcAmount = ((jsonAddressResult["data"] as? NSArray)?[0] as? NSDictionary)?["sum_value_unspent"] as? Double {
                                     
-                                    print("btcAmount = \(btcAmount)")
-                                
-                                
+                                print("btcAmount = \(btcAmount)")
                                 
                                 self.balance = btcAmount
                                 
                                 DispatchQueue.main.async {
+                                    
                                     self.videoPreview.removeFromSuperview()
                                     self.addressToDisplay.removeFromSuperview()
                                     
@@ -733,36 +637,26 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                     btcBalanceLabel.textAlignment = .center
                                     self.view.addSubview(btcBalanceLabel)
                                     
-                                    
-                                    self.addressLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.frame.height - 100, width: self.view.frame.width, height: 60)
-                                    self.addressLabel.text = address
+                                    self.addressLabel.adjustsFontSizeToFitWidth = true
                                     self.addressLabel.textColor = UIColor.black
-                                    self.addressLabel.font = UIFont.systemFont(ofSize: 16)
+                                    self.addressLabel.font = UIFont.systemFont(ofSize: 23)
                                     self.addressLabel.textAlignment = .center
                                     self.view.addSubview(self.addressLabel)
                                     
-                                    //add label to bottom above button
+                                    self.addressBookButton.removeFromSuperview()
                                     self.myAddressButton.removeFromSuperview()
-                                    
-                                    if self.advancedMode {
-                                        
-                                        self.addBackUpButton()
-                                        
-                                    }
-                                    
+                                    self.addBackUpButton()
                                     self.generateQrCode(key: address)
                                     self.getExchangeRates()
                                     
                                 }
- 
-                                
  
                             } else {
                                 
                                 DispatchQueue.main.async {
                                     self.removeSpinner()
                                     self.avCaptureSession.startRunning()
-                                    self.displayAlert(title: "Error", message: "Please try again.")
+                                    displayAlert(viewController: self, title: "Error", message: "Please try again.")
                                 }
                             }
  
@@ -772,7 +666,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             DispatchQueue.main.async {
                                 self.removeSpinner()
                                 self.avCaptureSession.startRunning()
-                                self.displayAlert(title: "Error", message: "Please try again.")
+                                displayAlert(viewController: self, title: "Error", message: "Please try again.")
                             }
                         }
                     }
@@ -783,6 +677,56 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         task.resume()
     }
     
+    func addToAddressBookAlert() {
+        
+        //get a label for the address, add type watch only as defualt for now, create dictionary save it to array of dictionaries
+        let alert = UIAlertController(title: "Add a label?", message: "Adding a label will make it easier to differentiate between the addresses in your address book.", preferredStyle: .alert)
+        
+        alert.addTextField { (textField1) in
+            
+            textField1.placeholder = "Optional"
+            
+        }
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Add", comment: ""), style: .default, handler: { (action) in
+            
+            let label = alert.textFields![0].text!
+            let address = self.addressLabel.text!
+            var network = ""
+            
+            if address.hasPrefix("1") || address.hasPrefix("3") || address.hasPrefix("b") {
+                
+                network = "mainnet"
+                
+            } else if address.hasPrefix("m") || address.hasPrefix("2") || address.hasPrefix("t") {
+                
+                network = "testnet"
+                
+            }
+            
+            var addressBook: [[String: Any]] = []
+            
+            if UserDefaults.standard.object(forKey: "addressBook") != nil {
+                
+                addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String: Any]]
+                
+            }
+            
+            addressBook.append(["address": "\(address)", "label": label,  "balance": "", "network": "\(network)", "privateKey": "", "publicKey": "", "redemptionScript": "", "type": "cold"])
+            
+           UserDefaults.standard.set(addressBook, forKey: "addressBook")
+            
+            displayAlert(viewController: self, title: "Success", message: "You added \"\(address)\" with label \"\(label)\" to your address book.")
+            
+        }))
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+            
+        }))
+        
+        self.present(alert, animated: true, completion: nil)
+    }
+    
     @objc func airDropImage() {
         
         print("airDropImage")
@@ -791,23 +735,43 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             
             let alert = UIAlertController(title: "Save/Share/Copy", message: nil, preferredStyle: UIAlertControllerStyle.actionSheet)
             
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Add to Address Book", comment: ""), style: .default, handler: { (action) in
+            var addressAlreadySaved = Bool()
+            
+            for wallet in self.addressBook {
                 
-                UserDefaults.standard.set(self.addressLabel.text, forKey: "address")
-                print("addressToSave = \(self.addressLabel.text)")
+                let address = wallet["address"] as! String
+                let label = wallet["label"] as! String
                 
-                DispatchQueue.main.async {
+                if self.addressLabel.text == address || self.addressLabel.text == label {
                     
-                    self.displayAlert(title: "Address Saved", message: "")
+                    addressAlreadySaved = true
                 }
                 
-            }))
+            }
+            
+            if addressAlreadySaved != true {
+              
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Add to Address Book", comment: ""), style: .default, handler: { (action) in
+                    
+                    UserDefaults.standard.set(self.addressLabel.text, forKey: "address")
+                    print("addressToSave = \(String(describing: self.addressLabel.text))")
+                    
+                    DispatchQueue.main.async {
+                        
+                        displayAlert(viewController: self, title: "Address Saved", message: "")
+                    }
+                    
+                    self.addToAddressBookAlert()
+                    
+                }))
+                
+            }
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Bitcoin Address QR Code", comment: ""), style: .default, handler: { (action) in
                     
                     if let data = UIImagePNGRepresentation(self.bitcoinAddressQRCode) {
                         
-                        let fileName = self.getDocumentsDirectory().appendingPathComponent("bitcoinAddress.png")
+                        let fileName = getDocumentsDirectory().appendingPathComponent("bitcoinAddress.png")
                         
                         try? data.write(to: fileName)
                         
@@ -840,14 +804,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
     }
     
-    func displayAlert(title: String, message: String) {
-        
-        let alertcontroller = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alertcontroller.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: nil))
-        self.present(alertcontroller, animated: true, completion: nil)
-        
-    }
-    
     func generateQrCode(key: String) {
         
         let ciContext = CIContext()
@@ -862,32 +818,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         }
         
     }
-    
-    func getDocumentsDirectory() -> URL {
-        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        return paths[0]
-    }
-
+ 
 }
 
-extension Int {
-    
-    func withCommas() -> String {
-        
-        let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = NumberFormatter.Style.decimal
-        return numberFormatter.string(from: NSNumber(value:self))!
-    }
-    
-}
 
-extension Double {
-    
-    func withCommas() -> String {
-        
-        let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = NumberFormatter.Style.decimal
-        return numberFormatter.string(from: NSNumber(value:self))!
-    }
-    
-}

@@ -58,7 +58,7 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
     
     override func viewDidAppear(_ animated: Bool) {
         
-        checkUserDefaults()
+        getUserDefaults()
         
     }
 
@@ -69,7 +69,7 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask { return UIInterfaceOrientationMask.portrait }
     
-    func checkUserDefaults() {
+    func getUserDefaults() {
         
         print("checkUserDefaults")
         
@@ -84,13 +84,6 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
             
             self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
             self.backButton.showsTouchWhenHighlighted = true
-            /*self.backButton.layer.cornerRadius = 10
-            self.backButton.backgroundColor = UIColor.lightText
-            self.backButton.layer.shadowColor = UIColor.black.cgColor
-            self.backButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.backButton.layer.shadowRadius = 2.5
-            self.backButton.layer.shadowOpacity = 0.8
-            self.backButton.setTitle("Back", for: .normal)*/
             self.backButton.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
             self.backButton.addTarget(self, action: #selector(self.home), for: .touchUpInside)
             self.view.addSubview(self.backButton)
@@ -204,7 +197,7 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
                 
                 DispatchQueue.main.async {
                     
-                    self.displayAlert(title: "Error", message: "You need to input a number greater then 1.")
+                    displayAlert(viewController: self, title: "Error", message: "You need to input a number greater then 1.")
                     
                 }
                 
@@ -214,7 +207,7 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
             
             DispatchQueue.main.async {
                 
-                self.displayAlert(title: "Error", message: "You need to input a number greater then 1.")
+                displayAlert(viewController: self, title: "Error", message: "You need to input a number greater then 1.")
                 
             }
             
@@ -271,7 +264,7 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
                 
                 DispatchQueue.main.async {
                     
-                    self.displayAlert(title: "Error", message: "Number of Signatures required can not be greater then the number of Private Keys and must be greater then 0.")
+                    displayAlert(viewController: self, title: "Error", message: "Number of Signatures required can not be greater then the number of Private Keys and must be greater then 0.")
                     
                 }
                 
@@ -281,7 +274,7 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
             
             DispatchQueue.main.async {
                 
-                self.displayAlert(title: "Error", message: "You need to input a number greater then 1.")
+                displayAlert(viewController: self, title: "Error", message: "You need to input a number greater then 1.")
                 
             }
             
@@ -478,14 +471,6 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
             }
             
         }
-        
-    }
-    
-    func displayAlert(title: String, message: String) {
-        
-        let alertcontroller = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alertcontroller.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: nil))
-        self.present(alertcontroller, animated: true, completion: nil)
         
     }
     
@@ -758,7 +743,7 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
                 
                 if let data = UIImagePNGRepresentation(self.QRCodeImage) {
                     
-                    let fileName = self.getDocumentsDirectory().appendingPathComponent("multisigAddress.png")
+                    let fileName = getDocumentsDirectory().appendingPathComponent("multisigAddress.png")
                     
                     try? data.write(to: fileName)
                     
@@ -791,7 +776,7 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
                 
                 if let data = UIImagePNGRepresentation(self.QRCodeImage) {
                     
-                    let fileName = self.getDocumentsDirectory().appendingPathComponent("redemptionScript.png")
+                    let fileName = getDocumentsDirectory().appendingPathComponent("redemptionScript.png")
                     
                     try? data.write(to: fileName)
                     
@@ -823,31 +808,6 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
         
     }
     
-    func getDocumentsDirectory() -> URL {
-        
-        print("getDocumentsDirectory")
-        
-        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        return paths[0]
-        
-    }
-    
 }
 
-extension UITextField {
-    
-    func addNextButtonToKeyboard(myAction:Selector){
-        
-        let doneToolbar: UIToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: 300, height: 40))
-        doneToolbar.barStyle = UIBarStyle.default
-        let flexSpace = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
-        let done: UIBarButtonItem = UIBarButtonItem(title: "Next", style: UIBarButtonItemStyle.done, target: MultiSigCreatorViewController(), action: myAction)
-        var items = [UIBarButtonItem]()
-        items.append(flexSpace)
-        items.append(done)
-        doneToolbar.items = items
-        doneToolbar.sizeToFit()
-        self.inputAccessoryView = doneToolbar
-        
-    }
-}
+

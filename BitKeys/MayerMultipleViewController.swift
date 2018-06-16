@@ -15,21 +15,12 @@ class MayerMultipleViewController: UIViewController {
     var imageView:UIView!
     var button = UIButton(type: .custom)
     
-    func rotateAnimation(imageView:UIImageView,duration: CFTimeInterval = 2.0) {
-        let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
-        rotateAnimation.fromValue = 0.0
-        rotateAnimation.toValue = CGFloat(.pi * 8.0)
-        rotateAnimation.duration = duration
-        rotateAnimation.repeatCount = Float.greatestFiniteMagnitude;
-        imageView.layer.add(rotateAnimation, forKey: nil)
-    }
-    
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask { return UIInterfaceOrientationMask.portrait }
     
     func addSpinner() {
         
         DispatchQueue.main.async {
-            self.rotateAnimation(imageView: self.imageView as! UIImageView)
+            rotateAnimation(imageView: self.imageView as! UIImageView)
         }
         
     }
@@ -55,13 +46,6 @@ class MayerMultipleViewController: UIViewController {
         
         self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
         self.button.showsTouchWhenHighlighted = true
-        /*self.button.layer.cornerRadius = 10
-        self.button.backgroundColor = UIColor.lightText
-        self.button.layer.shadowColor = UIColor.black.cgColor
-        self.button.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.button.layer.shadowRadius = 2.5
-        self.button.layer.shadowOpacity = 0.8
-        self.button.setTitle("Back", for: .normal)*/
         self.button.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
         self.button.addTarget(self, action: #selector(self.goBack), for: .touchUpInside)
         self.view.addSubview(self.button)
@@ -86,15 +70,6 @@ class MayerMultipleViewController: UIViewController {
         
         self.dismiss(animated: true, completion: nil)
     }
-    
-    func displayAlert(title: String, message: String) {
-        
-        let alertcontroller = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alertcontroller.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: nil))
-        self.present(alertcontroller, animated: true, completion: nil)
-        
-    }
-    
 
     func getMayerMultiple() {
         
@@ -112,7 +87,7 @@ class MayerMultipleViewController: UIViewController {
                     self.removeSpinner()
                     print(error as Any)
                     DispatchQueue.main.async {
-                        self.displayAlert(title: "No internet connection.", message: "You need internet to check the price.")
+                        displayAlert(viewController: self, title: "No internet connection.", message: "You need internet to check the price.")
                     }
                     
                     
@@ -148,7 +123,7 @@ class MayerMultipleViewController: UIViewController {
                                             self.removeSpinner()
                                             print(error as Any)
                                             DispatchQueue.main.async {
-                                                self.displayAlert(title: "No internet connection.", message: "You need internet to check the price.")
+                                                displayAlert(viewController: self, title: "No internet connection.", message: "You need internet to check the price.")
                                             }
                                             
                                         } else {
@@ -217,7 +192,7 @@ class MayerMultipleViewController: UIViewController {
                                                     print("JSon processing failed")
                                                     self.removeSpinner()
                                                     DispatchQueue.main.async {
-                                                        self.displayAlert(title: "Error, please try again.", message: "")
+                                                        displayAlert(viewController: self, title: "Error, please try again.", message: "")
                                                     }
                                                 }
                                             }
@@ -236,7 +211,7 @@ class MayerMultipleViewController: UIViewController {
                             print("JSon processing failed")
                             self.removeSpinner()
                             DispatchQueue.main.async {
-                                self.displayAlert(title: "Error, please try again.", message: "")
+                                displayAlert(viewController: self, title: "Error, please try again.", message: "")
                             }
                             
                         }
@@ -251,14 +226,4 @@ class MayerMultipleViewController: UIViewController {
 
 }
 
-extension Array where Element == Int {
-    
-    var total: Element {
-        return reduce(0, +)
-    }
-    
-    var average: Double {
-        return isEmpty ? 0 : Double(reduce(0, +)) / Double(count)
-    }
-    
-}
+

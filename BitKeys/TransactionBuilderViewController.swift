@@ -75,7 +75,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     
     override func viewDidAppear(_ animated: Bool) {
         
-        checkUserDefaults()
+        getUserDefaults()
         getReceivingAddressMode = true
         getSignatureMode = false
         manuallySetFee = false
@@ -87,7 +87,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
     }
     
-    func checkUserDefaults() {
+    func getUserDefaults() {
         
         print("checkUserDefaults")
         
@@ -100,32 +100,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
     }
    
-    func isInternetAvailable() -> Bool {
-        print("isInternetAvailable")
-        
-        var zeroAddress = sockaddr_in()
-        zeroAddress.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
-        zeroAddress.sin_family = sa_family_t(AF_INET)
-        
-        guard let defaultRouteReachability = withUnsafePointer(to: &zeroAddress, {
-            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-                SCNetworkReachabilityCreateWithAddress(nil, $0)
-            }
-        }) else {
-            return false
-        }
-        
-        var flags: SCNetworkReachabilityFlags = []
-        if !SCNetworkReachabilityGetFlags(defaultRouteReachability, &flags) {
-            return false
-        }
-        
-        let isReachable = flags.contains(.reachable)
-        let needsConnection = flags.contains(.connectionRequired)
-        self.connected = isReachable
-        return (isReachable && !needsConnection)
-    }
-    
     func setPreference() {
         print("setPreference")
         
@@ -415,7 +389,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     print(error as Any)
                     self.removeSpinner()
                     DispatchQueue.main.async {
-                        self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                        displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
                     }
                     
                 } else {
@@ -446,7 +420,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                 DispatchQueue.main.async {
                                     
                                     self.removeSpinner()
-                                    self.displayAlert(title: "Error", message: "Please try again.")
+                                    displayAlert(viewController: self, title: "Error", message: "Please try again.")
                                     
                                 }
                                 
@@ -459,7 +433,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                             DispatchQueue.main.async {
                                 
                                 self.removeSpinner()
-                                self.displayAlert(title: "Error", message: "Please try again.")
+                                displayAlert(viewController: self, title: "Error", message: "Please try again.")
                                 
                             }
                         }
@@ -525,13 +499,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             
             self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
             self.backButton.showsTouchWhenHighlighted = true
-            /*self.backButton.layer.cornerRadius = 10
-            self.backButton.backgroundColor = UIColor.lightText
-            self.backButton.layer.shadowColor = UIColor.black.cgColor
-            self.backButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-            self.backButton.layer.shadowRadius = 2.5
-            self.backButton.layer.shadowOpacity = 0.8
-            self.backButton.setTitle("Back", for: .normal)*/
             self.backButton.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
             self.backButton.addTarget(self, action: #selector(self.home), for: .touchUpInside)
             self.view.addSubview(self.backButton)
@@ -577,27 +544,12 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             
         } else {
             
-            self.shakeAlert(viewToShake: self.amountToSend)
+            shakeAlert(viewToShake: self.amountToSend)
         }
         
     }
     
-    func shakeAlert(viewToShake: UIView) {
-        print("shakeAlert")
-        
-        let animation = CABasicAnimation(keyPath: "position")
-        animation.duration = 0.07
-        animation.repeatCount = 4
-        animation.autoreverses = true
-        animation.fromValue = NSValue(cgPoint: CGPoint(x: viewToShake.center.x - 10, y: viewToShake.center.y))
-        animation.toValue = NSValue(cgPoint: CGPoint(x: viewToShake.center.x + 10, y: viewToShake.center.y))
-        
-        DispatchQueue.main.async {
-            
-            viewToShake.layer.add(animation, forKey: "position")
-            
-        }
-    }
+    
     
     func addAmount() {
         print("addAmount")
@@ -625,7 +577,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             
         } else {
             
-           self.shakeAlert(viewToShake: self.amountToSend)
+           shakeAlert(viewToShake: self.amountToSend)
             
         }
         
@@ -639,7 +591,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             self.imageView = UIImageView(image: bitcoinImage!)
             self.imageView.center = self.view.center
             self.imageView.frame = CGRect(x: self.view.center.x - 50, y: self.view.center.y - 50, width: 100, height: 100)
-            self.rotateAnimation(imageView: self.imageView as! UIImageView)
+            rotateAnimation(imageView: self.imageView as! UIImageView)
             self.view.addSubview(self.imageView)
         }
         
@@ -657,17 +609,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             }
             
         }
-    }
-    
-    func rotateAnimation(imageView:UIImageView,duration: CFTimeInterval = 2.0) {
-        
-        let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
-        rotateAnimation.fromValue = 0.0
-        rotateAnimation.toValue = CGFloat(.pi * 8.0)
-        rotateAnimation.duration = duration
-        rotateAnimation.repeatCount = Float.greatestFiniteMagnitude;
-        imageView.layer.add(rotateAnimation, forKey: nil)
-        
     }
     
     func addTextInput() {
@@ -819,7 +760,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                         
                     } else {
                         
-                        displayAlert(title: "Error", message: "That is not a valid Bitcoin Address")
+                        displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address")
                         
                     }
                     
@@ -854,7 +795,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                         
                     } else {
                         
-                        displayAlert(title: "Error", message: "That is not a valid Bitcoin Address")
+                        displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address")
                         
                     }
                     
@@ -897,7 +838,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                         
                     } else {
                         
-                        displayAlert(title: "Error", message: "That is not a valid Bitcoin Address")
+                        displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address")
                         
                     }
                 }
@@ -938,13 +879,13 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                 } else {
                     
-                    self.displayAlert(title: "Error", message: "That is not a valid Bitcoin Key.")
+                    displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Key.")
                     
                 }
                 
             } else {
                 
-                self.shakeAlert(viewToShake: textField)
+                shakeAlert(viewToShake: textField)
                 
             }
             
@@ -1042,7 +983,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     self.removeSpinner()
                     print(error as Any)
                     DispatchQueue.main.async {
-                        self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                        displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
                     }
                     
                 } else {
@@ -1124,7 +1065,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                             self.removeSpinner()
                             print("JSon processing failed")
                             DispatchQueue.main.async {
-                                self.displayAlert(title: "Error", message: "Please try again")
+                                displayAlert(viewController: self, title: "Error", message: "Please try again")
                             }
                             
                         }
@@ -1257,7 +1198,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                 } else {
                                     
                                     DispatchQueue.main.async {
-                                        self.displayAlert(title: "Error", message: "No private key saved.")
+                                        displayAlert(viewController: self, title: "Error", message: "No private key saved.")
                                     }
                                 }
                             }
@@ -1273,7 +1214,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                             
                         } else {
                             
-                            self.displayAlert(title: "Error", message: "That is not a valid Bitcoin Address.")
+                            displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address.")
                             
                         }
                         
@@ -1307,7 +1248,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                             
                         } else {
                             
-                            self.displayAlert(title: "Error", message: "That is not a valid Bitcoin Address.")
+                            displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address.")
                             
                         }
                         
@@ -1349,7 +1290,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                             
                         } else {
                             
-                            self.displayAlert(title: "Error", message: "That is not a valid Bitcoin Address.")
+                            displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address.")
                             
                         }
                     }
@@ -1373,7 +1314,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                 } else {
                     
-                    self.displayAlert(title: "Error", message: "That is not a valid Bitcoin Key.")
+                    displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Key.")
                     
                 }
                 
@@ -1444,7 +1385,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                         } else {
                             
                             DispatchQueue.main.async {
-                                self.displayAlert(title: "Error", message: "Error creating signatures.")
+                                displayAlert(viewController: self, title: "Error", message: "Error creating signatures.")
                             }
                         }
                         
@@ -1459,9 +1400,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                     alert.addAction(UIAlertAction(title: NSLocalizedString("Send", comment: ""), style: .default, handler: { (action) in
                         
-                        self.isInternetAvailable()
-                        
-                        if self.connected == true {
+                        if isInternetAvailable() {
                             
                             DispatchQueue.main.async {
                                 self.postTransaction()
@@ -1477,9 +1416,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                 
                                 alert.addAction(UIAlertAction(title: NSLocalizedString("Try Again", comment: ""), style: .default, handler: { (action) in
                                     
-                                    self.isInternetAvailable()
-                                    
-                                    if self.connected == true {
+                                    if isInternetAvailable() {
                                         
                                         DispatchQueue.main.async {
                                             self.postTransaction()
@@ -1489,7 +1426,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                         
                                         DispatchQueue.main.async {
                                             
-                                            self.displayAlert(title: "No Internet Connection", message: "In order to broadcast your transaction to the network we need a connection.")
+                                            displayAlert(viewController: self, title: "No Internet Connection", message: "In order to broadcast your transaction to the network we need a connection.")
                                             
                                         }
                                         
@@ -1555,7 +1492,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             
             DispatchQueue.main.async {
                 
-                self.displayAlert(title: "Error", message: "The Private Key is not valid, please try again.")
+                displayAlert(viewController: self, title: "Error", message: "The Private Key is not valid, please try again.")
                 
             }
             
@@ -1641,7 +1578,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                     DispatchQueue.main.async {
                         
-                        self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                        displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
                         
                     }
                     
@@ -1670,7 +1607,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                         
                                     }
                                     
-                                    self.displayAlert(title: "Error", message: "\(errors)")
+                                    displayAlert(viewController: self, title: "Error", message: "\(errors)")
                                     
                                 }
                                 
@@ -1749,7 +1686,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                             
                             DispatchQueue.main.async {
                                 
-                                self.displayAlert(title: "Error", message: "Please try again.")
+                                displayAlert(viewController: self, title: "Error", message: "Please try again.")
                                 
                             }
                         }
@@ -1793,7 +1730,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                     DispatchQueue.main.async {
                         
-                        self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                        displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
                         
                     }
                     
@@ -1823,7 +1760,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                         
                                     }
                                     
-                                    self.displayAlert(title: "Error", message: "\(errors)")
+                                    displayAlert(viewController: self, title: "Error", message: "\(errors)")
                                     
                                 }
                                 
@@ -1875,7 +1812,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                             
                             DispatchQueue.main.async {
                                 
-                                self.displayAlert(title: "Error", message: "Please try again.")
+                                displayAlert(viewController: self, title: "Error", message: "Please try again.")
                                 
                             }
                         }
@@ -1918,7 +1855,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                     DispatchQueue.main.async {
                         
-                        self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                        displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
                         
                     }
                     
@@ -1949,7 +1886,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                         
                                     }
                                     
-                                    self.displayAlert(title: "Error", message: "\(errors)")
+                                    displayAlert(viewController: self, title: "Error", message: "\(errors)")
                                     
                                 }
                                 
@@ -1957,7 +1894,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                 
                                 DispatchQueue.main.async {
                                     
-                                    self.displayAlert(title: "Error", message: "\(error)")
+                                    displayAlert(viewController: self, title: "Error", message: "\(error)")
                                     
                                 }
                                 
@@ -2051,7 +1988,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                         
                         DispatchQueue.main.async {
                             
-                            self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                            displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
                             
                         }
                         
@@ -2083,7 +2020,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                             
                                         }
                                         
-                                        self.displayAlert(title: "Error", message: "\(errors)")
+                                        displayAlert(viewController: self, title: "Error", message: "\(errors)")
                                         
                                     }
                                     
@@ -2091,13 +2028,13 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                     
                                     DispatchQueue.main.async {
                                         
-                                        self.displayAlert(title: "Error", message: "\(error)")
+                                        displayAlert(viewController: self, title: "Error", message: "\(error)")
                                         
                                     }
                                     
                                 } else {
                                     
-                                    self.displayAlert(title: "Decoded Transaction", message: "\(jsonAddressResult)")
+                                    displayAlert(viewController: self, title: "Decoded Transaction", message: "\(jsonAddressResult)")
                                     
                                 }
                                 
@@ -2117,7 +2054,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             
             DispatchQueue.main.async {
                 
-                self.displayAlert(title: "Error", message: "You need to paste or type a raw transaction into the text field.")
+                displayAlert(viewController: self, title: "Error", message: "You need to paste or type a raw transaction into the text field.")
                 
             }
             
@@ -2153,7 +2090,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                     DispatchQueue.main.async {
                         
-                        self.displayAlert(title: "Error", message: "\(String(describing: error))")
+                        displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
                         
                     }
                     
@@ -2183,7 +2120,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                         
                                     }
                                     
-                                    self.displayAlert(title: "Error", message: "\(errors)")
+                                    displayAlert(viewController: self, title: "Error", message: "\(errors)")
                                     
                                 }
                                 
@@ -2279,14 +2216,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     
     }
     
-    func displayAlert(title: String, message: String) {
-        
-        let alertcontroller = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alertcontroller.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: nil))
-        self.present(alertcontroller, animated: true, completion: nil)
-        
-    }
-
 }
 
 extension UITextField {
@@ -2307,38 +2236,4 @@ extension UITextField {
     }
 }
 
-extension Float {
-    
-    var avoidNotation: String {
-        
-        let numberFormatter = NumberFormatter()
-        numberFormatter.maximumFractionDigits = 8
-        numberFormatter.numberStyle = .decimal
-        return numberFormatter.string(for: self) ?? ""
-        
-    }
-}
 
-extension Int {
-    
-    var avoidNotation: String {
-        
-        let numberFormatter = NumberFormatter()
-        numberFormatter.maximumFractionDigits = 8
-        numberFormatter.numberStyle = .decimal
-        return numberFormatter.string(for: self) ?? ""
-        
-    }
-}
-
-extension Double {
-    
-    var avoidNotation: String {
-        
-        let numberFormatter = NumberFormatter()
-        numberFormatter.maximumFractionDigits = 8
-        numberFormatter.numberStyle = .decimal
-        return numberFormatter.string(for: self) ?? ""
-        
-    }
-}
