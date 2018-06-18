@@ -106,17 +106,18 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
         textFieldInput.textAlignment = .center
         textFieldInput.borderStyle = .roundedRect
         textFieldInput.backgroundColor = UIColor.groupTableViewBackground
+        textFieldInput.adjustsFontSizeToFitWidth = true
         
         
         if getNumberOfPrivateKeysMode {
          
-            textFieldInput.placeholder = "How many private keys?"
+            textFieldInput.placeholder = "How many Private/Public Keys?"
             textFieldInput.keyboardType = UIKeyboardType.decimalPad
             
             
         } else if getPrivateKeysMode {
             
-            textFieldInput.placeholder = "Scan or type each Private Key"
+            textFieldInput.placeholder = "Scan or type each Private/Public Key"
             textFieldInput.keyboardType = UIKeyboardType.default
             
         }
@@ -356,6 +357,46 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
                         
                     }
                     
+                } else {
+                    
+                    //try it as a publickey
+                    privateKeyArray.append(self.textFieldInput.text!)
+                    print("privateKeyArray = \(privateKeyArray)")
+                    self.textFieldInput.text = ""
+                    
+                    if privateKeyArray.count == self.numberOfPrivateKeys {
+                        
+                        var publickKeyArray = [Any]()
+                        
+                        for pubKey in self.privateKeyArray {
+                        
+                            publickKeyArray.append(pubKey)
+                        
+                            if publickKeyArray.count == privateKeyArray.count {
+                            
+                                if let multiSigWallet = BTCScript.init(publicKeys: publickKeyArray, signaturesRequired: UInt(self.numberOfSignatures)) {
+                                
+                                    let multiSigAddress1 = multiSigWallet.scriptHashAddressTestnet.description
+                                    let multiSigAddress2 = multiSigAddress1.components(separatedBy: " ")
+                                    self.multiSigAddress = multiSigAddress2[1].replacingOccurrences(of: ">", with: "")
+                                    print("multiSigAddress = \(multiSigAddress)")
+                                
+                                    self.redemptionScript = multiSigWallet.hex!
+                                    print("redemptionScript = \(redemptionScript)")
+                                    self.removeScanner()
+                                    self.textFieldInput.removeFromSuperview()
+                                    self.showAddressQRCode()
+                                    self.addressMode = true
+                                    self.redemptionMode = false
+                                
+                                }
+                            
+                            }
+                            
+                        }
+                        
+                    }
+                
                 }
                 
             } else if self.mainnetMode {
@@ -419,10 +460,49 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
                         
                     }
                     
+                } else {
+                    
+                    //try it as a publickey
+                    privateKeyArray.append(self.textFieldInput.text!)
+                    print("privateKeyArray = \(privateKeyArray)")
+                    self.textFieldInput.text = ""
+                    
+                    if privateKeyArray.count == self.numberOfPrivateKeys {
+                        
+                        var publickKeyArray = [Any]()
+                        
+                        for pubKey in self.privateKeyArray {
+                            
+                            publickKeyArray.append(pubKey)
+                            
+                            if publickKeyArray.count == privateKeyArray.count {
+                                
+                                if let multiSigWallet = BTCScript.init(publicKeys: publickKeyArray, signaturesRequired: UInt(self.numberOfSignatures)) {
+                                    
+                                    let multiSigAddress1 = multiSigWallet.scriptHashAddress.description
+                                    let multiSigAddress2 = multiSigAddress1.components(separatedBy: " ")
+                                    self.multiSigAddress = multiSigAddress2[1].replacingOccurrences(of: ">", with: "")
+                                    print("multiSigAddress = \(multiSigAddress)")
+                                    
+                                    self.redemptionScript = multiSigWallet.hex!
+                                    print("redemptionScript = \(redemptionScript)")
+                                    self.removeScanner()
+                                    self.textFieldInput.removeFromSuperview()
+                                    self.showAddressQRCode()
+                                    self.addressMode = true
+                                    self.redemptionMode = false
+                                    
+                                }
+                                
+                            }
+                            
+                        }
+                        
+                    }
+                    
                 }
+                
             }
-            
-            
             
         }
         

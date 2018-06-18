@@ -93,6 +93,7 @@
                     </view>
                     <connections>
                         <outlet property="addressBookTable" destination="bfP-bv-nbk" id="spf-Jy-tN3"/>
+                        <segue destination="BYZ-38-t0r" kind="show" identifier="goHome" id="ssl-mN-lIS"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="mDi-4H-cwH" userLabel="First Responder" sceneMemberID="firstResponder"/>

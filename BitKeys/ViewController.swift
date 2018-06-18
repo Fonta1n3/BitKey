@@ -18,6 +18,8 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     let avCaptureSession = AVCaptureSession()
     var stringURL = String()
     var password = ""
+    var exportPrivateKeyFromTable = Bool()
+    var exportAddressFromTable = Bool()
     var toolBoxTapped = Bool()
     var simpleMode = Bool()
     var advancedMode = Bool()
@@ -99,9 +101,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        
-        //UserDefaults.standard.removeObject(forKey: "addressBook")
-        
         if UserDefaults.standard.object(forKey: "hideExplanation") != nil {
             
             self.hideExplanation = UserDefaults.standard.bool(forKey: "hideExplanation")
@@ -141,6 +140,8 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     
     override func viewDidAppear(_ animated: Bool) {
         
+        
+        
         addressBook = checkUserDefaults().addressBook
         advancedMode = checkUserDefaults().advancedMode
         simpleMode = checkUserDefaults().simpleMode
@@ -163,7 +164,35 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         words = ""
         
+        if exportPrivateKeyFromTable {
+            
+            self.showPrivateKeyAndAddressQRCodes()
+            self.exportPrivateKeyFromTable = false
+            
+        } else if exportAddressFromTable {
+            
+            print("exportAddressFromTable")
+            
+            self.watchOnlyMode = true
+            
+            for key in self.addressBook {
+                
+                if key["address"] as! String == self.bitcoinAddress {
+                    
+                    let walletName = key["label"] as! String
+                    self.showAddressQRCodes(walletName: walletName)
+                    
+                }
+                
+            }
+            
+            self.exportAddressFromTable = false
+            
+        }
+        
     }
+    
+    
     
     func textFieldDidEndEditing(_ textField: UITextField) {
         
@@ -1215,7 +1244,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
         } else {
             
-            self.shakeAlert(viewToShake: self.imageView)
+            shakeAlert(viewToShake: self.imageView)
             
         }
         
@@ -1262,7 +1291,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
             } else if self.addressBook.count == 0 {
                 
-                self.shakeAlert(viewToShake: self.imageView)
+                shakeAlert(viewToShake: self.imageView)
                 
             }
             
@@ -1351,27 +1380,10 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
         } else {
             
-           self.shakeAlert(viewToShake: self.imageView)
+           shakeAlert(viewToShake: self.imageView)
             
         }
         */
-    }
-    
-    func shakeAlert(viewToShake: UIView) {
-        print("shakeAlert")
-        
-        let animation = CABasicAnimation(keyPath: "position")
-        animation.duration = 0.07
-        animation.repeatCount = 4
-        animation.autoreverses = true
-        animation.fromValue = NSValue(cgPoint: CGPoint(x: viewToShake.center.x - 10, y: viewToShake.center.y))
-        animation.toValue = NSValue(cgPoint: CGPoint(x: viewToShake.center.x + 10, y: viewToShake.center.y))
-        
-        DispatchQueue.main.async {
-            
-            viewToShake.layer.add(animation, forKey: "position")
-            
-        }
     }
     
     func addBackButton() {
@@ -1757,14 +1769,8 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         DispatchQueue.main.async {
             
-            let alert = UIAlertController(title: "Key Management", message: "Please select an option.", preferredStyle: UIAlertControllerStyle.actionSheet)
-            /*
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Create Multi-Sig", comment: ""), style: .default, handler: { (action) in
-                
-                self.performSegue(withIdentifier: "createMultiSig", sender: self)
-                
-            }))
-            */
+            let alert = UIAlertController(title: "Key Tools", message: "Please select an option", preferredStyle: UIAlertControllerStyle.actionSheet)
+            
             alert.addAction(UIAlertAction(title: NSLocalizedString("Create Keys with Dice", comment: ""), style: .default, handler: { (action) in
                 
                 self.removeHomeScreen()
@@ -1772,18 +1778,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
             }))
             
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Import Keys", comment: ""), style: .default, handler: { (action) in
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Import Keys with Recovery Phrase", comment: ""), style: .default, handler: { (action) in
                 
                 self.importMnemonic()
                 
             }))
-            /*
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Export Keys", comment: ""), style: .default, handler: { (action) in
-                
-                self.export()
-                
-            }))
-            */
+            
             alert.addAction(UIAlertAction(title: NSLocalizedString("Sweep a Private Key", comment: ""), style: .default, handler: { (action) in
                 
                 self.performSegue(withIdentifier: "sweep", sender: self)
@@ -1938,7 +1938,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
             if simpleMode && addressBook.count == 0 {
                 
-                self.shakeAlert(viewToShake: self.imageView)
+                shakeAlert(viewToShake: self.imageView)
                 
             } else {
                 

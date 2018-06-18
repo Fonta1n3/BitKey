@@ -65,7 +65,7 @@ public func saveWallet(viewController: UIViewController, address: String, privat
             
             let label = alert.textFields![0].text!
             
-            addressBook.append(["address": "\(address)", "label": "\(label)",  "balance": "", "network": "\(network)", "privateKey": "\(privateKey)", "publicKey": "\(publicKey)", "redemptionScript": "", "type":"\(type)"])
+            addressBook.append(["address": "\(address)", "label": "\(label)",  "balance": "", "network": "\(network)", "privateKey": "\(privateKey)", "publicKey": "\(publicKey)", "redemptionScript": redemptionScript, "type":"\(type)"])
             
             UserDefaults.standard.set(addressBook, forKey: "addressBook")
             
