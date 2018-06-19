@@ -9,7 +9,7 @@
 import Foundation
 import BigInt
 
-public func createPrivateKey(viewController: UIViewController, userRandomness: BigInt) -> (privateKeyAddress: String, publicKeyAddress: String) {
+public func createPrivateKey(viewController: UIViewController, userRandomness: BigInt) -> (privateKeyAddress: String, publicKeyAddress: String, recoveryPhrase: String) {
     
     let segwit = SegwitAddrCoder()
     
@@ -158,7 +158,7 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
                 } catch {
                         
                     displayAlert(viewController: viewController, title: "Error", message: "Please try again.")
-                    return("", "")
+                    return("", "", "")
                         
                 }
                     
@@ -176,7 +176,7 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
                 
             keychain?.key.clear()
             data.removeAll()
-            return (privateKeyWIF, bitcoinAddress)
+            return (privateKeyWIF, bitcoinAddress, recoveryPhrase)
                 
         } else if mainnetMode {
                 
@@ -224,7 +224,7 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
                 } catch {
                         
                     displayAlert(viewController: viewController, title: "Error", message: "Please try again.")
-                    return("", "")
+                    return("", "", recoveryPhrase)
                         
                 }
                     
@@ -242,19 +242,19 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
                 
             keychain?.key.clear()
             data.removeAll()
-            return (privateKeyWIF, bitcoinAddress)
+            return (privateKeyWIF, bitcoinAddress, recoveryPhrase)
                 
         }
             
     } else {
             
         data.removeAll()
-        return("", "")
+        return("", "", "")
             
     }
         
     data.removeAll()
-    return("", "")
+    return("", "", "")
     
     
 }

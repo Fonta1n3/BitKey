@@ -75,6 +75,12 @@ public func saveWallet(viewController: UIViewController, address: String, privat
         
         alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
             
+            addressBook.append(["address": "\(address)", "label": "",  "balance": "", "network": "\(network)", "privateKey": "\(privateKey)", "publicKey": "\(publicKey)", "redemptionScript": redemptionScript, "type":"\(type)"])
+            
+            UserDefaults.standard.set(addressBook, forKey: "addressBook")
+            
+            displayAlert(viewController: viewController, title: "Success", message: "You added a new wallet with address: \"\(address)\" to your address book.")
+            
         }))
         
         viewController.present(alert, animated: true, completion: nil)

@@ -297,6 +297,8 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     
                     saveWallet(viewController: self, address: multiSigAddress, privateKey: "", publicKey: "", redemptionScript: redemptionScript, network: network, type: "cold")
                     
+                    self.multiSigMode = false
+                    
                 }
                 
             } else {
@@ -486,7 +488,15 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     
                     if multiSigMode != true {
                         
+                        if cell.isSelected {
+                            
+                            cell.isSelected = false
+                            cell.accessoryType = UITableViewCellAccessoryType.none
+                            
+                        }
+                        
                       self.showKeyManagementAlert(wallet: self.addressBook[index], cell: cell)
+                        
                         
                     } else {
                         
@@ -514,6 +524,12 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                             
                         } else {
                             
+                            if cell.isSelected {
+                                
+                                cell.isSelected = false
+                                cell.accessoryType = UITableViewCellAccessoryType.none
+                            }
+                            
                             displayAlert(viewController: self, title: "Error", message: "Unable to use wallets that are alread used for other multi sig wallets.")
                             
                         }
@@ -534,6 +550,13 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     
                     if multiSigMode != true {
                         
+                        if cell.isSelected {
+                            
+                            cell.isSelected = false
+                            cell.accessoryType = UITableViewCellAccessoryType.none
+                            
+                        }
+                        
                         self.showKeyManagementAlert(wallet: self.addressBook[index], cell: cell)
                         
                     } else {
@@ -562,7 +585,15 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                             
                         } else {
                             
+                            if cell.isSelected {
+                                
+                                cell.isSelected = false
+                                cell.accessoryType = UITableViewCellAccessoryType.none
+                            }
+                            
                             displayAlert(viewController: self, title: "Error", message: "This wallet does not contain a public key and therefore we can not use it to create a multi sig wallet.")
+                            
+                            
                         }
                         
                     }
@@ -581,6 +612,13 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     
                     if multiSigMode != true {
                         
+                        if cell.isSelected {
+                            
+                            cell.isSelected = false
+                            cell.accessoryType = UITableViewCellAccessoryType.none
+                            
+                        }
+                        
                         self.showKeyManagementAlert(wallet: self.addressBook[index], cell: cell)
                         
                     } else {
@@ -608,6 +646,12 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                             }
                             
                         } else {
+                            
+                            if cell.isSelected {
+                                
+                                cell.isSelected = false
+                                cell.accessoryType = UITableViewCellAccessoryType.none
+                            }
                             
                             displayAlert(viewController: self, title: "Error", message: "This wallet does not contain a public key and therefore we can not use it to create a multi sig wallet.")
                         }
@@ -628,19 +672,24 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     
                     if multiSigMode != true {
                         
+                        if cell.isSelected {
+                            
+                            cell.isSelected = false
+                            cell.accessoryType = UITableViewCellAccessoryType.none
+                            
+                        }
+                        
                         self.showKeyManagementAlert(wallet: self.addressBook[index], cell: cell)
                         
                     } else {
                         
                         if self.addressBook[index]["publicKey"] as! String != "" {
                            
-                            //self.keyArray.append(self.addressBook[index])
                             if multiSigMode {
                                 
                                 if cell.isSelected {
                                     
                                     cell.isSelected = false
-                                    //remove from keyArray
                                     
                                     if cell.accessoryType == UITableViewCellAccessoryType.none {
                                         
@@ -662,10 +711,14 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                             
                         } else {
                             
+                            if cell.isSelected {
+                                
+                                cell.isSelected = false
+                                cell.accessoryType = UITableViewCellAccessoryType.none
+                            }
+                            
                             displayAlert(viewController: self, title: "Error", message: "This wallet does not contain a public key and therefore we can not use it to create a multi sig wallet.")
                         }
-                        
-                        
                         
                     }
                     

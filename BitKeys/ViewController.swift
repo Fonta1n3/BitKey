@@ -152,16 +152,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         mainnetMode = checkUserDefaults().mainnetMode
         testnetMode = checkUserDefaults().testnetMode
         
-        print("advancedMode = \(advancedMode)")
-        print("simpleMode = \(simpleMode)")
-        print("hotMode = \(hotMode)")
-        print("coldMode = \(coldMode)")
-        print("legacyMode = \(legacyMode)")
-        print("segwitMode = \(segwitMode)")
-        print("mainnetMode = \(mainnetMode)")
-        print("testnetMode = \(testnetMode)")
-        
-        
         words = ""
         
         if exportPrivateKeyFromTable {
@@ -670,6 +660,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                                         
                                     self.privateKeyWIF = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).privateKeyAddress
                                     self.bitcoinAddress = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).publicKeyAddress
+                                    self.words = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).recoveryPhrase
                                         
                                     if self.privateKeyWIF != "" {
                                             
@@ -733,6 +724,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                                         
                                     self.privateKeyWIF = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).privateKeyAddress
                                     self.bitcoinAddress = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).publicKeyAddress
+                                    self.words = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).recoveryPhrase
                                         
                                     if self.privateKeyWIF != "" {
                                             
@@ -884,14 +876,19 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.inputMnemonic.resignFirstResponder()
             self.inputMnemonic.removeFromSuperview()
             self.inputPassword.removeFromSuperview()
+            self.scanQRCodeButton.removeFromSuperview()
             
-            self.words = testInputMnemonic.words.description
+            let recoveryPhrase = testInputMnemonic.words.description
+            let formatMnemonic1 = recoveryPhrase.replacingOccurrences(of: "[", with: "")
+            let formatMnemonic2 = formatMnemonic1.replacingOccurrences(of: "]", with: "")
+            let formateMnemonic3 = formatMnemonic2.replacingOccurrences(of: "\"", with: "")
+            self.words = formateMnemonic3.replacingOccurrences(of: ",", with: "")
+            
             let keychain = testInputMnemonic.keychain.derivedKeychain(withPath: "m/44'/0'/0'/0")
             print("keychainPrivKey = \(String(describing: keychain?.extendedPrivateKey))")
-            self.recoveryPhrase = self.listArray.joined()
-            
             keychain?.key.isPublicKeyCompressed = true
             
+            let publicKey = (keychain?.key(at: 0).compressedPublicKey.hex())!
             var privateKeyHD = String()
             var addressHD = String()
             
@@ -957,11 +954,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
             if self.hotMode {
                 
-                saveWallet(viewController: self, address: self.bitcoinAddress, privateKey: self.privateKeyWIF, publicKey: "", redemptionScript: "", network: network, type: "hot")
+                saveWallet(viewController: self, address: self.bitcoinAddress, privateKey: self.privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: network, type: "hot")
                 
             } else {
                 
-                saveWallet(viewController: self, address: self.bitcoinAddress, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold")
+                saveWallet(viewController: self, address: self.bitcoinAddress, privateKey: "", publicKey: publicKey, redemptionScript: "", network: network, type: "cold")
             }
             
             keychain?.key.clear()
@@ -1158,6 +1155,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     self.scanQRCodeButton.removeFromSuperview()
                     self.outputMnemonic.text = self.stringURL
                     self.wordArray = self.stringURL.wordList
+                    //self.words = self.stringURL
                     
                     for word in self.wordArray {
                         
@@ -1298,92 +1296,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
         }
 
-        /*
-        if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
-            
-            watchOnlyMode = true
-            self.removeHomeScreen()
-            
-            if legacyMode {
-                
-                if self.testnetMode {
-                    print("testnetMode")
-                    let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
-                    let key = BTCKey.init(privateKeyAddress: privateKey)
-                    key?.isPublicKeyCompressed = true
-                    let legacyAddress1 = (key?.addressTestnet.description)!
-                    let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                    self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                    self.showAddressQRCodes()
-                    
-                } else {
-                    
-                    let privateKey = BTCPrivateKeyAddress(string: wif)
-                    let key = BTCKey.init(privateKeyAddress: privateKey)
-                    key?.isPublicKeyCompressed = true
-                    let legacyAddress1 = (key?.address.description)!
-                    let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                    self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                    self.showAddressQRCodes()
-                    
-                }
-                
-            } else if segwitMode {
-                
-                if mainnetMode {
-                    
-                    let privateKey = BTCPrivateKeyAddress(string: wif)
-                    let key = BTCKey.init(privateKeyAddress: privateKey)
-                    key?.isPublicKeyCompressed = true
-                    
-                    let compressedPKData = BTCRIPEMD160(BTCSHA256(key?.compressedPublicKey as Data!) as Data!) as Data!
-                    
-                    do {
-                        
-                        self.bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
-                        self.showAddressQRCodes()
-                        print("myAddress = \(self.bitcoinAddress)")
-                        
-                    } catch {
-                        
-                        displayAlert(viewController: self, title: "Error", message: "Please try again.")
-                        
-                    }
-                    
-                } else if testnetMode {
-                    
-                    let privateKey = BTCPrivateKeyAddressTestnet(string: wif)
-                    let key = BTCKey.init(privateKeyAddress: privateKey)
-                    key?.isPublicKeyCompressed = true
-                    
-                    let compressedPKData = BTCRIPEMD160(BTCSHA256(key?.compressedPublicKey as Data!) as Data!) as Data!
-                    
-                    do {
-                        
-                        self.bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
-                        self.showAddressQRCodes()
-                        print("myAddress = \(self.bitcoinAddress)")
-                        
-                    } catch {
-                        
-                        displayAlert(viewController: self, title: "Error", message: "Please try again.")
-                        
-                    }
-                    
-                }
-                
-            }
-            
-        } else if self.coldMode {
-            
-            displayAlert(viewController: self, title: "Error", message: "You are in cold mode so we are not storing your address, enable hot mode in settings and then we will store your address.")
-            
-        } else {
-            
-           shakeAlert(viewToShake: self.imageView)
-            
-        }
-        */
     }
     
     func addBackButton() {
@@ -1612,7 +1524,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     self.scrollView.addSubview(self.mnemonicLabel)
                     
                     self.mnemonicView = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 285 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 175))
-                    self.mnemonicView.text = self.recoveryPhrase
+                    self.mnemonicView.text = self.words//self.recoveryPhrase
                     self.mnemonicView.isEditable = false
                     self.mnemonicView.isSelectable = true
                     self.mnemonicView.font = .systemFont(ofSize: 24)
@@ -1625,7 +1537,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     self.recoveryPhraseLabel.textAlignment = .center
                     self.scrollView.addSubview(self.recoveryPhraseLabel)
                     
-                    self.recoveryPhraseImage = self.generateQrCode(key: self.recoveryPhrase)
+                    self.recoveryPhraseImage = self.generateQrCode(key: self.words)
                     self.recoveryPhraseQRView = UIImageView(image: self.recoveryPhraseImage!)
                     self.recoveryPhraseQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 90, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
                     self.scrollView.addSubview(self.recoveryPhraseQRView)
@@ -1644,6 +1556,15 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         DispatchQueue.main.async {
             
+            self.mnemonicLabel.removeFromSuperview()
+            self.recoveryPhraseLabel.removeFromSuperview()
+            if self.recoveryPhraseQRView != nil {
+              self.recoveryPhraseQRView.removeFromSuperview()
+            }
+            if self.mnemonicView != nil {
+              self.mnemonicView.removeFromSuperview()
+            }
+            self.words = ""
             self.watchOnlyMode = false
             self.bitcoinAddressButton.removeFromSuperview()
             self.privateKeyQRView.image = nil
@@ -1787,6 +1708,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             alert.addAction(UIAlertAction(title: NSLocalizedString("Sweep a Private Key", comment: ""), style: .default, handler: { (action) in
                 
                 self.performSegue(withIdentifier: "sweep", sender: self)
+                
+            }))
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Create a Multi Sig", comment: ""), style: .default, handler: { (action) in
+                
+                self.performSegue(withIdentifier: "createMultiSig", sender: self)
                 
             }))
             
@@ -2099,11 +2026,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         if hotMode {
             
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Add to Address Book", comment: ""), style: .default, handler: { (action) in
+            /*alert.addAction(UIAlertAction(title: NSLocalizedString("Add to Address Book", comment: ""), style: .default, handler: { (action) in
                 
                 saveWallet(viewController: self, address: self.bitcoinAddress, privateKey: self.privateKeyWIF, publicKey: "", redemptionScript: "", network: network, type: "hot")
                 
-            }))
+            }))*/
             
         } else {
             
@@ -2461,6 +2388,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                             
                             self.privateKeyWIF = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).privateKeyAddress
                             self.bitcoinAddress = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).publicKeyAddress
+                            self.words = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).recoveryPhrase
                             
                             self.button.removeFromSuperview()
                             self.showPrivateKeyAndAddressQRCodes()
