@@ -7,8 +7,8 @@
 //
 
 import UIKit
-import Security
-import SystemConfiguration
+//import Security
+//import SystemConfiguration
 import BigInt
 import AVFoundation
 
@@ -140,8 +140,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     
     override func viewDidAppear(_ animated: Bool) {
         
-        
-        
         addressBook = checkUserDefaults().addressBook
         advancedMode = checkUserDefaults().advancedMode
         simpleMode = checkUserDefaults().simpleMode
@@ -180,9 +178,144 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
         }
         
+        ensureBackwardsCompatibility()
+        
     }
     
-    
+    func ensureBackwardsCompatibility() {
+        
+        if UserDefaults.standard.object(forKey: "wif") != nil {
+        
+        DispatchQueue.main.async {
+            
+            let alert = UIAlertController(title: "Things have changed", message: "We have done a big upgrade to the wallet, don't worry your Bitcoin are safe, we will automatically add your hot wallet to your new \"Address Book\". Now you can have many wallets saved at the same time, all accesible through the address book. You will be prompted to give the wallet a name, which is optional. To access your wallet simply tap the \"Address Book\" button in top right of your screen. Tap OK to proceed.", preferredStyle: UIAlertControllerStyle.alert)
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
+                
+                let wif = UserDefaults.standard.object(forKey: "wif") as! String
+                
+                if wif.hasPrefix("5") || wif.hasPrefix("K") || wif.hasPrefix("L") {
+                    
+                    if let privateKey = BTCPrivateKeyAddress(string: wif) {
+                        
+                        UserDefaults.standard.removeObject(forKey: "wif")
+                        
+                        if let key = BTCKey.init(privateKeyAddress: privateKey) {
+                            
+                            var privateKeyHD = String()
+                            var addressHD = String()
+                            
+                            privateKeyHD = key.privateKeyAddress.description
+                            addressHD = key.address.description
+                            
+                            let privateKey3 = privateKeyHD.components(separatedBy: " ")
+                            let privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
+                            
+                            let publicKey = key.compressedPublicKey.hex()!
+                            
+                            var bitcoinAddress = String()
+                            
+                            if self.legacyMode {
+                                
+                                let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
+                                bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                
+                            } else if self.segwitMode {
+                                
+                                let compressedPKData = BTCRIPEMD160(BTCSHA256(key.compressedPublicKey as Data!) as Data!) as Data!
+                                
+                                do {
+                                    
+                                    bitcoinAddress = try self.segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                                    
+                                } catch {
+                                    
+                                    displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                                    
+                                }
+                                
+                            }
+                            
+                            saveWallet(viewController: self, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot")
+                            
+                        }
+                        
+                    }
+                    
+                    
+                } else if wif.hasPrefix("9") || wif.hasPrefix("c") {
+                    
+                    if let privateKey = BTCPrivateKeyAddressTestnet(string: wif) {
+                        
+                        UserDefaults.standard.removeObject(forKey: "wif")
+                        
+                        if let key = BTCKey.init(privateKeyAddress: privateKey) {
+                            
+                            var privateKeyHD = String()
+                            var addressHD = String()
+                            
+                            privateKeyHD = key.privateKeyAddressTestnet.description
+                            addressHD = key.addressTestnet.description
+                            
+                            let privateKey3 = privateKeyHD.components(separatedBy: " ")
+                            let privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
+                            
+                            let publicKey = key.compressedPublicKey.hex()!
+                            
+                            var bitcoinAddress = String()
+                            
+                            if self.legacyMode {
+                                
+                                let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
+                                bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                
+                            } else if self.segwitMode {
+                                
+                                let compressedPKData = BTCRIPEMD160(BTCSHA256(key.compressedPublicKey as Data!) as Data!) as Data!
+                                
+                                do {
+                                    
+                                    bitcoinAddress = try self.segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
+                                    
+                                } catch {
+                                    
+                                    displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                                    
+                                }
+                                
+                            }
+                            
+                            saveWallet(viewController: self, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot")
+                            
+                        }
+                        
+                    }
+                    
+                }
+                    
+                    //create the wallet from the wif
+                    if self.testnetMode {
+                        print("testnetMode")
+                        
+                        
+                        
+                    } else if self.mainnetMode {
+                        print("mainnetMode")
+                        
+                        
+                        
+                    }
+                    
+                
+            }))
+            
+            self.present(alert, animated: true, completion: nil)
+            
+        }
+            
+        }
+        
+    }
     
     func textFieldDidEndEditing(_ textField: UITextField) {
         
@@ -433,7 +566,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         self.view.addSubview(self.sweepButton)
         
     }
-    
+    /*
     func addExportButton() {
         
         self.exportButton.removeFromSuperview()
@@ -451,7 +584,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         self.view.addSubview(self.exportButton)
         
     }
-    
+    */
     func addImportButton() {
         
         self.importButton.removeFromSuperview()
@@ -885,7 +1018,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.words = formateMnemonic3.replacingOccurrences(of: ",", with: "")
             
             let keychain = testInputMnemonic.keychain.derivedKeychain(withPath: "m/44'/0'/0'/0")
-            print("keychainPrivKey = \(String(describing: keychain?.extendedPrivateKey))")
             keychain?.key.isPublicKeyCompressed = true
             
             let publicKey = (keychain?.key(at: 0).compressedPublicKey.hex())!
@@ -921,12 +1053,10 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
             }
             
-            let xpub = keychain?.extendedPublicKey
-            let xpriv = keychain?.extendedPrivateKey
-            print("xpub = \(String(describing: xpub))")
-            print("xpriv = \(String(describing: xpriv))")
-            UserDefaults.standard.set(xpub, forKey: "xpub")
-            UserDefaults.standard.set(0, forKey: "int")
+            //let xpub = keychain?.extendedPublicKey
+            //let xpriv = keychain?.extendedPrivateKey
+            //UserDefaults.standard.set(xpub, forKey: "xpub")
+            //UserDefaults.standard.set(0, forKey: "int")
             
             if segwitMode {
                 
@@ -1172,7 +1302,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         }
     }
     
-    @objc func export() {
+    /*@objc func export() {
         
         if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
             
@@ -1246,7 +1376,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
         }
         
-    }
+    }*/
     
     @objc func newAddress() {
         print("newAddress")
@@ -1614,7 +1744,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         }
         
     }
-    
+    /*
     func showHideTools() {
         print("showHideTools")
         
@@ -1685,6 +1815,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         }
         
     }
+    */
     
     func showKeyManagementAlert() {
         
@@ -2026,11 +2157,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         if hotMode {
             
-            /*alert.addAction(UIAlertAction(title: NSLocalizedString("Add to Address Book", comment: ""), style: .default, handler: { (action) in
-                
-                saveWallet(viewController: self, address: self.bitcoinAddress, privateKey: self.privateKeyWIF, publicKey: "", redemptionScript: "", network: network, type: "hot")
-                
-            }))*/
             
         } else {
             

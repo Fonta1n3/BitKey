@@ -7,8 +7,9 @@
 //
 
 import UIKit
+import AVFoundation
 
-class AddressBookViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class AddressBookViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, AVCaptureMetadataOutputObjectsDelegate {
 
     @IBOutlet var addressBookTable: UITableView!
     
@@ -26,6 +27,9 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     var refresher: UIRefreshControl!
     var multiSigMode = Bool()
     var keyArray = [[String: Any]]()
+    var ableToDelete = Bool()
+    var wallet = [String:Any]()
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -46,7 +50,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     
     override func viewDidAppear(_ animated: Bool) {
         
-        
+        ableToDelete = false
         
         if UserDefaults.standard.object(forKey: "addressBook") != nil {
             
@@ -80,7 +84,20 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             }
             
             
+        } else if (segue.identifier == "showHistory") {
+            
+            let vc = segue.destination as! TransactionHistoryViewController
+            vc.wallet = self.wallet
+            
+        } else if (segue.identifier == "goToTransactions") {
+            
+            let vc = segue.destination as! TransactionBuilderViewController
+            vc.sendingFromAddress = addressToExport
+            vc.privateKeytoDebit = privateKeyToExport
+            
         }
+        
+        //goToTransactions
         
     }
     
@@ -181,13 +198,13 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
         DispatchQueue.main.async {
             
+            self.addButton.alpha = 0
             self.addButton.removeFromSuperview()
-            self.addButton = UIButton(frame: CGRect(x: self.view.frame.width - 40, y: 25, width: 35, height: 35))
+            self.addButton = UIButton(frame: CGRect(x: self.view.frame.width - 60, y: 25, width: 35, height: 35))
             self.addButton.showsTouchWhenHighlighted = true
             self.addButton.setImage(#imageLiteral(resourceName: "add.png"), for: .normal)
             self.addButton.addTarget(self, action: #selector(self.add), for: .touchUpInside)
             self.view.addSubview(self.addButton)
-            
         }
         
     }
@@ -216,7 +233,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 
                 if signaturesRequired <= self.keyArray.count {
                     
-                    self.createMultiSig(wallets: self.keyArray as! [[String : Any]], signaturesRequired: signaturesRequired)
+                    self.createMultiSig(wallets: self.keyArray, signaturesRequired: signaturesRequired)
                     
                 }
                 
@@ -227,6 +244,11 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             }))
             
             self.present(alert, animated: true, completion: nil)
+            
+        } else {
+            
+            displayAlert(viewController: self, title: "Oops", message: "You need to select multiple wallets to create a multi sig.")
+            
         }
         
         
@@ -271,7 +293,18 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             if let multiSigWallet = BTCScript.init(publicKeys: publickKeyArray, signaturesRequired: signaturesRequired) {
                 
-                let multiSigAddress1 = multiSigWallet.scriptHashAddress.description
+                var multiSigAddress1 = String()
+                
+                if network == "testnet" {
+                    
+                    multiSigAddress1 = multiSigWallet.scriptHashAddressTestnet.description
+                    
+                } else if network == "mainnet" {
+                    
+                    multiSigAddress1 = multiSigWallet.scriptHashAddress.description
+                    
+                }
+                
                 let multiSigAddress2 = multiSigAddress1.components(separatedBy: " ")
                 let multiSigAddress = multiSigAddress2[1].replacingOccurrences(of: ">", with: "")
                 let redemptionScript = multiSigWallet.hex!
@@ -484,8 +517,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 
                 if self.hotMainnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String{
                     
-                    print("wallet = \(self.addressBook[index])")
-                    
                     if multiSigMode != true {
                         
                         if cell.isSelected {
@@ -510,13 +541,16 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                     
                                     cell.accessoryType = UITableViewCellAccessoryType.checkmark
                                     self.keyArray.append(self.addressBook[index])
-                                    print("keyArray = \(self.keyArray)")
                                     
                                 } else {
                                     
                                     cell.accessoryType = UITableViewCellAccessoryType.none
-                                    self.keyArray.remove(at: indexPath.row)
-                                    print("keyArray = \(self.keyArray)")
+                                    
+                                    if self.keyArray.count > 0 {
+                                        
+                                        self.keyArray.remove(at: indexPath.row)
+                                        
+                                    }
                                     
                                 }
                                 
@@ -546,8 +580,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 
                 if self.hotTestnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String{
                     
-                    print("wallet = \(self.addressBook[index])")
-                    
                     if multiSigMode != true {
                         
                         if cell.isSelected {
@@ -576,8 +608,12 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                 } else {
                                     
                                     cell.accessoryType = UITableViewCellAccessoryType.none
-                                    self.keyArray.remove(at: indexPath.row)
-                                    print("keyArray = \(self.keyArray)")
+                                    
+                                    if self.keyArray.count > 0 {
+                                        
+                                        self.keyArray.remove(at: indexPath.row)
+                                        
+                                    }
                                     
                                 }
                                 
@@ -592,7 +628,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                             }
                             
                             displayAlert(viewController: self, title: "Error", message: "This wallet does not contain a public key and therefore we can not use it to create a multi sig wallet.")
-                            
                             
                         }
                         
@@ -638,8 +673,13 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                 } else {
                                     
                                     cell.accessoryType = UITableViewCellAccessoryType.none
-                                    self.keyArray.remove(at: indexPath.row)
-                                    print("keyArray = \(self.keyArray)")
+                                    
+                                    if self.keyArray.count > 0 {
+                                        
+                                        self.keyArray.remove(at: indexPath.row)
+                                        print("keyArray = \(self.keyArray)")
+                                        
+                                    }
                                     
                                 }
                                 
@@ -700,8 +740,13 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                     } else {
                                         
                                         cell.accessoryType = UITableViewCellAccessoryType.none
-                                        self.keyArray.remove(at: indexPath.row)
-                                        print("keyArray = \(self.keyArray)")
+                                        
+                                        if self.keyArray.count > 0 {
+                                            
+                                            self.keyArray.remove(at: indexPath.row)
+                                            print("keyArray = \(self.keyArray)")
+                                            
+                                        }
                                         
                                     }
                                     
@@ -730,112 +775,153 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
     }
     
-    
-    
-    /*
-     // Override to support conditional editing of the table view.
-     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-     // Return false if you do not want the specified item to be editable.
-     return true
-     }
-     */
-    
-    
-    
-    
-     // Override to support editing the table view.
-     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         
-        if editingStyle == .delete {
+        if ableToDelete {
             
-            if indexPath.section == 0 {
-                
-                for (index, wallet) in self.addressBook.enumerated() {
-                    
-                    if self.hotMainnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
-                        
-                        self.addressBook.remove(at: index)
-                        UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
-                        
-                    }
-                    
-                }
-                
-                self.hotMainnetArray.remove(at: indexPath.row)
-                tableView.deleteRows(at: [indexPath], with: .fade)
-                
-            } else if indexPath.section == 1 {
-                
-                for (index, wallet) in self.addressBook.enumerated() {
-                    
-                    if self.hotTestnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
-                        
-                        self.addressBook.remove(at: index)
-                        UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
-                        
-                    }
-                    
-                }
-                
-                self.hotTestnetArray.remove(at: indexPath.row)
-                tableView.deleteRows(at: [indexPath], with: .fade)
-                
-            } else if indexPath.section == 2 {
-                
-                for (index, wallet) in self.addressBook.enumerated() {
-                    
-                    if self.coldMainnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
-                        
-                        self.addressBook.remove(at: index)
-                        UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
-                        
-                    }
-                    
-                }
-                
-                self.coldMainnetArray.remove(at: indexPath.row)
-                tableView.deleteRows(at: [indexPath], with: .fade)
-                
-            } else if indexPath.section == 3 {
-                
-                for (index, wallet) in self.addressBook.enumerated() {
-                    
-                    if self.coldTestnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String{
-                        
-                        self.addressBook.remove(at: index)
-                        UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
-                        
-                    }
-                    
-                }
-                
-                self.coldTestnetArray.remove(at: indexPath.row)
-                tableView.deleteRows(at: [indexPath], with: .fade)
-                
-            }
+            return true
             
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
+        } else {
+            
+            return false
             
         }
         
      }
     
-    
-    /*
-     // Override to support rearranging the table view.
-     override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-     
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        
+        if editingStyle == .delete {
+                
+            if indexPath.section == 0 {
+                    
+                for (index, wallet) in self.addressBook.enumerated() {
+                        
+                    if self.hotMainnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
+                            
+                        DispatchQueue.main.async {
+                                
+                            let alert = UIAlertController(title: "WARNING!", message: "You will lose this wallet FOREVER if you delete it, please ensure you have it backed up first.", preferredStyle: UIAlertControllerStyle.alert)
+                                
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("Delete", comment: ""), style: .destructive, handler: { (action) in
+                                    
+                                    self.addressBook.remove(at: index)
+                                    UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+                                    self.hotMainnetArray.remove(at: indexPath.row)
+                                    tableView.deleteRows(at: [indexPath], with: .fade)
+                                    
+                                }))
+                                
+                                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                    
+                                    
+                                }))
+                                
+                                self.present(alert, animated: true, completion: nil)
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                } else if indexPath.section == 1 {
+                    
+                    for (index, wallet) in self.addressBook.enumerated() {
+                        
+                        if self.hotTestnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
+                            
+                            DispatchQueue.main.async {
+                                
+                                let alert = UIAlertController(title: "WARNING!", message: "You will lose this wallet FOREVER if you delete it, please ensure you have it backed up first.", preferredStyle: UIAlertControllerStyle.alert)
+                                
+                                alert.addAction(UIAlertAction(title: NSLocalizedString("Delete", comment: ""), style: .destructive, handler: { (action) in
+                                    
+                                    self.addressBook.remove(at: index)
+                                    UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+                                    self.hotTestnetArray.remove(at: indexPath.row)
+                                    tableView.deleteRows(at: [indexPath], with: .fade)
+                                    
+                                }))
+                                
+                                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                    
+                                    
+                                }))
+                                
+                                self.present(alert, animated: true, completion: nil)
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                } else if indexPath.section == 2 {
+                    
+                    for (index, wallet) in self.addressBook.enumerated() {
+                        
+                        if self.coldMainnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
+                            
+                            DispatchQueue.main.async {
+                                
+                                let alert = UIAlertController(title: "WARNING!", message: "You will lose this wallet FOREVER if you delete it, please ensure you have it backed up first.", preferredStyle: UIAlertControllerStyle.alert)
+                                
+                                alert.addAction(UIAlertAction(title: NSLocalizedString("Delete", comment: ""), style: .destructive, handler: { (action) in
+                                    
+                                    self.addressBook.remove(at: index)
+                                    UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+                                    self.coldMainnetArray.remove(at: indexPath.row)
+                                    tableView.deleteRows(at: [indexPath], with: .fade)
+                                    
+                                }))
+                                
+                                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                    
+                                    
+                                }))
+                                
+                                self.present(alert, animated: true, completion: nil)
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                } else if indexPath.section == 3 {
+                    
+                    for (index, wallet) in self.addressBook.enumerated() {
+                        
+                        if self.coldTestnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
+                            
+                            DispatchQueue.main.async {
+                                
+                                let alert = UIAlertController(title: "WARNING!", message: "You will lose this wallet FOREVER if you delete it, please ensure you have it backed up first.", preferredStyle: UIAlertControllerStyle.alert)
+                                
+                                alert.addAction(UIAlertAction(title: NSLocalizedString("Delete", comment: ""), style: .destructive, handler: { (action) in
+                                    
+                                    self.addressBook.remove(at: index)
+                                    UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+                                    self.coldTestnetArray.remove(at: indexPath.row)
+                                    tableView.deleteRows(at: [indexPath], with: .fade)
+                                    
+                                }))
+                                
+                                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                    
+                                    
+                                }))
+                                
+                                self.present(alert, animated: true, completion: nil)
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                }
+                
+            }
+        
      }
-     */
-    
-    /*
-     // Override to support conditional rearranging of the table view.
-     override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-     // Return false if you do not want the item to be re-orderable.
-     return true
-     }
-     */
     
     func showKeyManagementAlert(wallet: [String: Any], cell: UITableViewCell) {
         
@@ -855,14 +941,68 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 
             }
             
-            
-                
             alert.addAction(UIAlertAction(title: NSLocalizedString("Export Keys", comment: ""), style: .default, handler: { (action) in
-                    
+                
                 self.addressToExport = wallet["address"] as! String
                 self.privateKeyToExport = wallet["privateKey"] as! String
                 self.performSegue(withIdentifier: "goHome", sender: self)
+                
+            }))
+            
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Spend from this wallet", comment: ""), style: .default, handler: { (action) in
+                
+                self.addressToExport = wallet["address"] as! String
+                self.privateKeyToExport = wallet["privateKey"] as! String
+                self.performSegue(withIdentifier: "goToTransactions", sender: self)
+                
+            }))
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("See History", comment: ""), style: .default, handler: { (action) in
+                
+                self.wallet = wallet
+                self.performSegue(withIdentifier: "showHistory", sender: self)
+                
+            }))
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Edit Wallet Name", comment: ""), style: .default, handler: { (action) in
+                
+                for (index, address) in self.addressBook.enumerated() {
                     
+                    if wallet["address"] as! String == address["address"] as! String {
+                        
+                        let oldName = self.addressBook[index]["label"] as! String
+                        
+                        let alert = UIAlertController(title: "Give \"\(oldName)\" a new name", message: "", preferredStyle: .alert)
+                        
+                        alert.addTextField { (textField1) in
+                            
+                            textField1.placeholder = "Optional"
+                            
+                        }
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("Update", comment: ""), style: .default, handler: { (action) in
+                            
+                            let label = alert.textFields![0].text!
+                            
+                            self.addressBook[index]["label"] = label
+                            
+                            UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+                            
+                            displayAlert(viewController: self, title: "Success", message: "You updated a \"\(oldName)\" to \"\(label)\"")
+                            
+                        }))
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                            
+                        }))
+                        
+                        self.present(alert, animated: true, completion: nil)
+                        
+                    }
+                    
+                }
+                
             }))
                 
  
@@ -877,6 +1017,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     func checkBalance(address: String, index: Int, network: String, type: String) {
         print("checkBalance")
         
+        ableToDelete = false
         addSpinner()
         var url:NSURL!
         var btcAmount = ""
@@ -902,7 +1043,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                 
                                 if let btcAmountCheck = ((jsonAddressResult["data"] as? NSArray)?[0] as? NSDictionary)?["sum_value_unspent"] as? Double {
                                     
-                                    let btcAmount = String(btcAmountCheck)
+                                    let btcAmount = btcAmountCheck.avoidNotation
                                     
                                     if network == "mainnet" && type == "hot" {
                                         
@@ -970,7 +1111,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                 
                                 if let finalBalanceCheck = jsonAddressResult["final_balance"] as? Double {
                                     
-                                    btcAmount = String(finalBalanceCheck / 100000000)
+                                    btcAmount = (finalBalanceCheck / 100000000).avoidNotation
                                     
                                     if network == "mainnet" && type == "hot" {
                                         
@@ -1066,7 +1207,11 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             self.imageView.removeFromSuperview()
             self.refresher.endRefreshing()
+            self.ableToDelete = true
+            
         }
     }
+    
+    
 
 }

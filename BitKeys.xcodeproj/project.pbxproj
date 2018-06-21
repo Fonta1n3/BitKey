@@ -35,6 +35,8 @@
 		D055011D2094FE79001C35F0 /* BitKeysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055011C2094FE79001C35F0 /* BitKeysTests.swift */; };
 		D055012720950E9F001C35F0 /* SegwitAddrCoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055012620950E9F001C35F0 /* SegwitAddrCoder.swift */; };
 		D055012B2095134C001C35F0 /* Bech32.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055012A2095134C001C35F0 /* Bech32.swift */; };
+		D057B24220D96E24006661DC /* TransactionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D057B24120D96E24006661DC /* TransactionBuilder.swift */; };
+		D057B24420D9D570006661DC /* TransactionHistoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D057B24320D9D570006661DC /* TransactionHistoryViewController.swift */; };
 		D07638F420C5B41F009D08E5 /* SweepViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07638F320C5B41F009D08E5 /* SweepViewController.swift */; };
 		D089BFA5207EBDEF0086243B /* SipHash.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D089BFA3207EBDEF0086243B /* SipHash.framework */; };
 		D089BFA6207EBDEF0086243B /* BigInt.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D089BFA4207EBDEF0086243B /* BigInt.framework */; };
@@ -109,6 +111,8 @@
 		D055011E2094FE79001C35F0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D055012620950E9F001C35F0 /* SegwitAddrCoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegwitAddrCoder.swift; sourceTree = "<group>"; };
 		D055012A2095134C001C35F0 /* Bech32.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bech32.swift; sourceTree = "<group>"; };
+		D057B24120D96E24006661DC /* TransactionBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionBuilder.swift; sourceTree = "<group>"; };
+		D057B24320D9D570006661DC /* TransactionHistoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionHistoryViewController.swift; sourceTree = "<group>"; };
 		D07638F320C5B41F009D08E5 /* SweepViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SweepViewController.swift; sourceTree = "<group>"; };
 		D089BFA3207EBDEF0086243B /* SipHash.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SipHash.framework; path = Carthage/Build/iOS/SipHash.framework; sourceTree = "<group>"; };
 		D089BFA4207EBDEF0086243B /* BigInt.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BigInt.framework; path = Carthage/Build/iOS/BigInt.framework; sourceTree = "<group>"; };
@@ -246,7 +250,9 @@
 		D0C56F571FCBFBC4004A5F47 /* BitKeys */ = {
 			isa = PBXGroup;
 			children = (
+				D057B24320D9D570006661DC /* TransactionHistoryViewController.swift */,
 				D08FA4B320D49A3D00BADC3B /* Utilities.swift */,
+				D057B24120D96E24006661DC /* TransactionBuilder.swift */,
 				D08FA4B120D4940C00BADC3B /* keyCreatorFromEntropy.swift */,
 				D08FA4AD20D4853500BADC3B /* walletSaver.swift */,
 				D027521F20D292B10025EC0E /* AddressBookViewController.swift */,
@@ -499,6 +505,7 @@
 				D04BAB2620CB1B3E00501B6D /* SpendMultiSigViewController.swift in Sources */,
 				D08FA4AE20D4853500BADC3B /* walletSaver.swift in Sources */,
 				D0B597852013E96E000767A7 /* ViewControllerBalanceChecker.swift in Sources */,
+				D057B24220D96E24006661DC /* TransactionBuilder.swift in Sources */,
 				D08FA4B220D4940C00BADC3B /* keyCreatorFromEntropy.swift in Sources */,
 				D003821820B24D4400BC310D /* SettingsViewController.swift in Sources */,
 				D04BAB2C20CC2F6B00501B6D /* InfoViewController.swift in Sources */,
@@ -513,6 +520,7 @@
 				D055012B2095134C001C35F0 /* Bech32.swift in Sources */,
 				D0E8115C20615E23000DBBE8 /* MayerMultipleViewController.swift in Sources */,
 				D08FA4B420D49A3D00BADC3B /* Utilities.swift in Sources */,
+				D057B24420D9D570006661DC /* TransactionHistoryViewController.swift in Sources */,
 				D0C56F591FCBFBC4004A5F47 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

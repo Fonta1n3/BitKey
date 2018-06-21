@@ -94,11 +94,57 @@
                     <connections>
                         <outlet property="addressBookTable" destination="bfP-bv-nbk" id="spf-Jy-tN3"/>
                         <segue destination="BYZ-38-t0r" kind="show" identifier="goHome" id="ssl-mN-lIS"/>
+                        <segue destination="sou-el-m0b" kind="show" identifier="showHistory" id="o9F-z6-NaJ"/>
+                        <segue destination="jcU-e8-UqR" kind="show" identifier="goToTransactions" id="f82-ul-HqN"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="mDi-4H-cwH" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="2023.2" y="-635.53223388305855"/>
+        </scene>
+        <!--Transaction History View Controller-->
+        <scene sceneID="aPJ-m1-xO7">
+            <objects>
+                <viewController id="sou-el-m0b" customClass="TransactionHistoryViewController" customModule="BitKeys" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="yP0-Mo-Jm0">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="qJn-KW-2Mt">
+                                <rect key="frame" x="0.0" y="83" width="375" height="584"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <prototypes>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="LabelCell" id="zC6-Sx-5Tz">
+                                        <rect key="frame" x="0.0" y="28" width="375" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="zC6-Sx-5Tz" id="TN0-S8-m64">
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </prototypes>
+                                <connections>
+                                    <outlet property="dataSource" destination="sou-el-m0b" id="Ep7-RH-O0T"/>
+                                    <outlet property="delegate" destination="sou-el-m0b" id="P1z-cq-dBQ"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="qJn-KW-2Mt" firstAttribute="trailing" secondItem="b2F-TI-v35" secondAttribute="trailing" id="U7r-ZZ-La5"/>
+                            <constraint firstItem="qJn-KW-2Mt" firstAttribute="bottom" secondItem="b2F-TI-v35" secondAttribute="bottom" id="WZd-t2-0T2"/>
+                            <constraint firstItem="qJn-KW-2Mt" firstAttribute="top" secondItem="b2F-TI-v35" secondAttribute="top" constant="63" id="r2D-Fk-xB1"/>
+                            <constraint firstItem="qJn-KW-2Mt" firstAttribute="leading" secondItem="b2F-TI-v35" secondAttribute="leading" id="vho-ZO-oSL"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="b2F-TI-v35"/>
+                    </view>
+                    <connections>
+                        <outlet property="transactionHistoryTable" destination="qJn-KW-2Mt" id="LGW-Yg-Pk3"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Viw-ev-Kwi" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3045.5999999999999" y="-634.632683658171"/>
         </scene>
         <!--Coinbase View Controller-->
         <scene sceneID="96w-gW-kdC">
@@ -289,4 +335,7 @@
             <point key="canvasLocation" x="2025" y="174"/>
         </scene>
     </scenes>
+    <inferredMetricsTieBreakers>
+        <segue reference="f82-ul-HqN"/>
+    </inferredMetricsTieBreakers>
 </document>

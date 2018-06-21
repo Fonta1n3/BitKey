@@ -8,6 +8,88 @@
 
 import Foundation
 import SystemConfiguration
+import AVFoundation
+
+public func showScanner(viewController: UIViewController, frame: CGRect, imageView: UIImageView) -> String {
+    
+    let avCaptureSession = AVCaptureSession()
+    var stringURL = String()
+    
+    imageView.frame = frame
+    viewController.view.addSubview(imageView)
+    
+    
+    func scanQRNow() throws {
+        
+        guard let avCaptureDevice = AVCaptureDevice.default(for: AVMediaType.video) else {
+            
+            print("no camera")
+            throw error.noCameraAvailable
+            
+        }
+        
+        guard let avCaptureInput = try? AVCaptureDeviceInput(device: avCaptureDevice) else {
+            
+            print("failed to int camera")
+            throw error.videoInputInitFail
+        }
+        
+        
+        let avCaptureMetadataOutput = AVCaptureMetadataOutput()
+        avCaptureMetadataOutput.setMetadataObjectsDelegate((viewController as! AVCaptureMetadataOutputObjectsDelegate), queue: DispatchQueue.main)
+        
+        if let inputs = avCaptureSession.inputs as? [AVCaptureDeviceInput] {
+            for input in inputs {
+                avCaptureSession.removeInput(input)
+            }
+        }
+        
+        if let outputs = avCaptureSession.outputs as? [AVCaptureMetadataOutput] {
+            for output in outputs {
+                avCaptureSession.removeOutput(output)
+            }
+        }
+        
+        avCaptureSession.addInput(avCaptureInput)
+        avCaptureSession.addOutput(avCaptureMetadataOutput)
+        
+        avCaptureMetadataOutput.metadataObjectTypes = [AVMetadataObject.ObjectType.qr]
+        
+        let avCaptureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: avCaptureSession)
+        avCaptureVideoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
+        avCaptureVideoPreviewLayer.frame = imageView.bounds
+        imageView.layer.addSublayer(avCaptureVideoPreviewLayer)
+        
+        avCaptureSession.startRunning()
+        
+    }
+    
+    func scanQRCode() {
+        
+        do {
+            
+            try scanQRNow()
+            print("scanQRNow")
+            
+        } catch {
+            
+            print("Failed to scan QR Code")
+        }
+        
+    }
+    
+    scanQRCode()
+    
+    enum error: Error {
+        
+        case noCameraAvailable
+        case videoInputInitFail
+        
+    }
+    
+    return stringURL
+    
+}
 
 public func displayAlert(viewController: UIViewController, title: String, message: String) {
     
