@@ -10,8 +10,7 @@ import UIKit
 
 class MayerMultipleViewController: UIViewController {
     
-    var simpleMode = Bool()
-    var advancedMode = Bool()
+  
     var imageView:UIView!
     var button = UIButton(type: .custom)
     
@@ -57,8 +56,6 @@ class MayerMultipleViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         
         
-        simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
-        advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
         getMayerMultiple()
         self.addSpinner()
         
@@ -152,11 +149,11 @@ class MayerMultipleViewController: UIViewController {
                                                                     let mayerMultipleLabel = UITextView()
                                                                     mayerMultipleLabel.frame = CGRect(x: self.view.frame.minX + 15, y: self.view.center.y - (self.view.frame.height / 3), width: self.view.frame.width - 30, height: 500)
                                                                     
-                                                                    if self.simpleMode {
+                                                                    //if self.simpleMode {
                                                                         
-                                                                        mayerMultipleLabel.text = "The Bitcoin price is currently $\(round(100 * exchangeRate) / 100) USD."
                                                                         
-                                                                    } else {
+                                                                        
+                                                                    //} else {
                                                                         
                                                                         if priceDifference < 0 {
                                                                             
@@ -172,7 +169,7 @@ class MayerMultipleViewController: UIViewController {
                                                                             
                                                                         }
                                                                         
-                                                                    }
+                                                                    //}
                                                                     
                                                                     mayerMultipleLabel.textColor = UIColor.black
                                                                     mayerMultipleLabel.font = UIFont.systemFont(ofSize: 28)

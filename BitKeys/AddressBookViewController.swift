@@ -55,7 +55,8 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         if UserDefaults.standard.object(forKey: "addressBook") != nil {
             
             addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String: Any]]
-            print("addressBook = \(addressBook)")
+            //print("addressBook = \(addressBook)")
+            
         }
         
         getArrays()
@@ -92,12 +93,10 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         } else if (segue.identifier == "goToTransactions") {
             
             let vc = segue.destination as! TransactionBuilderViewController
-            vc.sendingFromAddress = addressToExport
-            vc.privateKeytoDebit = privateKeyToExport
+            vc.walletToSpendFrom = self.wallet
+            vc.sendingFromAddress = self.wallet["address"] as! String
             
         }
-        
-        //goToTransactions
         
     }
     
@@ -515,7 +514,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             for (index, wallet) in self.addressBook.enumerated() {
                 
-                if self.hotMainnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String{
+                if self.hotMainnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
                     
                     if multiSigMode != true {
                         
@@ -531,7 +530,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                         
                     } else {
                         
-                        if self.addressBook[index]["publicKey"] as! String != "" && self.addressBook[index]["redemptionScript"] as! String == "" {
+                        if self.addressBook[index]["publicKey"] as! String != "" {
                             
                             if cell.isSelected {
                                 
@@ -564,7 +563,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                 cell.accessoryType = UITableViewCellAccessoryType.none
                             }
                             
-                            displayAlert(viewController: self, title: "Error", message: "Unable to use wallets that are alread used for other multi sig wallets.")
+                            displayAlert(viewController: self, title: "Error", message: "This wallet does not contain a public key and therefore we can not use it to create a multi sig wallet.")
                             
                         }
                         
@@ -804,8 +803,8 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                             let alert = UIAlertController(title: "WARNING!", message: "You will lose this wallet FOREVER if you delete it, please ensure you have it backed up first.", preferredStyle: UIAlertControllerStyle.alert)
                                 
                             alert.addAction(UIAlertAction(title: NSLocalizedString("Delete", comment: ""), style: .destructive, handler: { (action) in
-                                    
-                                    self.addressBook.remove(at: index)
+                                
+                                self.addressBook.remove(at: index)
                                     UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
                                     self.hotMainnetArray.remove(at: indexPath.row)
                                     tableView.deleteRows(at: [indexPath], with: .fade)
@@ -929,7 +928,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             let alert = UIAlertController(title: nil, message: "Please select an option", preferredStyle: UIAlertControllerStyle.actionSheet)
             
-            if wallet["publicKey"] as! String != "" && wallet["redemptionScript"] as! String == "" || wallet["privateKey"] as! String != "" && wallet["redemptionScript"] as! String == "" {
+            if wallet["publicKey"] as! String != "" {
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Create Multi-Sig", comment: ""), style: .default, handler: { (action) in
                     
@@ -952,8 +951,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Spend from this wallet", comment: ""), style: .default, handler: { (action) in
                 
-                self.addressToExport = wallet["address"] as! String
-                self.privateKeyToExport = wallet["privateKey"] as! String
+                self.wallet = wallet
                 self.performSegue(withIdentifier: "goToTransactions", sender: self)
                 
             }))
@@ -964,6 +962,41 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 self.performSegue(withIdentifier: "showHistory", sender: self)
                 
             }))
+            
+            if wallet["privateKey"] as! String != "" {
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Make Wallet Cold", comment: ""), style: .default, handler: { (action) in
+                    
+                    DispatchQueue.main.async {
+                        
+                        let alert = UIAlertController(title: "WARNING!", message: "This will delete the private key and your ability to spend from this wallet in the app, please ensure you have the private key and recovery phrase backed up first.", preferredStyle: UIAlertControllerStyle.alert)
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("Make it Cold", comment: ""), style: .destructive, handler: { (action) in
+                            
+                            for (index, wallets) in self.addressBook.enumerated() {
+                                
+                                if wallets["address"] as! String == wallet["address"] as! String {
+                                    
+                                    self.addressBook[index]["privateKey"] = ""
+                                    self.addressBook[index]["type"] = "cold"
+                                    UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+                                    
+                                }
+                                
+                            }
+                            
+                        }))
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                            
+                            
+                        }))
+                        
+                        self.present(alert, animated: true, completion: nil)
+                    }
+                    
+                }))
+            }
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Edit Wallet Name", comment: ""), style: .default, handler: { (action) in
                 
@@ -1159,6 +1192,77 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
         }
         
+        func getTestNetBalance() {
+            
+            let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
+                
+                do {
+                    
+                    if error != nil {
+                        
+                        print(error as Any)
+                        self.removeSpinner()
+                        
+                    } else {
+                        
+                        if let urlContent = data {
+                            
+                            do {
+                                
+                                let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
+                                
+                                print("jsonAddressResult = \(jsonAddressResult)")
+                                
+                                if let finalBalanceCheck = jsonAddressResult["balance"] as? Double {
+                                    
+                                    btcAmount = (finalBalanceCheck / 100000000).avoidNotation
+                                    
+                                    if network == "mainnet" && type == "hot" {
+                                        
+                                        self.hotMainnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        
+                                    } else if network == "testnet" && type == "hot" {
+                                        
+                                        self.hotTestnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        
+                                    } else if network == "mainnet" && type == "cold" {
+                                        
+                                        self.coldMainnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        
+                                    } else if network == "testnet" && type == "cold" {
+                                        
+                                        self.coldTestnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        
+                                    }
+                                    
+                                    DispatchQueue.main.async {
+                                        
+                                        self.addressBookTable.reloadData()
+                                        self.removeSpinner()
+                                        
+                                        
+                                    }
+                                    
+                                } else {
+                                    
+                                    self.removeSpinner()
+                                    
+                                }
+                                
+                            } catch {
+                                
+                                print("JSon processing failed")
+                                self.removeSpinner()
+                            }
+                        }
+                    }
+                }
+            }
+            
+            task.resume()
+            
+        }
+        
         if address.hasPrefix("1") || address.hasPrefix("3") {
             
             url = NSURL(string: "https://blockchain.info/rawaddr/\(address)")
@@ -1166,8 +1270,9 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
         } else if address.hasPrefix("m") || address.hasPrefix("2") || address.hasPrefix("n") {
             
-            url = NSURL(string: "https://testnet.blockchain.info/rawaddr/\(address)")
-            getLegacyBalance()
+            url = NSURL(string: "https://api.blockcypher.com/v1/btc/test3/addrs/\(address)/balance")
+            
+            getTestNetBalance()
             
         } else if address.hasPrefix("b") {
             

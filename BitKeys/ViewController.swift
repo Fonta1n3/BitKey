@@ -7,13 +7,15 @@
 //
 
 import UIKit
-//import Security
-//import SystemConfiguration
+import AES256CBC
 import BigInt
 import AVFoundation
 
 class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate, AVCaptureMetadataOutputObjectsDelegate {
     
+    var textToShare = String()
+    var filename = String()
+    var recoveryMode = Bool()
     var videoPreview:UIView!
     let avCaptureSession = AVCaptureSession()
     var stringURL = String()
@@ -21,8 +23,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     var exportPrivateKeyFromTable = Bool()
     var exportAddressFromTable = Bool()
     var toolBoxTapped = Bool()
-    var simpleMode = Bool()
-    var advancedMode = Bool()
     var testnetMode = Bool()
     var mainnetMode = Bool()
     var addressMode = Bool()
@@ -141,8 +141,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     override func viewDidAppear(_ animated: Bool) {
         
         addressBook = checkUserDefaults().addressBook
-        advancedMode = checkUserDefaults().advancedMode
-        simpleMode = checkUserDefaults().simpleMode
+        encryptAddressBook()
         hotMode = checkUserDefaults().hotMode
         coldMode = checkUserDefaults().coldMode
         legacyMode = checkUserDefaults().legacyMode
@@ -179,6 +178,78 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         }
         
         ensureBackwardsCompatibility()
+        
+    }
+    
+    func encryptAddressBook() {
+        
+        let password = AES256CBC.generatePassword()  // returns random 32 char string
+        print("password = \(password)")
+        
+        func encrypt(stringToEncrypt: String, password: String) -> String {
+            
+            let encrypted = AES256CBC.encryptString(stringToEncrypt, password: password)!
+            return encrypted
+            
+        }
+        
+        func decrypt(stringToDecrypt: String, password: String) -> String {
+            
+            let decrypted = AES256CBC.decryptString(stringToDecrypt, password: password)!
+            return decrypted
+        }
+        
+        for (index, wallet) in addressBook.enumerated() {
+            
+            if let privateKey = wallet["privateKey"] as? String {
+                
+                if privateKey != "" {
+                    
+                    let encryptedPrivateKey = encrypt(stringToEncrypt: privateKey, password: password)
+                    self.addressBook[index]["privateKey"] = encryptedPrivateKey
+                    
+                }
+                
+            }
+            
+            if let address = wallet["address"] as? String {
+                
+                let encryptedAddress = encrypt(stringToEncrypt: address, password: password)
+                self.addressBook[index]["address"] = encryptedAddress
+            }
+            
+        }
+        
+        for wallet in addressBook {
+            
+            print("encrypted wallet = \(wallet)\n\n")
+        }
+        
+        for (index, wallet) in addressBook.enumerated() {
+            
+            if let privateKey = wallet["privateKey"] as? String {
+                
+                if privateKey != "" {
+                    
+                    let decryptedPrivateKey = decrypt(stringToDecrypt: privateKey, password: password)
+                    self.addressBook[index]["privateKey"] = decryptedPrivateKey
+                    
+                }
+                
+            }
+            
+            if let address = wallet["address"] as? String {
+                
+                let decryptedAddress = decrypt(stringToDecrypt: address, password: password)
+                self.addressBook[index]["address"] = decryptedAddress
+            }
+            
+        }
+        
+        for wallet in addressBook {
+            
+            print("decrypted wallet = \(wallet)\n\n")
+        }
         
     }
     
@@ -293,20 +364,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     
                 }
                     
-                    //create the wallet from the wif
-                    if self.testnetMode {
-                        print("testnetMode")
-                        
-                        
-                        
-                    } else if self.mainnetMode {
-                        print("mainnetMode")
-                        
-                        
-                        
-                    }
-                    
-                
             }))
             
             self.present(alert, animated: true, completion: nil)
@@ -550,7 +607,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
     }
     
-    func addSweepButton() {
+    /*func addSweepButton() {
         
         self.sweepButton.removeFromSuperview()
         self.sweepButton = UIButton(frame: CGRect(x: 5, y: self.diceButton.frame.maxY + 10, width: 85, height: 50))
@@ -565,7 +622,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         self.sweepButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
         self.view.addSubview(self.sweepButton)
         
-    }
+    }*/
     /*
     func addExportButton() {
         
@@ -585,7 +642,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
     }
     */
-    func addImportButton() {
+    /*func addImportButton() {
         
         self.importButton.removeFromSuperview()
         self.importButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.exportButton.frame.minY - 60, width: 85, height: 50))
@@ -600,9 +657,9 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         self.importButton.addTarget(self, action: #selector(self.importMnemonic), for: .touchUpInside)
         self.view.addSubview(self.importButton)
         
-    }
+    }*/
     
-    func addMultiSigButton() {
+    /*func addMultiSigButton() {
         
         self.multiSigButton.removeFromSuperview()
         self.multiSigButton = UIButton(frame: CGRect(x: self.view.center.x - (85/2), y: self.newAddressButton.frame.minY - 60, width: 85, height: 50))
@@ -617,9 +674,9 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         self.multiSigButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
         self.view.addSubview(self.multiSigButton)
         
-    }
+    }*/
     
-    func addDiceButton() {
+    /*func addDiceButton() {
         
         self.diceButton.removeFromSuperview()
         self.diceButton = UIButton(frame: CGRect(x: 5, y: self.settingsButton.frame.minY + 60, width: 85, height: 50))
@@ -634,7 +691,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         self.diceButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
         self.view.addSubview(self.diceButton)
         
-    }
+    }*/
     
     func addCheckAddressButton() {
         
@@ -797,9 +854,9 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                                         
                                     if self.privateKeyWIF != "" {
                                             
-                                        if self.advancedMode {
-                                            
-                                            self.showPrivateKeyAndAddressQRCodes()
+                                        
+                                            //self.showPrivateKeyAndAddressQRCodes()
+                                        self.showRecoveryPhraseAndQRCode()
                                                 
                                             if isInternetAvailable() {
                                                     
@@ -810,18 +867,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                                                     
                                             }
                                                 
-                                        } else if self.simpleMode {
-                                                
-                                            DispatchQueue.main.async {
-                                                    
-                                                displayAlert(viewController: self, title: "Success", message: "You've created a Bitcoin wallet, congratulations!")
-                                                
-                                                self.removeBitField()
-                                                
-                                            }
-                                                
-                                        }
-                                            
+                                        
                                     } else {
                                             
                                         DispatchQueue.main.async {
@@ -842,40 +888,14 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                                         
                                 } else {
                                         
-                                    if isInternetAvailable() {
-                                            
-                                        if self.advancedMode {
-                                                
-                                            DispatchQueue.main.async {
-                                                    
-                                                displayAlert(viewController: self, title: "Security Alert", message: "You should only create private keys offline. Please enable airplane mode, turn off wifi and try again.")
-                                            }
-                                                
-                                        }
-                                            
-                                    }
-                                        
                                     self.privateKeyWIF = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).privateKeyAddress
                                     self.bitcoinAddress = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).publicKeyAddress
                                     self.words = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).recoveryPhrase
                                         
                                     if self.privateKeyWIF != "" {
                                             
-                                        if self.advancedMode {
-                                                
-                                            self.showPrivateKeyAndAddressQRCodes()
-                                                
-                                        } else {
-                                                
-                                            DispatchQueue.main.async {
-                                                    
-                                                displayAlert(viewController: self, title: "Success", message: "You've created a Bitcoin wallet, congratulations!")
-                                                    
-                                                self.removeBitField()
-                                                
-                                            }
-                                                
-                                        }
+                                        //self.showPrivateKeyAndAddressQRCodes()
+                                        self.showRecoveryPhraseAndQRCode()
                                     
                                     } else {
                                             
@@ -1053,11 +1073,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
             }
             
-            //let xpub = keychain?.extendedPublicKey
-            //let xpriv = keychain?.extendedPrivateKey
-            //UserDefaults.standard.set(xpub, forKey: "xpub")
-            //UserDefaults.standard.set(0, forKey: "int")
-            
             if segwitMode {
                 
                 let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain?.key(at: 0).compressedPublicKey as Data!) as Data!) as Data!
@@ -1115,8 +1130,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         print("addHomeButton")
         
-        if self.advancedMode {
-            
+        
             DispatchQueue.main.async {
                 
                 self.button.removeFromSuperview()
@@ -1126,31 +1140,17 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
                 self.view.addSubview(self.button)
                 
-                if self.coldMode {
+                /*if self.coldMode {
                     
                     self.bitcoinAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: 20, width: 55 , height: 55))
                     self.bitcoinAddressButton.setImage(#imageLiteral(resourceName: "switch.jpg"), for: .normal)
                     self.bitcoinAddressButton.addTarget(self, action: #selector(self.getAddress), for: .touchUpInside)
                     self.view.addSubview(self.bitcoinAddressButton)
-                }
+                }*/
                 
  
             }
             
-        } else {
-            
-            DispatchQueue.main.async {
-                
-                self.button.removeFromSuperview()
-                self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
-                self.button.showsTouchWhenHighlighted = true
-                self.button.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
-                self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
-                self.view.addSubview(self.button)
-                
-            }
-            
-        }
         
     }
     
@@ -1468,44 +1468,87 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     
     @objc func getAddress() {
         print("getAddress")
-    
-        if watchOnlyMode {
-            print("watchOnlyMode")
+        
+        func togglePrivateKeyAddressAndRecoveryPhrase() {
             
-            if addressMode {
-                print("addressMode")
+            if recoveryMode {
+                
+                self.myField.text = self.words
+                self.privateKeyQRCode = self.generateQrCode(key: self.words)
+                self.privateKeyQRView.image = self.privateKeyQRCode!
                 
                 DispatchQueue.main.async {
                     
-                    let xpub = UserDefaults.standard.object(forKey: "xpub") as! String
-                    self.privateKeyTitle.text = "Extended Public Key"
-                    self.privateKeyTitle.adjustsFontSizeToFitWidth = true
-                    self.WIFprivateKeyFieldLabel.text = "xpub:"
-                    self.myField.text = xpub
-                    self.privateKeyQRCode = self.generateQrCode(key: xpub)
-                    self.privateKeyQRView.image = self.privateKeyQRCode!
-                    self.addressMode = false
+                    self.privateKeyTitle.text = "Recovery Phrase"
+                    self.WIFprivateKeyFieldLabel.text = "Save this to restore your funds:"
                     
                 }
                 
-            } else {
-                print("extendedPublicKeyMode")
+                self.recoveryMode = false
+                self.addressMode = true
+                self.privateKeyMode = false
+                
+                self.textToShare = self.words
+                self.filename = "recoveryPhrase"
+                
+            } else if addressMode {
                 
                 DispatchQueue.main.async {
                     
                     self.myField.text = self.bitcoinAddress
                     self.privateKeyQRCode = self.generateQrCode(key: self.bitcoinAddress)
                     self.privateKeyQRView.image = self.privateKeyQRCode!
-                    self.privateKeyTitle.text = "Legacy Bitcoin Address"
-                    self.WIFprivateKeyFieldLabel.text = "Legacy Format:"
+                    
+                    if self.segwitMode {
+                        
+                        DispatchQueue.main.async {
+                            self.privateKeyTitle.text = "Segwit Address"
+                            self.WIFprivateKeyFieldLabel.text = "Native Segwit Bech32 Format:"
+                            
+                        }
+                        
+                    } else if self.legacyMode {
+                        
+                        DispatchQueue.main.async {
+                            self.privateKeyTitle.text = "Legacy Bitcoin Address"
+                            self.WIFprivateKeyFieldLabel.text = "Legacy Format:"
+                        }
+                        
+                    }
+                    
                     self.privateKeyTitle.adjustsFontSizeToFitWidth = true
-                    self.addressMode = true
+                    self.recoveryMode = false
+                    self.addressMode = false
+                    self.privateKeyMode = true
                     
                 }
                 
+                self.textToShare = self.bitcoinAddress
+                self.filename = "bitcoinAddress"
+                
+            } else if privateKeyMode {
+                
+                DispatchQueue.main.async {
+                    
+                    self.privateKeyTitle.text = "Bitcoin Private Key"
+                    self.WIFprivateKeyFieldLabel.text = "WIF Format:"
+                    self.myField.text = self.privateKeyText
+                    self.privateKeyQRCode = self.generateQrCode(key: self.privateKeyText)
+                    self.privateKeyQRView.image = self.privateKeyQRCode!
+                    self.recoveryMode = true
+                    self.addressMode = false
+                    self.privateKeyMode = false
+                    
+                }
+                
+                self.textToShare = self.privateKeyWIF
+                self.filename = "privateKey"
+                
             }
             
-        } else {
+        }
+        
+        func togglePrivateKeyAndAddress() {
             
             if privateKeyMode {
                 
@@ -1536,7 +1579,9 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     self.privateKeyMode = false
                     
                 }
-
+                
+                self.textToShare = self.bitcoinAddress
+                self.filename = "bitcoinAddress"
                 
             } else {
                 
@@ -1551,7 +1596,19 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     
                 }
                 
+                self.textToShare = self.privateKeyWIF
+                self.filename = "privateKey"
+                
             }
+        }
+    
+        if self.diceMode != true {
+            
+            togglePrivateKeyAndAddress()
+            
+        } else if diceMode {
+            
+            togglePrivateKeyAddressAndRecoveryPhrase()
             
         }
         
@@ -1587,25 +1644,32 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
         }
         
-        self.privateKeyMode = true
-        diceMode = false
-        
-        DispatchQueue.main.async {
-            self.view.addSubview(self.scrollView)
+        if self.diceMode != true {
+            
+            self.privateKeyMode = true
+            
+        } else if self.diceMode {
+            
+            self.recoveryMode = true
+            
         }
         
+        //CGRect(x: self.view.center.x - ((self.view.frame.width - 70) / 2), y: self.mnemonicView.frame.maxY + 10, width: self.view.frame.width - 70, height: self.view.frame.width - 70)
         self.privateKeyText = self.privateKeyWIF
         self.privateKeyQRCode = self.generateQrCode(key: self.privateKeyWIF)
         self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
-        self.privateKeyQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 130, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
+        self.privateKeyQRView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 70) / 2), y: 130, width: self.view.frame.width - 70, height: self.view.frame.width - 70)
         self.privateKeyQRView.alpha = 0
-        self.scrollView.addSubview(self.privateKeyQRView)
+        self.view.addSubview(self.privateKeyQRView)
         
-        self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 150 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
+        self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.view.frame.minX + 5, y: self.privateKeyQRView.frame.maxY + 10, width: self.view.frame.width - 10, height: 13))
         self.WIFprivateKeyFieldLabel.font = .systemFont(ofSize: 12)
         self.WIFprivateKeyFieldLabel.textColor = UIColor.black
         self.WIFprivateKeyFieldLabel.textAlignment = .left
-        self.scrollView.addSubview(self.WIFprivateKeyFieldLabel)
+        self.view.addSubview(self.WIFprivateKeyFieldLabel)
+        
+        self.textToShare = self.privateKeyWIF
+        self.filename = "privateKey"
         
         UIView.animate(withDuration: 0.5, animations: {
             
@@ -1620,59 +1684,118 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
             }, completion: { _ in
                 
-                self.scrollView.setContentOffset(.zero, animated: false)
-                
                 self.WIFprivateKeyFieldLabel.text = "WIF Format:"
                 
-                self.privateKeyTitle = UILabel(frame: CGRect(x: self.scrollView.frame.minX, y: self.scrollView.frame.minY + 70, width: self.scrollView.frame.width, height: 50))
+                self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.frame.minX, y: self.view.frame.minY + 70, width: self.view.frame.width, height: 50))
                 self.privateKeyTitle.text = "Bitcoin Private Key"
                 self.privateKeyTitle.font = .systemFont(ofSize: 32)
                 self.privateKeyTitle.textColor = UIColor.black
                 self.privateKeyTitle.textAlignment = .center
-                self.scrollView.addSubview(self.privateKeyTitle)
+                self.view.addSubview(self.privateKeyTitle)
                 
-                self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.privateKeyQRView.frame.maxY + 40, width: self.view.frame.width - 50, height: 100))
+                self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 10)/2), y: self.WIFprivateKeyFieldLabel.frame.maxY + 10, width: self.view.frame.width - 10, height: 150))
                 self.myField.isEditable = false
                 self.myField.isSelectable = true
                 self.myField.font = .systemFont(ofSize: 24)
                 self.myField.text = self.privateKeyWIF
-                self.scrollView.addSubview(self.myField)
+                self.view.addSubview(self.myField)
                 addButtons()
                 self.addBackUpButton()
                 self.zero = 0
                 self.bitArray.removeAll()
                 
-                print("self.words = \(self.words)")
+            })
+            
+        })
+        
+    }
+    
+    
+    func showRecoveryPhraseAndQRCode() {
+        
+        print("showPrivateKeyAndAddressQRCodes")
+        
+        self.recoveryMode = true
+        
+        self.removeHomeScreen()
+        self.outputMnemonic.removeFromSuperview()
+        self.inputMnemonic.removeFromSuperview()
+        self.inputPassword.removeFromSuperview()
+        self.clearMnemonicButton.removeFromSuperview()
+        self.button.removeFromSuperview()
+        self.importAction.removeFromSuperview()
+        
+        
+        func addButtons() {
+            
+            self.button.removeFromSuperview()
+            self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
+            self.button.showsTouchWhenHighlighted = true
+            self.button.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
+            self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
+            self.view.addSubview(self.button)
+            
+        }
+        
+        diceMode = false
+        
+        self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.frame.minX, y: 60, width: self.view.frame.width, height: 40))
+        self.privateKeyTitle.text = "Recovery Phrase"
+        self.privateKeyTitle.font = .systemFont(ofSize: 30)
+        self.privateKeyTitle.textColor = UIColor.black
+        self.privateKeyTitle.textAlignment = .center
+        self.privateKeyTitle.alpha = 0
+        self.view.addSubview(self.privateKeyTitle)
+        
+        self.mnemonicLabel = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 10) / 2), y: self.privateKeyTitle.frame.maxY + 5, width: self.view.frame.width - 10, height: 13))
+        self.mnemonicLabel.text = "You must save this phrase in order to recover lost funds!"
+        self.mnemonicLabel.adjustsFontSizeToFitWidth = true
+        self.mnemonicLabel.font = .systemFont(ofSize: 12)
+        self.mnemonicLabel.textColor = UIColor.red
+        self.mnemonicLabel.textAlignment = .center
+        self.mnemonicLabel.alpha = 0
+        self.view.addSubview(self.mnemonicLabel)
+        
+        self.mnemonicView = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 10) / 2), y: self.mnemonicLabel.frame.maxY + 1, width: self.view.frame.width - 10, height: 130))
+        self.mnemonicView.text = self.words
+        self.mnemonicView.isEditable = false
+        self.mnemonicView.isSelectable = true
+        self.mnemonicView.textAlignment = .natural
+        self.mnemonicView.font = .systemFont(ofSize: 20)
+        self.mnemonicView.alpha = 0
+        self.view.addSubview(self.mnemonicView)
+        
+        self.recoveryPhraseImage = self.generateQrCode(key: self.words)
+        self.recoveryPhraseQRView = UIImageView(image: self.recoveryPhraseImage!)
+        self.recoveryPhraseQRView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 70) / 2), y: self.mnemonicView.frame.maxY + 10, width: self.view.frame.width - 70, height: self.view.frame.width - 70)
+        self.recoveryPhraseQRView.alpha = 0
+        self.view.addSubview(self.recoveryPhraseQRView)
+        
+        self.textToShare = self.words
+        self.filename = "recoveryPhrase"
+        
+        UIView.animate(withDuration: 0.5, animations: {
+            
+            self.imageView.alpha = 0
+            self.bitField.alpha = 0
+            
+        }, completion: { _ in
+            
+            UIView.animate(withDuration: 0.5, animations: {
                 
-                if self.words != "" {
-                   
-                    self.mnemonicLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 280 + (self.scrollView.frame.width - 10) - 11, width: self.scrollView.frame.width - 10, height: 13))
-                    self.mnemonicLabel.text = "Recovery Phrase:"
-                    self.mnemonicLabel.font = .systemFont(ofSize: 12)
-                    self.mnemonicLabel.textColor = UIColor.black
-                    self.mnemonicLabel.textAlignment = .left
-                    self.scrollView.addSubview(self.mnemonicLabel)
-                    
-                    self.mnemonicView = UITextView (frame:CGRect(x: self.scrollView.frame.minX + 5, y: self.scrollView.frame.minY + 285 + (self.scrollView.frame.width - 10), width: self.scrollView.frame.width - 10, height: 175))
-                    self.mnemonicView.text = self.words//self.recoveryPhrase
-                    self.mnemonicView.isEditable = false
-                    self.mnemonicView.isSelectable = true
-                    self.mnemonicView.font = .systemFont(ofSize: 24)
-                    self.scrollView.addSubview(self.mnemonicView)
-                    
-                    self.recoveryPhraseLabel = UILabel(frame: CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 20, width: self.scrollView.frame.width - 10, height: 50))
-                    self.recoveryPhraseLabel.text = "Recovery QR Code"
-                    self.recoveryPhraseLabel.font = .systemFont(ofSize: 32)
-                    self.recoveryPhraseLabel.textColor = UIColor.black
-                    self.recoveryPhraseLabel.textAlignment = .center
-                    self.scrollView.addSubview(self.recoveryPhraseLabel)
-                    
-                    self.recoveryPhraseImage = self.generateQrCode(key: self.words)
-                    self.recoveryPhraseQRView = UIImageView(image: self.recoveryPhraseImage!)
-                    self.recoveryPhraseQRView.frame = CGRect(x: self.scrollView.frame.minX + 5, y: self.mnemonicView.frame.maxY + 90, width: self.scrollView.frame.width - 10, height: self.scrollView.frame.width - 10)
-                    self.scrollView.addSubview(self.recoveryPhraseQRView)
-                    
-                }
+                self.recoveryPhraseQRView.alpha = 1
+                self.recoveryPhraseLabel.alpha = 1
+                self.mnemonicLabel.alpha = 1
+                self.mnemonicView.alpha = 1
+                self.privateKeyTitle.alpha = 1
+                
+            }, completion: { _ in
+                
+                self.scrollView.setContentOffset(.zero, animated: false)
+                addButtons()
+                self.addBackUpButton()
+                self.zero = 0
+                self.bitArray.removeAll()
                 
             })
             
@@ -1684,34 +1807,73 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         print("home")
         
-        DispatchQueue.main.async {
+        func goBack() {
             
-            self.mnemonicLabel.removeFromSuperview()
-            self.recoveryPhraseLabel.removeFromSuperview()
-            if self.recoveryPhraseQRView != nil {
-              self.recoveryPhraseQRView.removeFromSuperview()
+            DispatchQueue.main.async {
+                
+                self.mnemonicLabel.removeFromSuperview()
+                self.recoveryPhraseLabel.removeFromSuperview()
+                if self.recoveryPhraseQRView != nil {
+                    self.recoveryPhraseQRView.removeFromSuperview()
+                }
+                if self.mnemonicView != nil {
+                    self.mnemonicView.removeFromSuperview()
+                }
+                self.words = ""
+                self.watchOnlyMode = false
+                self.bitcoinAddressButton.removeFromSuperview()
+                
+                if self.privateKeyQRView != nil {
+                    
+                    self.privateKeyQRView.image = nil
+                    self.privateKeyQRCode = nil
+                    self.privateKeyImage = nil
+                    self.privateKeyQRView.image = nil
+                    self.myField.text = ""
+                    
+                }
+                
+                self.privateKeyTitle.text = ""
+                self.imageView.removeFromSuperview()
+                self.imageView = nil
+                self.button.removeFromSuperview()
+                self.backUpButton.removeFromSuperview()
+                self.privateKeyText = ""
+                self.WIFprivateKeyFieldLabel.removeFromSuperview()
+                self.addHomeScreen()
+                
             }
-            if self.mnemonicView != nil {
-              self.mnemonicView.removeFromSuperview()
-            }
-            self.words = ""
-            self.watchOnlyMode = false
-            self.bitcoinAddressButton.removeFromSuperview()
-            self.privateKeyQRView.image = nil
-            self.privateKeyQRCode = nil
-            self.privateKeyImage = nil
-            self.privateKeyQRView.image = nil
-            self.privateKeyTitle.text = ""
-            self.myField.text = ""
-            self.imageView.removeFromSuperview()
-            self.imageView = nil
-            self.button.removeFromSuperview()
-            self.backUpButton.removeFromSuperview()
-            self.privateKeyText = ""
-            self.WIFprivateKeyFieldLabel.removeFromSuperview()
-            self.addHomeScreen()
             
         }
+        
+        if self.recoveryMode {
+            
+            DispatchQueue.main.async {
+                
+                let alert = UIAlertController(title: "Have you saved the recovery phrase?", message: "If you have not saved it YOU WILL LOSE ALL YOUR BITCOIN if you lose this phone or delete this app.\n\nWe DO NOT save the recovery phrase on your behalf.\n\nWe do make this super easy for you, just tap the share button in the bottom right corner of the screen.", preferredStyle: UIAlertControllerStyle.alert)
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Yes, I saved it", comment: ""), style: .destructive, handler: { (action) in
+                    
+                    goBack()
+                    self.recoveryMode = false
+                    
+                }))
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("No", comment: ""), style: .cancel, handler: { (action) in
+                    
+                    
+                }))
+                
+                self.present(alert, animated: true, completion: nil)
+            }
+            
+        } else {
+           
+            goBack()
+            
+        }
+        
+        
         
     }
     
@@ -1739,84 +1901,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.backUpButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: self.view.frame.maxY - 60, width: 55, height: 55))
             self.backUpButton.showsTouchWhenHighlighted = true
             self.backUpButton.setImage(#imageLiteral(resourceName: "backUp.jpg"), for: .normal)
-            self.backUpButton.addTarget(self, action: #selector(self.airDropImage), for: .touchUpInside)
+            self.backUpButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
             self.view.addSubview(self.backUpButton)
         }
         
     }
-    /*
-    func showHideTools() {
-        print("showHideTools")
-        
-        if toolBoxTapped == false {
-            
-            toolBoxTapped = true
-            
-            DispatchQueue.main.async {
-                
-                UIView.animate(withDuration: 0.2, animations: {
-                    
-                    self.sweepButton.alpha = 0
-                    self.exportButton.alpha = 0
-                    self.importButton.alpha = 0
-                    self.mayerMultipleButton.alpha = 0
-                    self.multiSigButton.alpha = 0
-                    self.diceButton.alpha = 0
-                    
-                }, completion: { _ in
-                    
-                    self.sweepButton.removeFromSuperview()
-                    self.exportButton.removeFromSuperview()
-                    self.importButton.removeFromSuperview()
-                    self.mayerMultipleButton.removeFromSuperview()
-                    self.multiSigButton.removeFromSuperview()
-                    self.diceButton.removeFromSuperview()
-                    
-                })
-                
-            }
-            
-        } else if toolBoxTapped == true {
-            
-            toolBoxTapped = false
-            
-            
-                
-                DispatchQueue.main.async {
-                    
-                    self.addImportButton()
-                    self.addMultiSigButton()
-                    self.addDiceButton()
-                    
-                    UIView.animate(withDuration: 0.2, animations: {
-                        
-                        self.diceButton.alpha = 1
-                        self.multiSigButton.alpha = 1
-                        self.mayerMultipleButton.alpha = 1
-                        self.importButton.alpha = 1
-                        self.sweepButton.alpha = 1
-                        self.exportButton.alpha = 1
-                        
-                    })
-                    
-                }
-            
-            if self.hotMode {
-                
-                DispatchQueue.main.async {
-                    
-                    self.addSweepButton()
-                    self.addExportButton()
-                    
-                }
-                
-            }
-            
-        }
-        
-    }
-    */
-    
+   
     func showKeyManagementAlert() {
         
         DispatchQueue.main.async {
@@ -1924,6 +2014,10 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         switch sender {
             
+        case self.backUpButton:
+            
+            self.addAlertForShare(textToShare: self.textToShare, filename: self.filename)
+            
         case self.addressBookButton:
             
             print("addressBookButton")
@@ -1994,7 +2088,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
         case self.checkAddressButton:
             
-            if simpleMode && addressBook.count == 0 {
+            if addressBook.count == 0 {
                 
                 shakeAlert(viewToShake: self.imageView)
                 
@@ -2010,76 +2104,41 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
     }
     
-    @objc func airDropImage() {
-        
-        print("airDropImage")
+   func addAlertForShare(textToShare: String, filename: String) {
         
         DispatchQueue.main.async {
             
-            if self.watchOnlyMode {
+            let ciContext = CIContext()
+            let data = textToShare.data(using: String.Encoding.ascii)
+            var qrCodeImage = UIImage()
+            
+            if let filter = CIFilter(name: "CIQRCodeGenerator") {
                 
-                self.watchOnlyAlert()
-                
-            } else {
-                
-                self.privateKeyAlert()
+                filter.setValue(data, forKey: "inputMessage")
+                let transform = CGAffineTransform(scaleX: 10, y: 10)
+                let upScaledImage = filter.outputImage?.transformed(by: transform)
+                let cgImage = ciContext.createCGImage(upScaledImage!, from: upScaledImage!.extent)
+                qrCodeImage = UIImage(cgImage: cgImage!)
                 
             }
-        }
-    }
-    
-    func watchOnlyAlert() {
-        print("watchOnlyAlert")
-        
-        let alert = UIAlertController(title: "Share", message: "You can share the QR Code or the text format of the address however you'd like", preferredStyle: UIAlertControllerStyle.actionSheet)
-        
-        if self.extendedPublicKeyMode {
             
-            alert.addAction(UIAlertAction(title: NSLocalizedString("XPUB QR Code", comment: ""), style: .default, handler: { (action) in
-                
-                if let data = UIImagePNGRepresentation(self.privateKeyImage) {
-                    
-                    let fileName = getDocumentsDirectory().appendingPathComponent("xpubKey.png")
-                    
-                    try? data.write(to: fileName)
-                    
-                    let objectsToShare = [fileName]
-                    DispatchQueue.main.async {
-                        let activityController = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
-                        self.present(activityController, animated: true, completion: nil)
-                    }
-                    
-                }
-                
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("XPUB Key Text", comment: ""), style: .default, handler: { (action) in
-                
-                let activityViewController = UIActivityViewController(activityItems: [self.myField.text!], applicationActivities: nil)
-                self.present(activityViewController, animated: true, completion: nil)
-                
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                
-            }))
-            
-            self.present(alert, animated: true, completion: nil)
-            
-        } else if self.segwitMode {
+            let alert = UIAlertController(title: "Share", message: "You can share the QR Code or the text format of the address however you'd like", preferredStyle: UIAlertControllerStyle.actionSheet)
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("QR Code", comment: ""), style: .default, handler: { (action) in
                 
-                if let data = UIImagePNGRepresentation(self.privateKeyImage) {
+                if let data = UIImagePNGRepresentation(qrCodeImage) {
                     
-                    let fileName = getDocumentsDirectory().appendingPathComponent("segwitAddress.png")
+                    let fileName = getDocumentsDirectory().appendingPathComponent(filename + ".png")
                     
                     try? data.write(to: fileName)
                     
                     let objectsToShare = [fileName]
+                    
                     DispatchQueue.main.async {
+                        
                         let activityController = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
                         self.present(activityController, animated: true, completion: nil)
+                        
                     }
                     
                 }
@@ -2088,282 +2147,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Text", comment: ""), style: .default, handler: { (action) in
                 
-                let textToShare = [self.bitcoinAddress]
+                let textToShare = [textToShare]
                 let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
                 self.present(activityViewController, animated: true, completion: nil)
                 
             }))
             
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                
-            }))
-            
-            self.present(alert, animated: true, completion: nil)
-            
-        } else if self.legacyMode {
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("QR Code", comment: ""), style: .default, handler: { (action) in
-                
-                if let data = UIImagePNGRepresentation(self.privateKeyImage) {
-                    
-                    let fileName = getDocumentsDirectory().appendingPathComponent("bitcoinAddress.png")
-                    
-                    try? data.write(to: fileName)
-                    
-                    let objectsToShare = [fileName]
-                    DispatchQueue.main.async {
-                        let activityController = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
-                        self.present(activityController, animated: true, completion: nil)
-                    }
-                    
-                }
-                
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Text", comment: ""), style: .default, handler: { (action) in
-                
-                let textToShare = [self.bitcoinAddress]
-                let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
-                self.present(activityViewController, animated: true, completion: nil)
-                
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                
-            }))
-            
-            self.present(alert, animated: true, completion: nil)
-           
-        }
-        
-    }
-    
-    func privateKeyAlert() {
-        
-        print("privateKeyAlert")
-        
-        let alert = UIAlertController(title: nil, message: nil, preferredStyle: UIAlertControllerStyle.actionSheet)
-        
-        var network = ""
-        
-        if self.testnetMode {
-            
-            network = "testnet"
-            
-        } else {
-            
-            network = "mainnet"
-        }
-        
-        if hotMode {
-            
-            
-        } else {
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Add to Address Book", comment: ""), style: .default, handler: { (action) in
-                
-                saveWallet(viewController: self, address: self.bitcoinAddress, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold")
-                
-            }))
-        }
-        
-        if self.privateKeyMode {
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Private Key QR Code", comment: ""), style: .default, handler: { (action) in
-                
-                if let data = UIImagePNGRepresentation(self.privateKeyQRCode) {
-                    
-                    let fileName = getDocumentsDirectory().appendingPathComponent("privateKey.png")
-                    
-                    try? data.write(to: fileName)
-                    
-                    let objectsToShare = [fileName]
-                    
-                    DispatchQueue.main.async {
-                        
-                        let activityController = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
-                        self.present(activityController, animated: true, completion: nil)
-                        
-                    }
-                    
-                }
-                
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Private Key Text", comment: ""), style: .default, handler: { (action) in
-                
-                let activityViewController = UIActivityViewController(activityItems: [self.privateKeyText], applicationActivities: nil)
-                self.present(activityViewController, animated: true, completion: nil)
-                
-            }))
-            
-            if self.words != "" {
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Recovery Phrase QR Code", comment: ""), style: .default, handler: { (action) in
-                    
-                    if let data = UIImagePNGRepresentation(self.recoveryPhraseImage) {
-                        
-                        let fileName = getDocumentsDirectory().appendingPathComponent("recoveryPhrase.png")
-                        
-                        try? data.write(to: fileName)
-                        
-                        let objectsToShare = [fileName]
-                        
-                        DispatchQueue.main.async {
-                            
-                            let activityController = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
-                            self.present(activityController, animated: true, completion: nil)
-                            
-                        }
-                        
-                    }
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Recovery Phrase Text", comment: ""), style: .default, handler: { (action) in
-                    
-                    let textToShare = [self.recoveryPhrase]
-                    let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
-                    self.present(activityViewController, animated: true, completion: nil)
-                    
-                }))
-                
-            }
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                
-            }))
-            
-            self.present(alert, animated: true, completion: nil)
-            
-            
-        } else if self.legacyMode {
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Legacy Address QR Code", comment: ""), style: .default, handler: { (action) in
-                
-                if let data = UIImagePNGRepresentation(self.privateKeyImage) {
-                    
-                    let fileName = getDocumentsDirectory().appendingPathComponent("bitcoinAddress.png")
-                    
-                    try? data.write(to: fileName)
-                    
-                    let objectsToShare = [fileName]
-                    DispatchQueue.main.async {
-                        let activityController = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
-                        self.present(activityController, animated: true, completion: nil)
-                    }
-                    
-                }
-                
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Legacy Address Text", comment: ""), style: .default, handler: { (action) in
-                
-                let textToShare = [self.bitcoinAddress]
-                let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
-                self.present(activityViewController, animated: true, completion: nil)
-                
-            }))
-            
-            if self.words != "" {
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Recovery Phrase QR Code", comment: ""), style: .default, handler: { (action) in
-                    
-                    if let data = UIImagePNGRepresentation(self.recoveryPhraseImage) {
-                        
-                        let fileName = getDocumentsDirectory().appendingPathComponent("recoveryPhrase.png")
-                        
-                        try? data.write(to: fileName)
-                        
-                        let objectsToShare = [fileName]
-                        
-                        DispatchQueue.main.async {
-                            
-                            let activityController = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
-                            self.present(activityController, animated: true, completion: nil)
-                            
-                        }
-                        
-                    }
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Recovery Phrase Text", comment: ""), style: .default, handler: { (action) in
-                    
-                    let textToShare = [self.recoveryPhrase]
-                    let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
-                    self.present(activityViewController, animated: true, completion: nil)
-                    
-                }))
-                
-            }
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                
-            }))
-            
-            self.present(alert, animated: true, completion: nil)
-            
-        } else if self.segwitMode {
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Segwit Address QR Code", comment: ""), style: .default, handler: { (action) in
-                
-                if let data = UIImagePNGRepresentation(self.privateKeyImage) {
-                    
-                    let fileName = getDocumentsDirectory().appendingPathComponent("segwitAddress.png")
-                    
-                    try? data.write(to: fileName)
-                    
-                    let objectsToShare = [fileName]
-                    DispatchQueue.main.async {
-                        let activityController = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
-                        self.present(activityController, animated: true, completion: nil)
-                    }
-                    
-                }
-                
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Segwit Address Text", comment: ""), style: .default, handler: { (action) in
-                
-                let textToShare = [self.bitcoinAddress]
-                let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
-                self.present(activityViewController, animated: true, completion: nil)
-                
-            }))
-            
-            if self.words != ""  {
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Recovery Phrase QR Code", comment: ""), style: .default, handler: { (action) in
-                    
-                    if let data = UIImagePNGRepresentation(self.recoveryPhraseImage) {
-                        
-                        let fileName = getDocumentsDirectory().appendingPathComponent("recoveryPhrase.png")
-                        
-                        try? data.write(to: fileName)
-                        
-                        let objectsToShare = [fileName]
-                        
-                        DispatchQueue.main.async {
-                            
-                            let activityController = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
-                            self.present(activityController, animated: true, completion: nil)
-                            
-                        }
-                        
-                    }
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Recovery Phrase Text", comment: ""), style: .default, handler: { (action) in
-                    
-                    let textToShare = [self.recoveryPhrase]
-                    let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
-                    self.present(activityViewController, animated: true, completion: nil)
-                    
-                }))
-                
-            }
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
                 
@@ -2375,6 +2164,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
     }
     
+   
     func addPercentageCompleteLabel() {
         print("addPercentageCompleteLabel")
         DispatchQueue.main.async {
@@ -2517,6 +2307,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                             self.words = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).recoveryPhrase
                             
                             self.button.removeFromSuperview()
+                            self.diceMode = true
                             self.showPrivateKeyAndAddressQRCodes()
                             
                         }

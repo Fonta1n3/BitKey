@@ -8,88 +8,7 @@
 
 import Foundation
 import SystemConfiguration
-import AVFoundation
 
-public func showScanner(viewController: UIViewController, frame: CGRect, imageView: UIImageView) -> String {
-    
-    let avCaptureSession = AVCaptureSession()
-    var stringURL = String()
-    
-    imageView.frame = frame
-    viewController.view.addSubview(imageView)
-    
-    
-    func scanQRNow() throws {
-        
-        guard let avCaptureDevice = AVCaptureDevice.default(for: AVMediaType.video) else {
-            
-            print("no camera")
-            throw error.noCameraAvailable
-            
-        }
-        
-        guard let avCaptureInput = try? AVCaptureDeviceInput(device: avCaptureDevice) else {
-            
-            print("failed to int camera")
-            throw error.videoInputInitFail
-        }
-        
-        
-        let avCaptureMetadataOutput = AVCaptureMetadataOutput()
-        avCaptureMetadataOutput.setMetadataObjectsDelegate((viewController as! AVCaptureMetadataOutputObjectsDelegate), queue: DispatchQueue.main)
-        
-        if let inputs = avCaptureSession.inputs as? [AVCaptureDeviceInput] {
-            for input in inputs {
-                avCaptureSession.removeInput(input)
-            }
-        }
-        
-        if let outputs = avCaptureSession.outputs as? [AVCaptureMetadataOutput] {
-            for output in outputs {
-                avCaptureSession.removeOutput(output)
-            }
-        }
-        
-        avCaptureSession.addInput(avCaptureInput)
-        avCaptureSession.addOutput(avCaptureMetadataOutput)
-        
-        avCaptureMetadataOutput.metadataObjectTypes = [AVMetadataObject.ObjectType.qr]
-        
-        let avCaptureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: avCaptureSession)
-        avCaptureVideoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
-        avCaptureVideoPreviewLayer.frame = imageView.bounds
-        imageView.layer.addSublayer(avCaptureVideoPreviewLayer)
-        
-        avCaptureSession.startRunning()
-        
-    }
-    
-    func scanQRCode() {
-        
-        do {
-            
-            try scanQRNow()
-            print("scanQRNow")
-            
-        } catch {
-            
-            print("Failed to scan QR Code")
-        }
-        
-    }
-    
-    scanQRCode()
-    
-    enum error: Error {
-        
-        case noCameraAvailable
-        case videoInputInitFail
-        
-    }
-    
-    return stringURL
-    
-}
 
 public func displayAlert(viewController: UIViewController, title: String, message: String) {
     
@@ -124,13 +43,11 @@ public func isInternetAvailable() -> Bool {
     
 }
 
-public func checkUserDefaults() -> (addressBook: [[String: Any]], simpleMode: Bool, advancedMode: Bool, coldMode: Bool, hotMode: Bool, legacyMode: Bool, segwitMode: Bool, mainnetMode: Bool, testnetMode: Bool) {
+public func checkUserDefaults() -> (addressBook: [[String: Any]], coldMode: Bool, hotMode: Bool, legacyMode: Bool, segwitMode: Bool, mainnetMode: Bool, testnetMode: Bool) {
     
     print("checkUserDefaults")
     
     var addressBook = [[String: Any]]()
-    var simpleMode = Bool()
-    var advancedMode = Bool()
     var coldMode = Bool()
     var hotMode = Bool()
     var legacyMode = Bool()
@@ -141,29 +58,7 @@ public func checkUserDefaults() -> (addressBook: [[String: Any]], simpleMode: Bo
     if UserDefaults.standard.object(forKey: "addressBook") != nil {
         
         addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String: Any]]
-        print("addressBook = \(addressBook)")
-        
-    }
-    
-    if UserDefaults.standard.object(forKey: "simpleMode") != nil {
-        
-        simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
-        
-    } else {
-        
-        simpleMode = true
-        UserDefaults.standard.set(simpleMode, forKey: "simpleMode")
-        
-    }
-    
-    if UserDefaults.standard.object(forKey: "advancedMode") != nil {
-        
-        advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
-        
-    } else {
-        
-        advancedMode = false
-        UserDefaults.standard.set(advancedMode, forKey: "advancedMode")
+        //print("addressBook = \(addressBook)")
         
     }
     
@@ -233,7 +128,7 @@ public func checkUserDefaults() -> (addressBook: [[String: Any]], simpleMode: Bo
         
     }
     
-    return (addressBook, simpleMode, advancedMode, coldMode, hotMode, legacyMode, segwitMode, mainnetMode, testnetMode)
+    return (addressBook, coldMode, hotMode, legacyMode, segwitMode, mainnetMode, testnetMode)
 }
 
 public func getDocumentsDirectory() -> URL {

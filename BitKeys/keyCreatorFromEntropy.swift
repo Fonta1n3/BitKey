@@ -121,21 +121,14 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
                 
             privateKeyHD = (keychain?.key(at: 0).privateKeyAddressTestnet.description)!
             addressHD = (keychain?.key(at: 0).addressTestnet.description)!
-            print("addressHD = \(addressHD)")
                 
             let publicKey = (keychain?.key(at: 0).compressedPublicKey.hex())!
-            print("publicKey = \(String(describing: publicKey))")
-                
+            
             let xpub = keychain?.bitcoinTestnet.extendedPublicKey
             let xpriv = keychain?.bitcoinTestnet.extendedPrivateKey
-            print("xpub = \(String(describing: xpub))")
-            print("xpriv = \(String(describing: xpriv))")
-            UserDefaults.standard.set(xpub, forKey: "xpub")
-            UserDefaults.standard.set(0, forKey: "int")
             let watchOnlyTestKey = BTCKeychain.init(extendedKey: xpub)
             let childkeychain = watchOnlyTestKey?.key(at: 2).addressTestnet
-            print("childkeychain address = \(String(describing: childkeychain))")
-                
+            
             var privateKey3 = privateKeyHD.components(separatedBy: " ")
             let privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
                 

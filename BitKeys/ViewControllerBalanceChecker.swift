@@ -14,8 +14,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     let segwit = SegwitAddrCoder()
     var legacyMode = Bool()
     var segwitMode = Bool()
-    var simpleMode = Bool()
-    var advancedMode = Bool()
     var testnetMode = Bool()
     var mainnetMode = Bool()
     var coldMode = Bool()
@@ -57,8 +55,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         addressBook = checkUserDefaults().addressBook
         
-        simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
-        advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
         coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
         hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
         testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
@@ -226,15 +222,15 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         if address.hasPrefix("1") || address.hasPrefix("3") {
             
-            url = NSURL(string: "https://blockchain.info/rawaddr/\(address)")
+            url = NSURL(string: "https://blockchain.info/balance?active=\(address)")
             
         } else if testnetMode {
             
-            url = NSURL(string: "https://testnet.blockchain.info/rawaddr/\(address)")
+            url = NSURL(string: "https://testnet.blockchain.info/balance?active=\(address)")
             
         } else if mainnetMode {
             
-            url = NSURL(string: "https://blockchain.info/rawaddr/\(address)")
+            url = NSURL(string: "https://blockchain.info/balance?active=\(address)")
             
         }
         
@@ -267,8 +263,13 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             
                             let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
                             
-                            if let finalBalanceCheck = jsonAddressResult["final_balance"] as? Double {
+                            print("jsonAddressResult = \(jsonAddressResult)")
+                            
+                            if let addressCheck = jsonAddressResult["\(address)"] as? NSDictionary {
                                 
+                                if let finalBalanceCheck = addressCheck["final_balance"] as? Double {
+                                    
+                                    
                                 let btcAmount = finalBalanceCheck / 100000000
                                 self.balance = btcAmount
                                 
@@ -298,6 +299,16 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                         self.getExchangeRates()
                                         
                                     }
+                                    
+                                } else {
+                                    
+                                    DispatchQueue.main.async {
+                                        self.removeSpinner()
+                                        self.avCaptureSession.startRunning()
+                                        displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                                    }
+                                    
+                                }
                                 
                             } else {
                                 
@@ -306,6 +317,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                     self.avCaptureSession.startRunning()
                                     displayAlert(viewController: self, title: "Error", message: "Please try again.")
                                 }
+                                
                             }
                             
                         } catch {

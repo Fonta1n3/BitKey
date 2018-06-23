@@ -10,16 +10,15 @@ import UIKit
 import Signer
 import AVFoundation
 import SystemConfiguration
-//import GoTransactionBuilder
 
-class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilderDataSource, */AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate {
+class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate {
     
+    var optionsButton = UIButton()
+    var walletToSpendFrom = [String:Any]()
     let textView = UILabel()
     var sendButton = UIButton()
     let titleLable = UILabel()
     var addressBook = [[String:Any]]()
-    var simpleMode = Bool()
-    var advancedMode = Bool()
     var testnetMode = Bool()
     var mainnetMode = Bool()
     var coldMode = Bool()
@@ -36,9 +35,10 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     var videoPreview = UIView()
     var addressToDisplay = UITextField()
     var amountToSend = UITextField()
+    var minerfeeInput = UITextField()
     var stringURL = String()
-    var recievingAddress = ""
-    var sendingFromAddress = ""
+    var recievingAddress = String()
+    var sendingFromAddress = String()
     var getReceivingAddressMode = Bool()
     var getPayerAddressMode = Bool()
     var getSignatureMode = Bool()
@@ -50,13 +50,12 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     var amountInBTC = Double()
     var satoshiAmount = Int()
     var connected:Bool!
-    var preference = "medium"
+    var preference = String()
     var transactionID = ""
     var rawTransaction = String()
-    var fees:Int!
+    var fees = 0
     var manuallySetFee = Bool()
     var totalSize = Int()
-    var setFeeMode = Bool()
     var transactionView = UITextView()
     var refreshButton = UIButton()
     var exchangeRate = Double()
@@ -64,7 +63,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     var pushRawTransactionButton = UIButton()
     var decodeRawTransactionButton = UIButton()
     var xpubkey = String()
-    var sweepMode = Bool()
     var privateKeytoDebit = ""
     
     override func viewDidLoad() {
@@ -72,11 +70,12 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         print("TransactionBuilderViewController")
         
-        //check if we came from address book payment and start payment..
+        //UserDefaults.standard.removeObject(forKey: "preference")
         
         addressToDisplay.delegate = self
         rawTransactionView.delegate = self
         amountToSend.delegate = self
+        minerfeeInput.delegate = self
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard (_:)))
         self.view.addGestureRecognizer(tapGesture)
@@ -89,19 +88,29 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     
     override func viewDidAppear(_ animated: Bool) {
         
-        //sendingFromAddress = ""
-        //privateKeytoDebit = ""
+        print("wallet = \(walletToSpendFrom)")
+        print("sendingfromaddress = \(sendingFromAddress)")
+        
         recievingAddress = ""
         getUserDefaults()
         getReceivingAddressMode = true
         getSignatureMode = false
-        manuallySetFee = false
-        setFeeMode = true
-        sweepMode = false
+        //manuallySetFee = false
         addBackButton()
         addAmount()
-        getAmount()
+        addChooseOptionButton()
         
+        
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        
+        self.sendingFromAddress = ""
+        self.recievingAddress = ""
+        self.privateKey = ""
+        self.privateKeyToSign = ""
+        self.walletToSpendFrom = [:]
+        self.privateKeytoDebit = ""
     }
     
     func getUserDefaults() {
@@ -109,12 +118,23 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         print("checkUserDefaults")
         
         addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String:Any]]
-        simpleMode = UserDefaults.standard.object(forKey: "simpleMode") as! Bool
-        advancedMode = UserDefaults.standard.object(forKey: "advancedMode") as! Bool
         coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
         hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
         testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
         mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
+        
+        if UserDefaults.standard.object(forKey: "preference") != nil {
+            
+            self.preference = UserDefaults.standard.object(forKey: "preference") as! String
+            print("self.preference = \(self.preference)")
+            
+            if self.preference != "high" && self.preference != "medium" && self.preference != "low" {
+                
+                self.fees = Int(self.preference)!
+                self.manuallySetFee = true
+                
+            }
+        }
         
     }
     
@@ -169,7 +189,12 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                 
                                 if wallet["address"] as! String != self.sendingFromAddress {
                                     
-                                    let walletName = wallet["label"] as! String
+                                    var walletName = wallet["label"] as! String
+                                    
+                                    if walletName == "" {
+                                        
+                                        walletName = wallet["address"] as! String
+                                    }
                                     
                                     alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
                                         
@@ -188,7 +213,12 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                 
                                 if wallet["address"] as! String != self.sendingFromAddress {
                                     
-                                    let walletName = wallet["label"] as! String
+                                    var walletName = wallet["label"] as! String
+                                    
+                                    if walletName == "" {
+                                        
+                                        walletName = wallet["address"] as! String
+                                    }
                                     
                                     alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
                                         
@@ -215,8 +245,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                     let alert = UIAlertController(title: "Which Wallet?", message: message, preferredStyle: UIAlertControllerStyle.actionSheet)
                     
-                    print("getPayerAddressMode && self.privateKeytoDebit")
-                    
                     if self.hotMode {
                         
                         for (index, wallet) in self.addressBook.enumerated() {
@@ -229,27 +257,22 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                         
                                         if wallet["privateKey"] as! String != "" {
                                             
-                                            let walletName = wallet["label"] as! String
+                                            var walletName = wallet["label"] as! String
+                                            
+                                            if walletName == "" {
+                                                
+                                                walletName = wallet["address"] as! String
+                                            }
                                             
                                             alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
                                                 
                                                 let bitcoinAddress = self.addressBook[index]["address"] as! String
                                                 self.sendingFromAddress = bitcoinAddress
-                                                
-                                                if self.sweepMode != true {
-                                                 
-                                                    self.privateKeytoDebit = self.addressBook[index]["privateKey"] as! String
+                                                self.privateKeytoDebit = self.addressBook[index]["privateKey"] as! String
                                                     self.getSignatureMode = true
                                                     self.removeScanner()
                                                     self.makeHTTPPostRequest()
                                                     
-                                                } else {
-                                                    
-                                                   self.checkBalance(address: self.sendingFromAddress)
-                                                    self.privateKeytoDebit = self.addressBook[index]["privateKey"] as! String
-                                                    
-                                                }
-                                                
                                             }))
                                             
                                         }
@@ -262,26 +285,22 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                         
                                         if wallet["privateKey"] as! String != "" {
                                             
-                                            let walletName = wallet["label"] as! String
+                                            var walletName = wallet["label"] as! String
+                                            
+                                            if walletName == "" {
+                                                
+                                                walletName = wallet["address"] as! String
+                                            }
                                             
                                             alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
                                                 
                                                 let bitcoinAddress = self.addressBook[index]["address"] as! String
                                                 self.sendingFromAddress = bitcoinAddress
-                                                
-                                                if self.sweepMode != true {
-                                                    
-                                                    self.privateKeytoDebit = self.addressBook[index]["privateKey"] as! String
+                                                self.privateKeytoDebit = self.addressBook[index]["privateKey"] as! String
                                                     self.getSignatureMode = true
                                                     self.removeScanner()
                                                     self.makeHTTPPostRequest()
                                                     
-                                                } else {
-                                                    
-                                                    self.checkBalance(address: self.sendingFromAddress)
-                                                    self.privateKeytoDebit = self.addressBook[index]["privateKey"] as! String
-                                                }
-                                                
                                             }))
                                             
                                         }
@@ -304,14 +323,17 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                     
                                     if wallet["network"] as! String == "testnet" {
                                         
-                                        let walletName = wallet["label"] as! String
+                                        var walletName = wallet["label"] as! String
+                                        
+                                        if walletName == "" {
+                                            
+                                            walletName = wallet["address"] as! String
+                                        }
                                         
                                         alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
                                             
                                             let bitcoinAddress = self.addressBook[index]["address"] as! String
                                             self.processKeys(key: bitcoinAddress)
-                                            
-                                            
                                             
                                         }))
                                         
@@ -321,7 +343,12 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                     
                                     if wallet["network"] as! String == "mainnet" {
                                         
-                                        let walletName = wallet["label"] as! String
+                                        var walletName = wallet["label"] as! String
+                                        
+                                        if walletName == "" {
+                                            
+                                            walletName = wallet["address"] as! String
+                                        }
                                         
                                         alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
                                             
@@ -360,33 +387,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func setPreference() {
         print("setPreference")
         
-        if simpleMode {
-            
-            self.preference = "medium"
-            self.setFeeMode = false
-            
-            if self.sweepMode {
-                print("self.sweepMode")
-                
-                self.getSatsAndBTCs()
-                
-            } else {
-                
-                self.amountToSend.becomeFirstResponder()
-                
-                if self.currency != "BTC" {
-                    
-                    self.getSatoshiAmount()
-                    
-                } else {
-                    
-                    self.getSatsAndBTCs()
-                    
-                }
-                
-            }
-            
-        } else {
             
             DispatchQueue.main.async {
                 
@@ -395,81 +395,22 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 alert.addAction(UIAlertAction(title: NSLocalizedString("High Fee (1-2 blocks)", comment: ""), style: .default, handler: { (action) in
                     
                     self.preference = "high"
-                    self.setFeeMode = false
+                    UserDefaults.standard.set(self.preference, forKey: "preference")
                     
-                    if self.sweepMode {
-                        print("self.sweepMode")
-                        
-                        self.getSatsAndBTCs()
-                        
-                    } else {
-                        
-                        self.amountToSend.becomeFirstResponder()
-                        
-                        if self.currency != "BTC" && self.currency != "SAT" {
-                            
-                            self.getSatoshiAmount()
-                            
-                        } else {
-                            
-                            self.getSatsAndBTCs()
-                        }
-                        
-                    }
                     
                 }))
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Medium Fee (3-6 blocks)", comment: ""), style: .default, handler: { (action) in
                     
                     self.preference = "medium"
-                    self.setFeeMode = false
-                    
-                    if self.sweepMode {
-                        print("self.sweepMode")
-                        
-                        self.getSatsAndBTCs()
-                        
-                    } else {
-                        
-                        self.amountToSend.becomeFirstResponder()
-                        
-                        if self.currency != "BTC" && self.currency != "SAT" {
-                            
-                            self.getSatoshiAmount()
-                            
-                        } else {
-                            
-                            self.getSatsAndBTCs()
-                        }
-                        
-                    }
+                    UserDefaults.standard.set(self.preference, forKey: "preference")
                     
                 }))
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Low Fee (7 blocks plus)", comment: ""), style: .default, handler: { (action) in
                     
                     self.preference = "low"
-                    self.setFeeMode = false
-                    
-                    if self.sweepMode {
-                        print("self.sweepMode")
-                        
-                        self.getSatsAndBTCs()
-                        
-                    } else {
-                        
-                        self.amountToSend.becomeFirstResponder()
-                        
-                        if self.currency != "BTC" && self.currency != "SAT" {
-                            
-                            self.getSatoshiAmount()
-                            
-                        } else {
-                            
-                            self.getSatsAndBTCs()
-                        }
-                        
-                    }
+                    UserDefaults.standard.set(self.preference, forKey: "preference")
                     
                 }))
                 
@@ -478,8 +419,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     self.preference = ""
                     self.manuallySetFee = true
                     self.addFeeAmount()
-                    self.amountToSend.becomeFirstResponder()
-                    self.setFeeMode = false
+                    
                     
                 }))
                 
@@ -493,39 +433,41 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 
             }
 
-        }
         
         
     }
     
-    func getAmount() {
+    func addChooseOptionButton() {
+        
+        self.optionsButton.removeFromSuperview()
+        self.optionsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 50, y: 20, width: 45, height: 45))
+        self.optionsButton.showsTouchWhenHighlighted = true
+        //self.optionsButton.layer.cornerRadius = 10
+        //self.optionsButton.backgroundColor = UIColor.black
+        //self.optionsButton.layer.shadowColor = UIColor.black.cgColor
+        //self.optionsButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        //self.optionsButton.layer.shadowRadius = 2.5
+        //self.optionsButton.layer.shadowOpacity = 0.8
+        //self.optionsButton.setTitle("More Options", for: .normal)
+        self.optionsButton.setImage(#imageLiteral(resourceName: "settings2.png"), for: .normal)
+        self.optionsButton.addTarget(self, action: #selector(self.getAmount), for: .touchUpInside)
+        self.view.addSubview(self.optionsButton)
+        
+    }
+    
+    @objc func getAmount() {
         print("getAmount")
         
-        if simpleMode {
-            
-            self.amountToSend.placeholder = "Amount to send in USD"
-            self.currency = "USD"
-            self.amountToSend.becomeFirstResponder()
-            
-        } else {
-            
-            DispatchQueue.main.async {
+        DispatchQueue.main.async {
                 
-                let alert = UIAlertController(title: NSLocalizedString("Please choose your currency", comment: ""), message: "", preferredStyle: UIAlertControllerStyle.actionSheet)
+                let alert = UIAlertController(title: NSLocalizedString("Choose a different currency or option", comment: ""), message: "BitSense will automatically remember the currency and mining fee for future transactions, they can be changed at any time.", preferredStyle: UIAlertControllerStyle.actionSheet)
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Satoshis", comment: ""), style: .default, handler: { (action) in
                     
                     self.amountToSend.placeholder = "Amount to send in Satoshis"
                     self.currency = "SAT"
                     self.amountToSend.becomeFirstResponder()
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("BTC", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.amountToSend.placeholder = "Amount to send in BTC"
-                    self.currency = "BTC"
-                    self.amountToSend.becomeFirstResponder()
+                    UserDefaults.standard.set(self.currency, forKey: "currency")
                     
                 }))
                 
@@ -534,6 +476,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     self.amountToSend.placeholder = "Amount to send in USD"
                     self.currency = "USD"
                     self.amountToSend.becomeFirstResponder()
+                    UserDefaults.standard.set(self.currency, forKey: "currency")
                     
                 }))
                 
@@ -542,6 +485,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     self.amountToSend.placeholder = "Amount to send in EUR"
                     self.currency = "EUR"
                     self.amountToSend.becomeFirstResponder()
+                    UserDefaults.standard.set(self.currency, forKey: "currency")
                     
                 }))
                 
@@ -550,16 +494,17 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     self.amountToSend.placeholder = "Amount to send in GBP"
                     self.currency = "GBP"
                     self.amountToSend.becomeFirstResponder()
+                    UserDefaults.standard.set(self.currency, forKey: "currency")
                     
                 }))
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Sweep All Funds", comment: ""), style: .default, handler: { (action) in
                     
                     self.amountToSend.removeFromSuperview()
-                    self.sweepMode = true
                     self.currency = "SAT"
                     self.amount = "-1"
-                    self.setPreference()
+                    self.optionsButton.removeFromSuperview()
+                    self.getSatsAndBTCs()
                     
                 }))
                 
@@ -570,9 +515,14 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                 }))
                 
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Set Miner Fee", comment: ""), style: .default, handler: { (action) in
+                    
+                        self.setPreference()
+                    
+                }))
+                
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
                     
-                    self.dismiss(animated: true, completion: nil)
                     
                 }))
                 
@@ -580,101 +530,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 
             }
             
-        }
-        
-    }
-    
-    func checkBalance(address: String) {
-        
-        print("checkBalance")
-        
-        if isInternetAvailable() == true {
-            
-            self.addSpinner()
-            
-            var url:NSURL!
-            
-            if testnetMode {
-                
-                url = NSURL(string: "https://testnet.blockchain.info/rawaddr/\(address)")
-                
-            } else {
-                
-                url = NSURL(string: "https://blockchain.info/rawaddr/\(address)")
-                
-            }
-            
-            let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
-                
-                do {
-                    
-                    if error != nil {
-                        
-                        print(error as Any)
-                        self.removeSpinner()
-                        DispatchQueue.main.async {
-                            displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
-                        }
-                        
-                    } else {
-                        
-                        if let urlContent = data {
-                            
-                            do {
-                                
-                                let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
-                                
-                                if let finalBalanceCheck = jsonAddressResult["final_balance"] as? Double {
-                                    
-                                    if self.sweepMode && self.coldMode {
-                                        
-                                        self.sweepAmount = String(finalBalanceCheck)
-                                        self.removeSpinner()
-                                        
-                                        
-                                    } else {
-                                        
-                                        self.amount = String(Int(finalBalanceCheck))
-                                        self.removeSpinner()
-                                        self.removeScanner()
-                                        self.makeHTTPPostRequest()
-                                        
-                                    }
-                                    
-                                } else {
-                                    
-                                    DispatchQueue.main.async {
-                                        
-                                        self.removeSpinner()
-                                        displayAlert(viewController: self, title: "Error", message: "Please try again.")
-                                        
-                                    }
-                                    
-                                }
-                                
-                            } catch {
-                                
-                                print("JSon processing failed")
-                                
-                                DispatchQueue.main.async {
-                                    
-                                    self.removeSpinner()
-                                    displayAlert(viewController: self, title: "Error", message: "Please try again.")
-                                    
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            task.resume()
-            
-        } else {
-            
-            displayAlert(viewController: self, title: "Oops", message: "We need internet to get the latest exchange rates.")
-        }
-        
         
     }
     
@@ -695,7 +550,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         self.pushRawTransactionButton.showsTouchWhenHighlighted = true
         self.pushRawTransactionButton.titleLabel?.textAlignment = .center
         self.pushRawTransactionButton.layer.cornerRadius = 10
-        self.pushRawTransactionButton.backgroundColor = UIColor.black//lightText
+        self.pushRawTransactionButton.backgroundColor = UIColor.black
         self.pushRawTransactionButton.layer.shadowColor = UIColor.black.cgColor
         self.pushRawTransactionButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
         self.pushRawTransactionButton.layer.shadowRadius = 2.5
@@ -749,7 +604,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func addQRScannerView() {
         print("addQRScannerView")
         
-        self.videoPreview.alpha = 0
         self.videoPreview.backgroundColor = UIColor.black
         self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y - ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: self.view.frame.width - 50)
         self.view.addSubview(self.videoPreview)
@@ -758,28 +612,34 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func addFeeAmount() {
         print("addFeeAmount")
         
-        self.amountToSend.frame = CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 150, width: self.view.frame.width - 10, height: 50)
-        self.amountToSend.textAlignment = .center
-        self.amountToSend.borderStyle = .roundedRect
-        self.amountToSend.backgroundColor = UIColor.groupTableViewBackground
-        self.amountToSend.keyboardType = UIKeyboardType.decimalPad
-        self.amountToSend.addDoneButtonToKeyboard(myAction:  #selector(self.setFee))
-        self.amountToSend.placeholder = "Fee in Satoshis"
-        self.view.addSubview(self.amountToSend)
+        self.amountToSend.resignFirstResponder()
+        self.minerfeeInput.removeFromSuperview()
+        self.minerfeeInput.frame = CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 150, width: self.view.frame.width - 10, height: 50)
+        self.minerfeeInput.textAlignment = .center
+        self.minerfeeInput.borderStyle = .roundedRect
+        self.minerfeeInput.backgroundColor = UIColor.groupTableViewBackground
+        self.minerfeeInput.keyboardType = UIKeyboardType.decimalPad
+        self.minerfeeInput.addDoneButtonToKeyboard(myAction:  #selector(self.setFee))
+        self.minerfeeInput.becomeFirstResponder()
+        self.minerfeeInput.placeholder = "Fee in Satoshis"
+        self.view.addSubview(self.minerfeeInput)
     }
     
     @objc func setFee() {
         print("setFee")
         
-        if self.amountToSend.text != "" {
+        if self.minerfeeInput.text != "" && self.minerfeeInput.text != "0" {
             
-            self.fees = Int(self.amountToSend.text!)!
-            self.amountToSend.resignFirstResponder()
-            self.amountToSend.removeFromSuperview()
+            self.fees = Int(self.minerfeeInput.text!)!
+            UserDefaults.standard.set(self.minerfeeInput.text!, forKey: "preference")
+            self.minerfeeInput.resignFirstResponder()
+            self.minerfeeInput.removeFromSuperview()
+            self.amountToSend.becomeFirstResponder()
+            displayAlert(viewController: self, title: "Great job", message: "You set a custom mining fee for \(self.fees) Satoshis, this feature is for advanced users who understand the risks associated with setting custom fees.")
             
         } else {
             
-            shakeAlert(viewToShake: self.amountToSend)
+            shakeAlert(viewToShake: self.minerfeeInput)
         }
         
     }
@@ -795,7 +655,50 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         self.amountToSend.backgroundColor = UIColor.groupTableViewBackground
         self.amountToSend.keyboardType = UIKeyboardType.decimalPad
         self.amountToSend.addDoneButtonToKeyboard(myAction:  #selector(self.saveAmountInSatoshis))
-        self.amountToSend.placeholder = "Amount to Send"
+        
+        if UserDefaults.standard.object(forKey: "currency") != nil {
+            
+            self.currency = UserDefaults.standard.object(forKey: "currency") as! String
+            
+            if self.currency == "SAT" {
+                
+                self.amountToSend.placeholder = "Amount to send in Satoshis"
+                self.currency = "SAT"
+                self.amountToSend.becomeFirstResponder()
+                
+            } else if self.currency == "BTC" {
+                
+                self.amountToSend.placeholder = "Amount to send in Bitcoin"
+                self.currency = "BTC"
+                self.amountToSend.becomeFirstResponder()
+                
+            } else if self.currency == "USD" {
+                
+                self.amountToSend.placeholder = "Amount to send in Dollars"
+                self.currency = "USD"
+                self.amountToSend.becomeFirstResponder()
+                
+            } else if self.currency == "GBP" {
+                
+                self.amountToSend.placeholder = "Amount to send in Pounds"
+                self.currency = "GBP"
+                self.amountToSend.becomeFirstResponder()
+                
+            } else if self.currency == "EUR" {
+                
+                self.amountToSend.placeholder = "Amount to send in Euros"
+                self.currency = "EUR"
+                self.amountToSend.becomeFirstResponder()
+                
+            }
+            
+        } else {
+            
+            self.amountToSend.placeholder = "Amount to send in Bitcoin"
+            self.currency = "BTC"
+            self.amountToSend.becomeFirstResponder()
+        }
+        
         self.view.addSubview(self.amountToSend)
     }
     
@@ -804,12 +707,22 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
         if self.amountToSend.text != "" {
             
+            self.optionsButton.removeFromSuperview()
+            
             self.amount = self.amountToSend.text!
             self.amountToSend.text = ""
             self.amountToSend.resignFirstResponder()
             self.amountToSend.removeFromSuperview()
-            self.setPreference()
             
+            if self.currency != "BTC" && self.currency != "SAT" {
+                    
+                    self.getSatoshiAmount()
+                    
+                } else {
+                    
+                    self.getSatsAndBTCs()
+                }
+                
         } else {
             
            shakeAlert(viewToShake: self.amountToSend)
@@ -852,7 +765,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func addTextInput() {
         print("addTextInput")
         
-        
         self.addressToDisplay.frame = CGRect(x: self.view.frame.minX + 5, y: self.videoPreview.frame.minY - 55, width: self.view.frame.width - 10, height: 50)
         self.addressToDisplay.textAlignment = .center
         self.addressToDisplay.borderStyle = .roundedRect
@@ -879,41 +791,78 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
         
     }
     
-    func textFieldDidBeginEditing(_ textField: UITextField) {
-        print("textFieldDidBeginEditing")
-        
-        if textField == self.amountToSend {
-            
-            if self.preference == "" {
-                
-                self.preference = "high"
-                
-            }
-        }
-    }
-    
     func processKeys(key: String) {
         
         if getReceivingAddressMode {
+            
+            var addressAlreadySaved = false
                 
-            func processReceivingAddress() {
+            func processReceivingAddress(network: String) {
+                
+                for wallet in self.addressBook {
                     
-                self.recievingAddress = key
-                self.getReceivingAddressMode = false
-                self.getPayerAddressMode = true
-                self.removeScanner()
-                self.addScanner()
-                self.addressToDisplay.text = ""
+                    if wallet["address"] as! String == key {
+                        
+                        addressAlreadySaved = true
+                        
+                    }
                     
+                }
+                
+                if addressAlreadySaved != true {
+                    
+                    DispatchQueue.main.async {
+                        
+                        let alert = UIAlertController(title: "Save this address?", message: "Would you like to save this address for future payments?", preferredStyle: UIAlertControllerStyle.alert)
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("Yes", comment: ""), style: .default, handler: { (action) in
+                            
+                            saveWallet(viewController: self, address: key, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold")
+                            
+                            self.recievingAddress = key
+                            self.getReceivingAddressMode = false
+                            self.getPayerAddressMode = true
+                            self.removeScanner()
+                            self.addScanner()
+                            self.addressToDisplay.text = ""
+                            
+                        }))
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("No", comment: ""), style: .default, handler: { (action) in
+                            
+                            self.recievingAddress = key
+                            self.getReceivingAddressMode = false
+                            self.getPayerAddressMode = true
+                            self.removeScanner()
+                            self.addScanner()
+                            self.addressToDisplay.text = ""
+                            
+                            
+                        }))
+                        
+                        self.present(alert, animated: true, completion: nil)
+                    }
+                    
+                } else {
+                    
+                    self.recievingAddress = key
+                    self.getReceivingAddressMode = false
+                    self.getPayerAddressMode = true
+                    self.removeScanner()
+                    self.addScanner()
+                    self.addressToDisplay.text = ""
+                    
+                }
+                
             }
                 
             if let _ = BTCPublicKeyAddressTestnet.init(string: key) {
                     
-                processReceivingAddress()
+                processReceivingAddress(network: "testnet")
                     
             } else if let _ = BTCAddress.init(string: key) {
                     
-                processReceivingAddress()
+                processReceivingAddress(network: "mainnet")
                     
             } else {
                     
@@ -926,14 +875,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             func processPayerAddress() {
                     
                 self.sendingFromAddress = key
-                    
-                if sweepMode {
-                        
-                    self.removeSpinner()
-                    self.checkBalance(address: self.sendingFromAddress)
-                        
-                }
-                    
                 self.getPayerAddressMode = false
                 self.getSignatureMode = true
                 self.removeScanner()
@@ -1004,6 +945,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func textFieldDidEndEditing(_ textField: UITextField) {
         print("textFieldDidEndEditing")
         
+        
         let key = textField.text!
         
         if textField == self.addressToDisplay {
@@ -1046,19 +988,7 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 
             }
             
-        } else if textField == self.amountToSend && self.setFeeMode == false {
-                
-                if self.currency != "BTC" && self.currency != "SAT" {
-                    
-                    self.getSatoshiAmount()
-                    
-                } else {
-                    
-                    self.getSatsAndBTCs()
-                    
-                }
-            
-            }
+        }
             
     }
     
@@ -1070,13 +1000,13 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             self.amountToSend.removeFromSuperview()
             self.addScanner()
             
-        } else if self.currency == "BTC" {
+        } else if self.currency == "BTC" && self.amount != "-1" {
             
             self.amountInBTC = Double(self.amount)!
             self.satoshiAmount = Int(self.amountInBTC * 100000000)
             self.addScanner()
             
-        } else if self.currency == "SAT" {
+        } else if self.currency == "SAT" && self.amount != "-1" {
             
             self.satoshiAmount = Int(self.amount)!
             self.amountInBTC = Double(self.amount)! / 100000000
@@ -1165,23 +1095,46 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func addScanner() {
         print("addScanner")
         
-        DispatchQueue.main.async {
+        if self.getPayerAddressMode, let _ = self.walletToSpendFrom["label"] as? String {
             
-            self.addQRScannerView()
-            self.addTextInput()
+            if self.hotMode {
+                
+             self.privateKeytoDebit = self.walletToSpendFrom["privateKey"] as! String
+                print("self.privateKeytoDebit = \(self.privateKeytoDebit)")
+                
+            } else if self.coldMode {
+                
+                self.getPayerAddressMode = false
+                self.getSignatureMode = true
+                
+            }
             
-            UIView.animate(withDuration: 0.4, animations: {
+            self.makeHTTPPostRequest()
+            
+        } else if self.getPayerAddressMode {
+            
+                displayAlert(viewController: self, title: "Success", message: "We got your receiving address\n\n\(self.recievingAddress)\n\nNow we need the debit address.")
+            
+            DispatchQueue.main.async {
                 
-                self.videoPreview.alpha = 1
-                
-                
-            }, completion: { _ in
-                
+                self.addQRScannerView()
+                self.addTextInput()
                 self.scanQRCode()
                 
-            })
+            }
+        
+        } else {
+           
+            DispatchQueue.main.async {
+                
+                self.addQRScannerView()
+                self.addTextInput()
+                self.scanQRCode()
+                
+            }
             
         }
+        
     }
     
     func removeScanner() {
@@ -1208,7 +1161,12 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
     func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
         print("textFieldShouldEndEditing")
         
-        addressToDisplay.resignFirstResponder()
+        if textField == addressToDisplay {
+            
+          addressToDisplay.resignFirstResponder()
+            
+        }
+        
         return true
     }
     
@@ -1250,6 +1208,21 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             if machineReadableCode.type == AVMetadataObject.ObjectType.qr {
                 
                 stringURL = machineReadableCode.stringValue!
+                print("stringURL = \(stringURL)")
+                
+                if stringURL.contains("bitcoin:") {
+                    
+                    stringURL = stringURL.replacingOccurrences(of: "bitcoin:", with: "")
+                    print("stringURL = \(stringURL)")
+                    
+                    if stringURL.contains("?") {
+                        
+                        let stringArray = stringURL.split(separator: "?")
+                        stringURL = String(stringArray[0])
+                        
+                    }
+                    
+                }
                 
                 let key = stringURL
                 
@@ -1308,30 +1281,28 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             let key = BTCKey.init(privateKeyAddress: privateKey)
             print("privateKey = \(String(describing: privateKey))")
             
-            if self.hotMode || self.sweepMode {
+            var receiveAddress = ""
+            var sendAddress = ""
+            
+            if UserDefaults.standard.object(forKey: "addressBook") != nil {
                 
-                if self.testnetMode {
-                    
-                    let legacyAddress1 = (key?.addressTestnet.description)!
-                    let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                    self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                    self.privateKey = String(describing: privateKey)
-                    
-                } else {
-                    
-                    let legacyAddress1 = (key?.address.description)!
-                    let legacyAddress2 = (legacyAddress1.description).components(separatedBy: " ")
-                    self.sendingFromAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                    self.privateKey = String(describing: privateKey)
-                }
-                
+                self.addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String:Any]]
                 
             }
             
-            if self.sweepMode {
+            for wallet in self.addressBook {
                 
-                self.removeSpinner()
-                self.checkBalance(address: self.sendingFromAddress)
+                if wallet["address"] as! String == self.sendingFromAddress {
+                    
+                    sendAddress = wallet["label"] as! String
+                }
+                
+                if wallet["address"] as! String == self.recievingAddress {
+                    
+                    receiveAddress = wallet["label"] as! String
+                    
+                }
+                
             }
             
             DispatchQueue.main.async {
@@ -1368,7 +1339,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                     self.json["signatures"] = signatureArray
                     self.json["pubkeys"] = pubkeyArray
-                    print("json = \(self.json)")
                     
                     self.sendButton.removeFromSuperview()
                     self.sendButton = UIButton(frame: CGRect(x: 20, y: self.view.frame.maxY - 60, width: self.view.frame.width - 40, height: 50))
@@ -1401,25 +1371,9 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                    
                 }
                 
-                var receiveAddress = ""
-                var sendAddress = ""
                 
-                for wallet in self.addressBook {
-                    
-                    if wallet["address"] as! String == self.sendingFromAddress {
-                        
-                        sendAddress = wallet["label"] as! String
-                    }
-                    
-                    if wallet["address"] as! String == self.recievingAddress {
-                        
-                        receiveAddress = wallet["label"] as! String
-                        
-                    }
-                    
-                }
                 
-                if self.currency != "BTC" && self.currency != "SAT" && self.sweepMode == false {
+                if self.currency != "BTC" && self.currency != "SAT" {
                     
                     let feeInFiat = self.exchangeRate * (Double(self.fees) / 100000000)
                     let roundedFiatFeeAmount = round(100 * feeInFiat) / 100
@@ -1427,67 +1381,60 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                     
                     if receiveAddress != "" && sendAddress != "" {
                         
-                        message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees!.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                        message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
                         
                     } else if receiveAddress != "" {
                         
-                        message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees!.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                        message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
                         
                     } else if sendAddress != "" {
                         
-                        message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees!.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                        message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
                         
                     }
                     
                     
                     postAlert()
                     
-                } else if self.currency == "BTC" || self.currency == "SAT" && self.sweepMode == false {
+                } else if self.currency == "BTC" || self.currency == "SAT" {
                     
-                    if self.sweepAmount != "" {
-                        
-                       if receiveAddress != "" && sendAddress != "" {
+                    if receiveAddress != "" && sendAddress != "" {
                             
-                        message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.sweepAmount) \(self.currency) with a miner fee of \(self.fees!.withCommas()) Satoshis"
+                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis"
                             
                         } else if receiveAddress != "" {
                             
-                        message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.sweepAmount) \(self.currency) with a miner fee of \(self.fees!.withCommas()) Satoshis"
+                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis"
                             
                         } else if sendAddress != "" {
                             
-                        message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.sweepAmount) \(self.currency) with a miner fee of \(self.fees!.withCommas()) Satoshis"
+                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis"
                             
                         }
-                        
-                    } else {
+                    
+                    if self.amount == "-1" {
                         
                         if receiveAddress != "" && sendAddress != "" {
                             
-                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) with a miner fee of \(self.fees!.withCommas()) Satoshis"
+                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis"
                             
                         } else if receiveAddress != "" {
                             
-                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) with a miner fee of \(self.fees!.withCommas()) Satoshis"
+                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis"
                             
                         } else if sendAddress != "" {
                             
-                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) with a miner fee of \(self.fees!.withCommas()) Satoshis"
+                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis"
                             
                         }
+                        
                     }
                     
                     postAlert()
                     
                 }
                 
-                if self.sweepMode {
-                    
-                    self.makeHTTPPostRequest()
-                    
-                }
-                
-            }
+           }
             
         } else {
             
@@ -1516,6 +1463,18 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                 
                 print("failed to int camera")
                 throw error.videoInputInitFail
+            }
+            
+            if let inputs = self.avCaptureSession.inputs as? [AVCaptureDeviceInput] {
+                for input in inputs {
+                    self.avCaptureSession.removeInput(input)
+                }
+            }
+            
+            if let outputs = self.avCaptureSession.outputs as? [AVCaptureMetadataOutput] {
+                for output in outputs {
+                    self.avCaptureSession.removeOutput(output)
+                }
             }
             
             let avCaptureMetadataOutput = AVCaptureMetadataOutput()
@@ -1556,20 +1515,26 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
             request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
             request.httpMethod = "POST"
             
-            if self.sweepMode {
+            if self.amount == "-1" {
                 
                 self.satoshiAmount = -1
             }
             
             if self.manuallySetFee {
                 
-                request.httpBody = "{\"inputs\": [{\"addresses\": [\"\(self.sendingFromAddress)\"]}], \"outputs\": [{\"addresses\": [\"\(self.recievingAddress)\"], \"value\": \(self.satoshiAmount)}],\"fees\": \(self.fees!)}".data(using: .utf8)
+                request.httpBody = "{\"inputs\": [{\"addresses\": [\"\(self.sendingFromAddress)\"]}], \"outputs\": [{\"addresses\": [\"\(self.recievingAddress)\"], \"value\": \(self.satoshiAmount)}],\"fees\": \(self.fees)}".data(using: .utf8)
+                
+                print("{\"inputs\": [{\"addresses\": [\"\(self.sendingFromAddress)\"]}], \"outputs\": [{\"addresses\": [\"\(self.recievingAddress)\"], \"value\": \(self.satoshiAmount)}],\"fees\": \(self.fees)}")
                 
             } else {
                 
                 request.httpBody = "{\"inputs\": [{\"addresses\": [\"\(self.sendingFromAddress)\"]}], \"outputs\": [{\"addresses\": [\"\(self.recievingAddress)\"], \"value\": \(self.satoshiAmount)}],\"preference\": \"\(self.preference)\"}".data(using: .utf8)
                 
+                print("{\"inputs\": [{\"addresses\": [\"\(self.sendingFromAddress)\"]}], \"outputs\": [{\"addresses\": [\"\(self.recievingAddress)\"], \"value\": \(self.satoshiAmount)}],\"preference\": \"\(self.preference)\"}")
+                
             }
+            
+            
             
             let task = URLSession.shared.dataTask(with: request) { (data, response, error) -> Void in
                 
@@ -1592,6 +1557,9 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                             do {
                                 
                                 let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
+                                
+                                print("jsonAddressResult = \(jsonAddressResult)")
+                                print("response = \(response)")
                                 
                                 if let error = jsonAddressResult["errors"] as? NSArray {
                                     
@@ -1627,18 +1595,16 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                         self.json = jsonAddressResult.mutableCopy() as! NSMutableDictionary
                                         self.removeScanner()
                                         
-                                        if self.setFeeMode == false {
-                                            
-                                            if let sizeCheck = (jsonAddressResult["tx"] as? NSDictionary)?["fees"] as? NSInteger {
+                                        print("self.joson = \(self.json)")
+                                        
+                                        if let sizeCheck = (jsonAddressResult["tx"] as? NSDictionary)?["fees"] as? NSInteger {
                                                 
-                                                self.fees = sizeCheck
+                                            self.fees = sizeCheck
                                                 
-                                            }
                                         }
                                         
-                                        if self.sweepMode && self.hotMode {
+                                        if self.hotMode {
                                             
-                                            self.sweepMode = false
                                             self.getPrivateKeySignature(key: self.privateKeytoDebit)
                                             self.removeSpinner()
                                             
@@ -1649,8 +1615,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                                 self.removeSpinner()
                                                 
                                                 if self.coldMode {
-                                                    
-                                                    self.sweepMode = false
                                                     
                                                     let alert = UIAlertController(title: NSLocalizedString("Turn Airplane Mode On", comment: ""), message: "We need to scan your Private Key so that we can create a signature to sign your transaction with, you may enable airplane mode during this operation for maximum security, this is optional. We NEVER save your Private Keys, the signature is created locally and the internet is not used at all, however we will need the internet after you sign the transaction in order to send the bitcoins.", preferredStyle: UIAlertControllerStyle.alert)
                                                     
@@ -1665,18 +1629,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                                     }))
                                                     
                                                     self.present(alert, animated: true, completion: nil)
-                                                    
-                                                } else {
-                                                    
-                                                    for address in self.addressBook {
-                                                        
-                                                        if address["address"] as! String == self.sendingFromAddress {
-                                                            
-                                                            let privateKey = address["privateKey"] as! String
-                                                            self.getPrivateKeySignature(key: privateKey)
-                                                            
-                                                        }
-                                                    }
                                                     
                                                 }
                                                 
@@ -1764,6 +1716,9 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                 
                                 let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
                                 
+                                print("jsonAddressResult = \(jsonAddressResult)")
+                                print("self.json = \(self.json)")
+                                
                                 if let error = jsonAddressResult["errors"] as? NSArray {
                                     
                                     self.removeSpinner()
@@ -1807,10 +1762,6 @@ class TransactionBuilderViewController: UIViewController, /*BTCTransactionBuilde
                                                     
                                                     self.dismiss(animated: true, completion: nil)
                                                     
-                                                }))
-                                                
-                                                alert.addAction(UIAlertAction(title: NSLocalizedString("See Transaction", comment: ""), style: .default, handler: { (action) in
-                                                    self.getTransaction()
                                                 }))
                                                 
                                                 alert.addAction(UIAlertAction(title: NSLocalizedString("Done", comment: ""), style: .cancel, handler: { (action) in
@@ -2254,7 +2205,7 @@ extension UITextField {
         let doneToolbar: UIToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: 300, height: 40))
         doneToolbar.barStyle = UIBarStyle.default
         let flexSpace = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
-        let done: UIBarButtonItem = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.done, target: TransactionBuilderViewController(), action: myAction)
+        let done: UIBarButtonItem = UIBarButtonItem(title: "Next", style: UIBarButtonItemStyle.done, target: TransactionBuilderViewController(), action: myAction)
         var items = [UIBarButtonItem]()
         items.append(flexSpace)
         items.append(done)
