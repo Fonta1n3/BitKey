@@ -37,6 +37,7 @@
 		D055012B2095134C001C35F0 /* Bech32.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055012A2095134C001C35F0 /* Bech32.swift */; };
 		D057B24420D9D570006661DC /* TransactionHistoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D057B24320D9D570006661DC /* TransactionHistoryViewController.swift */; };
 		D05D158420DEE929001B209D /* AES256CBC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D05D158320DEE929001B209D /* AES256CBC.framework */; };
+		D06031A520E018F000609997 /* Bitsense image.png in Resources */ = {isa = PBXBuildFile; fileRef = D06031A420E018F000609997 /* Bitsense image.png */; };
 		D07638F420C5B41F009D08E5 /* SweepViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07638F320C5B41F009D08E5 /* SweepViewController.swift */; };
 		D089BFA5207EBDEF0086243B /* SipHash.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D089BFA3207EBDEF0086243B /* SipHash.framework */; };
 		D089BFA6207EBDEF0086243B /* BigInt.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D089BFA4207EBDEF0086243B /* BigInt.framework */; };
@@ -113,6 +114,7 @@
 		D055012A2095134C001C35F0 /* Bech32.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bech32.swift; sourceTree = "<group>"; };
 		D057B24320D9D570006661DC /* TransactionHistoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionHistoryViewController.swift; sourceTree = "<group>"; };
 		D05D158320DEE929001B209D /* AES256CBC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AES256CBC.framework; path = Carthage/Build/iOS/AES256CBC.framework; sourceTree = "<group>"; };
+		D06031A420E018F000609997 /* Bitsense image.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Bitsense image.png"; sourceTree = "<group>"; };
 		D07638F320C5B41F009D08E5 /* SweepViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SweepViewController.swift; sourceTree = "<group>"; };
 		D089BFA3207EBDEF0086243B /* SipHash.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SipHash.framework; path = Carthage/Build/iOS/SipHash.framework; sourceTree = "<group>"; };
 		D089BFA4207EBDEF0086243B /* BigInt.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BigInt.framework; path = Carthage/Build/iOS/BigInt.framework; sourceTree = "<group>"; };
@@ -197,6 +199,7 @@
 				D0C47DE920CD7E750076CA3B /* switch.jpg */,
 				D0C47DE720CD7D370076CA3B /* backUp.jpg */,
 				D098731C20D01C3D007B8930 /* lock.jpg */,
+				D06031A420E018F000609997 /* Bitsense image.png */,
 				D04BAB2F20CC77B100501B6D /* 18449010.jpg */,
 				D0C47DE520CD4C3A0076CA3B /* help2.png */,
 				D0C47DE320CD4BAA0076CA3B /* settings2.png */,
@@ -390,6 +393,7 @@
 			files = (
 				D0F3E1AA20BCF535000F7A5D /* settings.png in Resources */,
 				D04BAB3820CC876C00501B6D /* tools.png in Resources */,
+				D06031A520E018F000609997 /* Bitsense image.png in Resources */,
 				D00FF6A22083DA1000660D3C /* two.png in Resources */,
 				D0C47DEC20CD80A10076CA3B /* clear.png in Resources */,
 				D04BAB2820CC2A5A00501B6D /* info-512.png in Resources */,

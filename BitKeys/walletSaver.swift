@@ -12,7 +12,7 @@ public func saveWallet(viewController: UIViewController, address: String, privat
     
     print("saveWallet")
     
-    var addressBook: [[String: Any]] = []
+    var addressBook = [[String: Any]]()
     var addressAlreadySaved = Bool()
     
     if UserDefaults.standard.object(forKey: "addressBook") != nil {
@@ -34,7 +34,7 @@ public func saveWallet(viewController: UIViewController, address: String, privat
         
     }
     
-    func saveToAddressBookAlert() {
+    /*func saveToAddressBookAlert() {
         
         let alert = UIAlertController(title: "Save this wallet for later use?", message: "If you do not save the wallet it will not get saved to your address book and won't be stored on your device in anyway.", preferredStyle: .alert)
         
@@ -49,7 +49,7 @@ public func saveWallet(viewController: UIViewController, address: String, privat
         }))
         
         viewController.present(alert, animated: true, completion: nil)
-    }
+    }*/
     
     func saveWalletToAddressBook() {
         

@@ -37,7 +37,7 @@ class MayerMultipleViewController: UIViewController {
         // Do any additional setup after loading the view.
         print("MayerMultipleViewController")
         
-        let bitcoinImage = UIImage(named: "img_311477.png")
+        let bitcoinImage = UIImage(named: "Bitsense image.png")
         self.imageView = UIImageView(image: bitcoinImage!)
         self.imageView.center = self.view.center
         self.imageView.frame = CGRect(x: self.view.center.x - 25, y: 20, width: 50, height: 50)

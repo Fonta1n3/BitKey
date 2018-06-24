@@ -161,167 +161,35 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     @objc func openAddressBook() {
         print("openAddressBook")
         
-        DispatchQueue.main.async {
+        if UserDefaults.standard.object(forKey: "isWalletEncrypted") != nil && UserDefaults.standard.object(forKey: "isWalletEncrypted") as! Bool == false {
             
-            if self.addressBook.count > 0 {
+            DispatchQueue.main.async {
                 
-                var message = String()
-                
-                if self.getReceivingAddressMode {
+                if self.addressBook.count > 0 {
                     
-                    message = "Select the recepient wallet"
+                    var message = String()
                     
-                } else {
-                    
-                    message = "Select the wallet to debit"
-                    
-                }
-                
-                if self.getReceivingAddressMode {
-                    
-                    let alert = UIAlertController(title: "Which Wallet?", message: message, preferredStyle: UIAlertControllerStyle.actionSheet)
-                    
-                    for (index, wallet) in self.addressBook.enumerated() {
+                    if self.getReceivingAddressMode {
                         
-                        if self.testnetMode {
-                            
-                            if wallet["network"] as! String == "testnet" {
-                                
-                                if wallet["address"] as! String != self.sendingFromAddress {
-                                    
-                                    var walletName = wallet["label"] as! String
-                                    
-                                    if walletName == "" {
-                                        
-                                        walletName = wallet["address"] as! String
-                                    }
-                                    
-                                    alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
-                                        
-                                        let bitcoinAddress = self.addressBook[index]["address"] as! String
-                                        self.processKeys(key: bitcoinAddress)
-                                        
-                                    }))
-                                    
-                                }
-                                
-                            }
-                            
-                        } else if self.mainnetMode {
-                            
-                            if wallet["network"] as! String == "mainnet" {
-                                
-                                if wallet["address"] as! String != self.sendingFromAddress {
-                                    
-                                    var walletName = wallet["label"] as! String
-                                    
-                                    if walletName == "" {
-                                        
-                                        walletName = wallet["address"] as! String
-                                    }
-                                    
-                                    alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
-                                        
-                                        let bitcoinAddress = self.addressBook[index]["address"] as! String
-                                        self.processKeys(key: bitcoinAddress)
-                                        
-                                    }))
-                                    
-                                }
-                                
-                            }
-                            
-                        }
+                        message = "Select the recepient wallet"
+                        
+                    } else {
+                        
+                        message = "Select the wallet to debit"
                         
                     }
                     
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                    if self.getReceivingAddressMode {
                         
-                    }))
-                    
-                    self.present(alert, animated: true, completion: nil)
-                    
-                } else if self.getPayerAddressMode {
-                    
-                    let alert = UIAlertController(title: "Which Wallet?", message: message, preferredStyle: UIAlertControllerStyle.actionSheet)
-                    
-                    if self.hotMode {
+                        let alert = UIAlertController(title: "Which Wallet?", message: message, preferredStyle: UIAlertControllerStyle.actionSheet)
                         
                         for (index, wallet) in self.addressBook.enumerated() {
                             
-                            if wallet["address"] as! String != self.recievingAddress {
+                            if self.testnetMode {
                                 
-                                if self.testnetMode {
+                                if wallet["network"] as! String == "testnet" {
                                     
-                                    if wallet["network"] as! String == "testnet" {
-                                        
-                                        if wallet["privateKey"] as! String != "" {
-                                            
-                                            var walletName = wallet["label"] as! String
-                                            
-                                            if walletName == "" {
-                                                
-                                                walletName = wallet["address"] as! String
-                                            }
-                                            
-                                            alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
-                                                
-                                                let bitcoinAddress = self.addressBook[index]["address"] as! String
-                                                self.sendingFromAddress = bitcoinAddress
-                                                self.privateKeytoDebit = self.addressBook[index]["privateKey"] as! String
-                                                    self.getSignatureMode = true
-                                                    self.removeScanner()
-                                                    self.makeHTTPPostRequest()
-                                                    
-                                            }))
-                                            
-                                        }
-                                        
-                                    }
-                                    
-                                } else if self.mainnetMode {
-                                    
-                                    if wallet["network"] as! String == "mainnet" {
-                                        
-                                        if wallet["privateKey"] as! String != "" {
-                                            
-                                            var walletName = wallet["label"] as! String
-                                            
-                                            if walletName == "" {
-                                                
-                                                walletName = wallet["address"] as! String
-                                            }
-                                            
-                                            alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
-                                                
-                                                let bitcoinAddress = self.addressBook[index]["address"] as! String
-                                                self.sendingFromAddress = bitcoinAddress
-                                                self.privateKeytoDebit = self.addressBook[index]["privateKey"] as! String
-                                                    self.getSignatureMode = true
-                                                    self.removeScanner()
-                                                    self.makeHTTPPostRequest()
-                                                    
-                                            }))
-                                            
-                                        }
-                                        
-                                    }
-                                    
-                                }
-                                
-                            }
-                            
-                        }
-                        
-                    } else if self.coldMode {
-                        
-                        for (index, wallet) in self.addressBook.enumerated() {
-                            
-                            if wallet["address"] as! String != self.recievingAddress {
-                                
-                                if self.testnetMode {
-                                    
-                                    if wallet["network"] as! String == "testnet" {
+                                    if wallet["address"] as! String != self.sendingFromAddress {
                                         
                                         var walletName = wallet["label"] as! String
                                         
@@ -339,9 +207,13 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                                         
                                     }
                                     
-                                } else if self.mainnetMode {
+                                }
+                                
+                            } else if self.mainnetMode {
+                                
+                                if wallet["network"] as! String == "mainnet" {
                                     
-                                    if wallet["network"] as! String == "mainnet" {
+                                    if wallet["address"] as! String != self.sendingFromAddress {
                                         
                                         var walletName = wallet["label"] as! String
                                         
@@ -365,22 +237,159 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                             
                         }
                         
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                            
+                        }))
+                        
+                        self.present(alert, animated: true, completion: nil)
+                        
+                    } else if self.getPayerAddressMode {
+                        
+                        let alert = UIAlertController(title: "Which Wallet?", message: message, preferredStyle: UIAlertControllerStyle.actionSheet)
+                        
+                        if self.hotMode {
+                            
+                            for (index, wallet) in self.addressBook.enumerated() {
+                                
+                                if wallet["address"] as! String != self.recievingAddress {
+                                    
+                                    if self.testnetMode {
+                                        
+                                        if wallet["network"] as! String == "testnet" {
+                                            
+                                            if wallet["privateKey"] as! String != "" {
+                                                
+                                                var walletName = wallet["label"] as! String
+                                                
+                                                if walletName == "" {
+                                                    
+                                                    walletName = wallet["address"] as! String
+                                                }
+                                                
+                                                alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
+                                                    
+                                                    let bitcoinAddress = self.addressBook[index]["address"] as! String
+                                                    self.sendingFromAddress = bitcoinAddress
+                                                    self.privateKeytoDebit = self.addressBook[index]["privateKey"] as! String
+                                                    self.getSignatureMode = true
+                                                    self.removeScanner()
+                                                    self.makeHTTPPostRequest()
+                                                    
+                                                }))
+                                                
+                                            }
+                                            
+                                        }
+                                        
+                                    } else if self.mainnetMode {
+                                        
+                                        if wallet["network"] as! String == "mainnet" {
+                                            
+                                            if wallet["privateKey"] as! String != "" {
+                                                
+                                                var walletName = wallet["label"] as! String
+                                                
+                                                if walletName == "" {
+                                                    
+                                                    walletName = wallet["address"] as! String
+                                                }
+                                                
+                                                alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
+                                                    
+                                                    let bitcoinAddress = self.addressBook[index]["address"] as! String
+                                                    self.sendingFromAddress = bitcoinAddress
+                                                    self.privateKeytoDebit = self.addressBook[index]["privateKey"] as! String
+                                                    self.getSignatureMode = true
+                                                    self.removeScanner()
+                                                    self.makeHTTPPostRequest()
+                                                    
+                                                }))
+                                                
+                                            }
+                                            
+                                        }
+                                        
+                                    }
+                                    
+                                }
+                                
+                            }
+                            
+                        } else if self.coldMode {
+                            
+                            for (index, wallet) in self.addressBook.enumerated() {
+                                
+                                if wallet["address"] as! String != self.recievingAddress {
+                                    
+                                    if self.testnetMode {
+                                        
+                                        if wallet["network"] as! String == "testnet" {
+                                            
+                                            var walletName = wallet["label"] as! String
+                                            
+                                            if walletName == "" {
+                                                
+                                                walletName = wallet["address"] as! String
+                                            }
+                                            
+                                            alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
+                                                
+                                                let bitcoinAddress = self.addressBook[index]["address"] as! String
+                                                self.processKeys(key: bitcoinAddress)
+                                                
+                                            }))
+                                            
+                                        }
+                                        
+                                    } else if self.mainnetMode {
+                                        
+                                        if wallet["network"] as! String == "mainnet" {
+                                            
+                                            var walletName = wallet["label"] as! String
+                                            
+                                            if walletName == "" {
+                                                
+                                                walletName = wallet["address"] as! String
+                                            }
+                                            
+                                            alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
+                                                
+                                                let bitcoinAddress = self.addressBook[index]["address"] as! String
+                                                self.processKeys(key: bitcoinAddress)
+                                                
+                                            }))
+                                            
+                                        }
+                                        
+                                    }
+                                    
+                                }
+                                
+                            }
+                            
+                        }
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                            
+                        }))
+                        
+                        self.present(alert, animated: true, completion: nil)
+                        
+                    } else {
+                        
+                        print("oops")
                     }
                     
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                        
-                    }))
-                    
-                    self.present(alert, animated: true, completion: nil)
-                    
-                } else {
-                    
-                    print("oops")
                 }
                 
             }
             
+        } else {
+            
+            displayAlert(viewController: self, title: "Error", message: "Your wallet is locked, you will only be able to use it in cold mode. Please go to the home screen and unlock the wallet for full functionality.")
         }
+        
+        
         
     }
    
@@ -396,7 +405,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                     
                     self.preference = "high"
                     UserDefaults.standard.set(self.preference, forKey: "preference")
-                    
+                    UserDefaults.standard.synchronize()
                     
                 }))
                 
@@ -404,6 +413,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                     
                     self.preference = "medium"
                     UserDefaults.standard.set(self.preference, forKey: "preference")
+                    UserDefaults.standard.synchronize()
                     
                 }))
                 
@@ -411,6 +421,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                     
                     self.preference = "low"
                     UserDefaults.standard.set(self.preference, forKey: "preference")
+                    UserDefaults.standard.synchronize()
                     
                 }))
                 
@@ -468,6 +479,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                     self.currency = "SAT"
                     self.amountToSend.becomeFirstResponder()
                     UserDefaults.standard.set(self.currency, forKey: "currency")
+                    UserDefaults.standard.synchronize()
                     
                 }))
                 
@@ -477,6 +489,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                     self.currency = "USD"
                     self.amountToSend.becomeFirstResponder()
                     UserDefaults.standard.set(self.currency, forKey: "currency")
+                    UserDefaults.standard.synchronize()
                     
                 }))
                 
@@ -486,6 +499,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                     self.currency = "EUR"
                     self.amountToSend.becomeFirstResponder()
                     UserDefaults.standard.set(self.currency, forKey: "currency")
+                    UserDefaults.standard.synchronize()
                     
                 }))
                 
@@ -495,6 +509,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                     self.currency = "GBP"
                     self.amountToSend.becomeFirstResponder()
                     UserDefaults.standard.set(self.currency, forKey: "currency")
+                    UserDefaults.standard.synchronize()
                     
                 }))
                 
@@ -622,6 +637,19 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         self.minerfeeInput.addDoneButtonToKeyboard(myAction:  #selector(self.setFee))
         self.minerfeeInput.becomeFirstResponder()
         self.minerfeeInput.placeholder = "Fee in Satoshis"
+        
+        if UserDefaults.standard.object(forKey: "preference") != nil {
+            
+            self.preference = UserDefaults.standard.object(forKey: "preference") as! String
+            
+            if self.preference != "high" && self.preference != "medium" && self.preference != "low" {
+                
+                self.minerfeeInput.text = self.preference
+                self.manuallySetFee = true
+                
+            }
+        }
+        
         self.view.addSubview(self.minerfeeInput)
     }
     
@@ -738,7 +766,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             if self.imageView != nil {
                 self.imageView.removeFromSuperview()
             }
-            let bitcoinImage = UIImage(named: "img_311477.png")
+            let bitcoinImage = UIImage(named: "Bitsense image.png")
             self.imageView = UIImageView(image: bitcoinImage!)
             self.imageView.center = self.view.center
             self.imageView.frame = CGRect(x: self.view.center.x - 25, y: 20, width: 50, height: 50)

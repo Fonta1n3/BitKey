@@ -40,10 +40,10 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     
     override func viewDidAppear(_ animated: Bool) {
         
-        getUserDefaults()
         addHomeButton()
         addAddressBookButton()
         scanQRCode()
+        getUserDefaults()
         
         self.addressLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2 - 20), y: 100, width: self.view.frame.width - 40, height: 60)
         
@@ -53,7 +53,11 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         print("checkUserDefaults")
         
-        addressBook = checkUserDefaults().addressBook
+        if UserDefaults.standard.object(forKey: "addressBook") != nil {
+            
+            addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String:Any]]
+            
+        }
         
         coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
         hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
@@ -68,7 +72,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func addSpinner() {
         
         DispatchQueue.main.async {
-            let bitcoinImage = UIImage(named: "img_311477.png")
+            let bitcoinImage = UIImage(named: "Bitsense image.png")
             self.imageView = UIImageView(image: bitcoinImage!)
             self.imageView.center = self.view.center
             self.imageView.frame = CGRect(x: self.view.center.x - 25, y: 20, width: 50, height: 50)
@@ -492,12 +496,16 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         DispatchQueue.main.async {
             
-            self.addressBookButton.removeFromSuperview()
-            self.addressBookButton = UIButton(frame: CGRect(x: 10, y: self.view.frame.maxY - 60, width: 50, height: 50))
-            self.addressBookButton.showsTouchWhenHighlighted = true
-            self.addressBookButton.setImage(#imageLiteral(resourceName: "addressBook.png"), for: .normal)
-            self.addressBookButton.addTarget(self, action: #selector(self.openAddressBook), for: .touchUpInside)
-            self.view.addSubview(self.addressBookButton)
+            if self.addressBook.count > 0 {
+                
+                self.addressBookButton.removeFromSuperview()
+                self.addressBookButton = UIButton(frame: CGRect(x: 10, y: self.view.frame.maxY - 60, width: 50, height: 50))
+                self.addressBookButton.showsTouchWhenHighlighted = true
+                self.addressBookButton.setImage(#imageLiteral(resourceName: "addressBook.png"), for: .normal)
+                self.addressBookButton.addTarget(self, action: #selector(self.openAddressBook), for: .touchUpInside)
+                self.view.addSubview(self.addressBookButton)
+                
+            }
             
         }
         
@@ -505,6 +513,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     
     @objc func openAddressBook() {
         print("openAddressBook")
+        
+        if UserDefaults.standard.object(forKey: "isWalletEncrypted") != nil && UserDefaults.standard.object(forKey: "isWalletEncrypted") as! Bool == false {
         
         DispatchQueue.main.async {
             
@@ -575,11 +585,14 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 
             } else if self.addressBook.count == 0 {
                 
-                shakeAlert(viewToShake: self.imageView)
                 
+                }
+            
             }
             
-            
+        } else {
+                
+            displayAlert(viewController: self, title: "Error", message: "Your wallet is locked, you will only be able to use it in cold mode. Please go to the home screen and unlock the wallet for full functionality.")
         }
 
     }

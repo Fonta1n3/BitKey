@@ -13,6 +13,8 @@ import AVFoundation
 
 class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate, AVCaptureMetadataOutputObjectsDelegate {
     
+    var walletName = String()
+    var isWalletEncrypted = Bool()
     var textToShare = String()
     var filename = String()
     var recoveryMode = Bool()
@@ -140,14 +142,101 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     
     override func viewDidAppear(_ animated: Bool) {
         
-        addressBook = checkUserDefaults().addressBook
-        encryptAddressBook()
-        hotMode = checkUserDefaults().hotMode
-        coldMode = checkUserDefaults().coldMode
-        legacyMode = checkUserDefaults().legacyMode
-        segwitMode = checkUserDefaults().segwitMode
-        mainnetMode = checkUserDefaults().mainnetMode
-        testnetMode = checkUserDefaults().testnetMode
+        //UserDefaults.standard.object(forKey: "isWalletEncrypted")
+        //UserDefaults.standard.set(true, forKey: "isWalletEncrypted")
+        
+        if UserDefaults.standard.object(forKey: "isWalletEncrypted") != nil {
+            
+            self.isWalletEncrypted = UserDefaults.standard.object(forKey: "isWalletEncrypted") as! Bool
+            print("self.isWalletEncrypted = \(self.isWalletEncrypted)")
+            
+        } else {
+            
+            UserDefaults.standard.set(false, forKey: "isWalletEncrypted")
+            self.isWalletEncrypted = UserDefaults.standard.object(forKey: "isWalletEncrypted") as! Bool
+            print("self.isWalletEncrypted = \(self.isWalletEncrypted)")
+        }
+        
+        if UserDefaults.standard.object(forKey: "addressBook") != nil {
+            
+            addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String:Any]]
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "coldMode") != nil {
+            
+            coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
+            
+        } else {
+            
+            coldMode = false
+            UserDefaults.standard.set(coldMode, forKey: "coldMode")
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "hotMode") != nil {
+            
+            hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
+            
+        } else {
+            
+            hotMode = true
+            UserDefaults.standard.set(hotMode, forKey: "hotMode")
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "legacyMode") != nil {
+            
+            legacyMode = UserDefaults.standard.object(forKey: "legacyMode") as! Bool
+            
+        } else {
+            
+            legacyMode = true
+            UserDefaults.standard.set(legacyMode, forKey: "legacyMode")
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "segwitMode") != nil {
+            
+            segwitMode = UserDefaults.standard.object(forKey: "segwitMode") as! Bool
+            
+        } else {
+            
+            segwitMode = false
+            UserDefaults.standard.set(segwitMode, forKey: "segwitMode")
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "testnetMode") != nil {
+            
+            testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
+            
+        } else {
+            
+            testnetMode = false
+            UserDefaults.standard.set(testnetMode, forKey: "testnetMode")
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "mainnetMode") != nil {
+            
+            mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
+            
+        } else {
+            
+            mainnetMode = true
+            UserDefaults.standard.set(mainnetMode, forKey: "mainnetMode")
+            
+        }
+        
+        UserDefaults.standard.synchronize()
+        
+        print("coldmode = \(coldMode)")
+        print("hotmode = \(hotMode)")
+        print("legacymode = \(legacyMode)")
+        print("segwitmode = \(segwitMode)")
+        print("mainnetmode = \(mainnetMode)")
+        print("testnetmode = \(testnetMode)")
         
         words = ""
         
@@ -181,48 +270,267 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
     }
     
-    func encryptAddressBook() {
+    func unlockAddressBook() {
         
-        let password = AES256CBC.generatePassword()  // returns random 32 char string
-        print("password = \(password)")
+        var password = String()
         
-        func encrypt(stringToEncrypt: String, password: String) -> String {
+        let alert = UIAlertController(title: "Please input your old password", message: "Please enter your exisiting password to change it.", preferredStyle: .alert)
+        
+        alert.addTextField { (textField1) in
             
-            let encrypted = AES256CBC.encryptString(stringToEncrypt, password: password)!
-            return encrypted
+            textField1.placeholder = "Enter Password"
+            textField1.isSecureTextEntry = true
             
         }
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Unlock", comment: ""), style: .destructive, handler: { (action) in
+            
+            password = alert.textFields![0].text!
+            
+            if password == UserDefaults.standard.object(forKey: "unlockAESPassword") as! String {
+                
+                
+                self.decryptWallet(password: UserDefaults.standard.object(forKey: "AESPassword") as! String)
+                
+            } else {
+                
+                displayAlert(viewController: self, title: "Error", message: "Incorrect password!")
+                
+            }
+            
+        }))
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+            
+            
+        }))
+        
+        self.present(alert, animated: true, completion: nil)
+        
+        
+    }
+    
+    func setEncryptionPassword() {
+        
+        func setPassword() {
+            
+            if self.isWalletEncrypted == false {
+             
+                var firstPassword = String()
+                var secondPassword = String()
+                
+                let alert = UIAlertController(title: "Protect your wallet by setting a password that encrypts it.", message: "Please do not forget this password, and make sure your Bitcoin recovery phrases are backed up, if you lose the password and have no back ups you will lose your Bitcoin.", preferredStyle: .alert)
+                
+                alert.addTextField { (textField1) in
+                    
+                    textField1.placeholder = "Add Password"
+                    textField1.isSecureTextEntry = true
+                    
+                }
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Add", comment: ""), style: .destructive, handler: { (action) in
+                    
+                    firstPassword = alert.textFields![0].text!
+                    
+                    let confirmationAlert = UIAlertController(title: "Confirm Password", message: "Please input your password again to make sure there were no typos.", preferredStyle: .alert)
+                    
+                    confirmationAlert.addTextField { (textField1) in
+                        
+                        textField1.placeholder = "Confirm Password"
+                        textField1.isSecureTextEntry = true
+                        
+                    }
+                    
+                    confirmationAlert.addAction(UIAlertAction(title: NSLocalizedString("Confirm", comment: ""), style: .destructive, handler: { (action) in
+                        
+                        secondPassword = confirmationAlert.textFields![0].text!
+                        
+                        if firstPassword == secondPassword {
+                            
+                            let password = AES256CBC.generatePassword()
+                            print("secondPassword = \(secondPassword)")
+                            UserDefaults.standard.set(secondPassword, forKey: "unlockAESPassword")
+                            UserDefaults.standard.set(password, forKey: "AESPassword")
+                            UserDefaults.standard.synchronize()
+                            print("AESPassword = \(UserDefaults.standard.object(forKey: "AESPassword") as! String)")
+                            displayAlert(viewController: self, title: "Success", message: "You have set your locking/unlocking password.")
+                            
+                        } else {
+                            
+                            displayAlert(viewController: self, title: "Error", message: "Passwords did not match please start over.")
+                            
+                        }
+                        
+                    }))
+                    
+                    confirmationAlert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                        
+                        
+                    }))
+                    
+                    self.present(confirmationAlert, animated: true, completion: nil)
+                    
+                }))
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                    
+                    
+                }))
+                
+                self.present(alert, animated: true, completion: nil)
+                
+            } else {
+                
+                displayAlert(viewController: self, title: "Error", message: "Your wallet is already locked, please unlock it first.")
+            }
+            
+        }
+        
+        if UserDefaults.standard.object(forKey: "unlockAESPassword") != nil {
+            
+            if self.isWalletEncrypted == false {
+             
+                var password = String()
+                
+                let alert = UIAlertController(title: "Please input your old password", message: "Please enter your exisiting password to change it.", preferredStyle: .alert)
+                
+                alert.addTextField { (textField1) in
+                    
+                    textField1.placeholder = "Enter Password"
+                    textField1.isSecureTextEntry = true
+                    
+                }
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Unlock", comment: ""), style: .destructive, handler: { (action) in
+                    
+                    password = alert.textFields![0].text!
+                    
+                    if password == UserDefaults.standard.object(forKey: "unlockAESPassword") as! String {
+                        
+                        setPassword()
+                        
+                    } else {
+                        
+                        displayAlert(viewController: self, title: "Error", message: "Incorrect password!")
+                    }
+                    
+                }))
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                    
+                    
+                }))
+                
+                self.present(alert, animated: true, completion: nil)
+                
+            } else {
+                
+                displayAlert(viewController: self, title: "Error", message: "Your wallet is already locked, please unlock it first.")
+            }
+            
+        } else {
+            
+            setPassword()
+            
+        }
+        
+        
+        
+        
+    }
+    
+    func unencryptWalletAlert() {
+        
+        if self.isWalletEncrypted == true {
+            
+            var password = String()
+            
+            let alert = UIAlertController(title: "Your wallet is locked!", message: "Please enter your password to unlock it", preferredStyle: .alert)
+            
+            alert.addTextField { (textField1) in
+                
+                textField1.placeholder = "Enter Password"
+                textField1.isSecureTextEntry = true
+                
+            }
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Unlock", comment: ""), style: .destructive, handler: { (action) in
+                
+                password = alert.textFields![0].text!
+                
+                if password == UserDefaults.standard.object(forKey: "unlockAESPassword") as! String {
+                    
+                    self.decryptWallet(password: UserDefaults.standard.object(forKey: "AESPassword") as! String)
+                    
+                    displayAlert(viewController: self, title: "Wallet unlocked", message: "You now have access to your wallet.")
+                    
+                } else {
+                    
+                    displayAlert(viewController: self, title: "Error", message: "Incorrect password!")
+                }
+                
+            }))
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                
+                
+            }))
+            
+            self.present(alert, animated: true, completion: nil)
+            
+        }
+        
+    }
+    
+    func encryptWalletAlert() {
+        
+        if self.isWalletEncrypted == false {
+            
+            var password = String()
+            
+            let alert = UIAlertController(title: "Lock Wallet", message: "Please enter your password to lock it", preferredStyle: .alert)
+            
+            alert.addTextField { (textField1) in
+                
+                textField1.placeholder = "Enter Password"
+                textField1.isSecureTextEntry = true
+                
+            }
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Lock Now", comment: ""), style: .destructive, handler: { (action) in
+                
+                password = alert.textFields![0].text!
+                
+                if password == UserDefaults.standard.object(forKey: "unlockAESPassword") as! String {
+                    
+                    self.encryptAddressBook(password: UserDefaults.standard.object(forKey: "AESPassword") as! String)
+                    
+                    displayAlert(viewController: self, title: "Wallet Locked", message: "You will need to unlock the wallet before you can use it.")
+                    
+                } else {
+                    
+                    displayAlert(viewController: self, title: "Error", message: "Incorrect password!")
+                }
+                
+            }))
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                
+                
+            }))
+            
+            self.present(alert, animated: true, completion: nil)
+            
+        }
+        
+    }
+    
+    func decryptWallet(password: String) {
         
         func decrypt(stringToDecrypt: String, password: String) -> String {
             
             let decrypted = AES256CBC.decryptString(stringToDecrypt, password: password)!
             return decrypted
-        }
-        
-        for (index, wallet) in addressBook.enumerated() {
-            
-            if let privateKey = wallet["privateKey"] as? String {
-                
-                if privateKey != "" {
-                    
-                    let encryptedPrivateKey = encrypt(stringToEncrypt: privateKey, password: password)
-                    self.addressBook[index]["privateKey"] = encryptedPrivateKey
-                    
-                }
-                
-            }
-            
-            if let address = wallet["address"] as? String {
-                
-                let encryptedAddress = encrypt(stringToEncrypt: address, password: password)
-                self.addressBook[index]["address"] = encryptedAddress
-            }
-            
-        }
-        
-        for wallet in addressBook {
-            
-            print("encrypted wallet = \(wallet)\n\n")
         }
         
         for (index, wallet) in addressBook.enumerated() {
@@ -238,18 +546,78 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
             }
             
+            if let publicKey = wallet["publicKey"] as? String {
+                
+                if publicKey != "" {
+                    
+                    let decryptedPrivateKey = decrypt(stringToDecrypt: publicKey, password: password)
+                    self.addressBook[index]["publicKey"] = decryptedPrivateKey
+                    
+                }
+                
+            }
+            
             if let address = wallet["address"] as? String {
                 
                 let decryptedAddress = decrypt(stringToDecrypt: address, password: password)
                 self.addressBook[index]["address"] = decryptedAddress
+                
             }
             
         }
         
-        for wallet in addressBook {
+        self.isWalletEncrypted = false
+        UserDefaults.standard.set(false, forKey: "isWalletEncrypted")
+        UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+        UserDefaults.standard.synchronize()
+        
+    }
+    
+    func encryptAddressBook(password: String) {
+        
+        func encrypt(stringToEncrypt: String, password: String) -> String {
             
-            print("decrypted wallet = \(wallet)\n\n")
+            let encrypted = AES256CBC.encryptString(stringToEncrypt, password: password)!
+            return encrypted
+            
         }
+        
+        for (index, wallet) in addressBook.enumerated() {
+            
+            if let privateKey = wallet["privateKey"] as? String {
+                
+                if privateKey != "" {
+                    
+                    let encryptedPrivateKey = encrypt(stringToEncrypt: privateKey, password: password)
+                    self.addressBook[index]["privateKey"] = encryptedPrivateKey
+                    
+                }
+                
+            }
+            
+            if let publicKey = wallet["publicKey"] as? String {
+                
+                if publicKey != "" {
+                    
+                    let encryptedPublicKey = encrypt(stringToEncrypt: publicKey, password: password)
+                    self.addressBook[index]["publicKey"] = encryptedPublicKey
+                    
+                }
+                
+            }
+            
+            if let address = wallet["address"] as? String {
+                
+                let encryptedAddress = encrypt(stringToEncrypt: address, password: password)
+                self.addressBook[index]["address"] = encryptedAddress
+            }
+            
+        }
+        
+        self.isWalletEncrypted = true
+        UserDefaults.standard.set(true, forKey: "isWalletEncrypted")
+        UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+        UserDefaults.standard.synchronize()
         
     }
     
@@ -312,7 +680,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                         }
                         
                     }
-                    
                     
                 } else if wif.hasPrefix("9") || wif.hasPrefix("c") {
                     
@@ -502,7 +869,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 self.imageView.removeFromSuperview()
             }
             
-            let bitcoinImage = UIImage(named: "img_311477.png")
+            let bitcoinImage = UIImage(named: "Bitsense image.png")
             self.imageView = UIImageView(image: bitcoinImage!)
             self.imageView.center = self.view.center
             self.imageView.frame = CGRect(x: self.view.center.x - 100, y: self.view.center.y - 100, width: 200, height: 200)
@@ -528,24 +895,8 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.settingsButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.settingsButton)
             
-            self.infoButton.removeFromSuperview()
-            self.infoButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 50, y: 20, width: 45, height: 45))
-            self.infoButton.showsTouchWhenHighlighted = true
-            self.infoButton.layer.cornerRadius = 28
-            self.infoButton.setImage(#imageLiteral(resourceName: "help2.png"), for: .normal)
-            self.infoButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-            self.view.addSubview(self.infoButton)
-            
-            self.lockButton.removeFromSuperview()
-            self.lockButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 5 - (35/2)) + 5, y: 20, width: 35, height: 35))
-            self.lockButton.showsTouchWhenHighlighted = true
-            self.lockButton.layer.cornerRadius = 28
-            self.lockButton.setImage(#imageLiteral(resourceName: "lock.jpg"), for: .normal)
-            self.lockButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-            self.view.addSubview(self.lockButton)
-            
             self.priceButton.removeFromSuperview()
-            self.priceButton = UIButton(frame: CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 3 - (40/2)) - 5, y: 16, width: 50, height: 50))
+            self.priceButton = UIButton(frame: CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 3.25 - (40/2)) - 5, y: 16, width: 50, height: 50))
             self.priceButton.showsTouchWhenHighlighted = true
             self.priceButton.layer.cornerRadius = 28
             self.priceButton.setImage(#imageLiteral(resourceName: "price.png"), for: .normal)
@@ -553,20 +904,39 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.view.addSubview(self.priceButton)
             
             self.toolboxButton.removeFromSuperview()
-            self.toolboxButton = UIButton(frame: CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 5 - (40/2)) - 5, y: 20, width: 40, height: 40))
+            self.toolboxButton = UIButton(frame: CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 8 - (40/2)) - 5, y: 20, width: 40, height: 40))
             self.toolboxButton.showsTouchWhenHighlighted = true
             self.toolboxButton.layer.cornerRadius = 28
             self.toolboxButton.setImage(#imageLiteral(resourceName: "keys.png"), for: .normal)
             self.toolboxButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.toolboxButton)
             
+            
+            
+            self.lockButton.removeFromSuperview()
+            self.lockButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 8 - (35/2)) + 5, y: 20, width: 35, height: 35))
+            self.lockButton.showsTouchWhenHighlighted = true
+            self.lockButton.layer.cornerRadius = 28
+            self.lockButton.setImage(#imageLiteral(resourceName: "lock.jpg"), for: .normal)
+            self.lockButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+            self.view.addSubview(self.lockButton)
+            
+            
             self.addressBookButton.removeFromSuperview()
-            self.addressBookButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 3 - (35/2)) + 5, y: 22, width: 35, height: 35))
+            self.addressBookButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 3.25 - (35/2)) + 5, y: 22, width: 35, height: 35))
             self.addressBookButton.showsTouchWhenHighlighted = true
             self.addressBookButton.layer.cornerRadius = 28
             self.addressBookButton.setImage(#imageLiteral(resourceName: "addressBook.png"), for: .normal)
             self.addressBookButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             self.view.addSubview(self.addressBookButton)
+            
+            self.infoButton.removeFromSuperview()
+            self.infoButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 50, y: 20, width: 45, height: 45))
+            self.infoButton.showsTouchWhenHighlighted = true
+            self.infoButton.layer.cornerRadius = 28
+            self.infoButton.setImage(#imageLiteral(resourceName: "help2.png"), for: .normal)
+            self.infoButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
+            self.view.addSubview(self.infoButton)
             
         }
         
@@ -607,91 +977,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
     }
     
-    /*func addSweepButton() {
-        
-        self.sweepButton.removeFromSuperview()
-        self.sweepButton = UIButton(frame: CGRect(x: 5, y: self.diceButton.frame.maxY + 10, width: 85, height: 50))
-        self.sweepButton.showsTouchWhenHighlighted = true
-        self.sweepButton.layer.cornerRadius = 10
-        self.sweepButton.backgroundColor = UIColor.black
-        self.sweepButton.layer.shadowColor = UIColor.black.cgColor
-        self.sweepButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.sweepButton.layer.shadowRadius = 2.5
-        self.sweepButton.layer.shadowOpacity = 0.8
-        self.sweepButton.setTitle("Sweep", for: .normal)
-        self.sweepButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-        self.view.addSubview(self.sweepButton)
-        
-    }*/
-    /*
-    func addExportButton() {
-        
-        self.exportButton.removeFromSuperview()
-        self.exportButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.transactionsButton.frame.minY - 60, width: 85, height: 50))
-        self.exportButton.showsTouchWhenHighlighted = true
-        self.exportButton.titleLabel?.textAlignment = .center
-        self.exportButton.layer.cornerRadius = 10
-        self.exportButton.backgroundColor = UIColor.black
-        self.exportButton.layer.shadowColor = UIColor.black.cgColor
-        self.exportButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.exportButton.layer.shadowRadius = 2.5
-        self.exportButton.layer.shadowOpacity = 0.8
-        self.exportButton.setTitle("Export", for: .normal)
-        self.exportButton.addTarget(self, action: #selector(self.export), for: .touchUpInside)
-        self.view.addSubview(self.exportButton)
-        
-    }
-    */
-    /*func addImportButton() {
-        
-        self.importButton.removeFromSuperview()
-        self.importButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.exportButton.frame.minY - 60, width: 85, height: 50))
-        self.importButton.showsTouchWhenHighlighted = true
-        self.importButton.layer.cornerRadius = 10
-        self.importButton.backgroundColor = UIColor.black
-        self.importButton.layer.shadowColor = UIColor.black.cgColor
-        self.importButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.importButton.layer.shadowRadius = 2.5
-        self.importButton.layer.shadowOpacity = 0.8
-        self.importButton.setTitle("Import", for: .normal)
-        self.importButton.addTarget(self, action: #selector(self.importMnemonic), for: .touchUpInside)
-        self.view.addSubview(self.importButton)
-        
-    }*/
-    
-    /*func addMultiSigButton() {
-        
-        self.multiSigButton.removeFromSuperview()
-        self.multiSigButton = UIButton(frame: CGRect(x: self.view.center.x - (85/2), y: self.newAddressButton.frame.minY - 60, width: 85, height: 50))
-        self.multiSigButton.showsTouchWhenHighlighted = true
-        self.multiSigButton.layer.cornerRadius = 10
-        self.multiSigButton.backgroundColor = UIColor.black
-        self.multiSigButton.layer.shadowColor = UIColor.black.cgColor
-        self.multiSigButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.multiSigButton.layer.shadowRadius = 2.5
-        self.multiSigButton.layer.shadowOpacity = 0.8
-        self.multiSigButton.setTitle("Multi-Sig", for: .normal)
-        self.multiSigButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-        self.view.addSubview(self.multiSigButton)
-        
-    }*/
-    
-    /*func addDiceButton() {
-        
-        self.diceButton.removeFromSuperview()
-        self.diceButton = UIButton(frame: CGRect(x: 5, y: self.settingsButton.frame.minY + 60, width: 85, height: 50))
-        self.diceButton.showsTouchWhenHighlighted = true
-        self.diceButton.layer.cornerRadius = 10
-        self.diceButton.backgroundColor = UIColor.black
-        self.diceButton.layer.shadowColor = UIColor.black.cgColor
-        self.diceButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.diceButton.layer.shadowRadius = 2.5
-        self.diceButton.layer.shadowOpacity = 0.8
-        self.diceButton.setTitle("Dice", for: .normal)
-        self.diceButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
-        self.view.addSubview(self.diceButton)
-        
-    }*/
     
     func addCheckAddressButton() {
         
@@ -738,194 +1023,197 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     
     @objc func userCreatesRandomness(gestureRecognizer: UIPanGestureRecognizer) {
         
-        self.addressBookButton.removeFromSuperview()
-        self.toolboxButton.removeFromSuperview()
-        self.priceButton.removeFromSuperview()
-        self.lockButton.removeFromSuperview()
-        self.infoButton.removeFromSuperview()
-        self.multiSigButton.removeFromSuperview()
-        self.sweepButton.removeFromSuperview()
-        self.checkAddressButton.removeFromSuperview()
-        self.diceButton.removeFromSuperview()
-        self.transactionsButton.removeFromSuperview()
-        self.importButton.removeFromSuperview()
-        self.newAddressButton.removeFromSuperview()
-        self.exportButton.removeFromSuperview()
-        self.settingsButton.removeFromSuperview()
-        
-        let translation = gestureRecognizer.translation(in: view)
-        let bitcoinView = gestureRecognizer.view!
-        bitcoinView.center = CGPoint(x: self.view.bounds.width / 2 + translation.x, y: self.view.bounds.height / 2 + translation.y)
-        let xFromCenter = bitcoinView.center.x - self.view.bounds.width / 2
-        numberArray.append(String(describing: abs(Int(xFromCenter))))
-        var shuffledArray = self.numberArray.shuffled()
-        var joinedArray = shuffledArray.joined()
-        var evenNumbersToZeros = joinedArray.replacingOccurrences(of: "[2468]", with: "0", options: .regularExpression, range: nil)
-        var allToBits = evenNumbersToZeros.replacingOccurrences(of: "[3579]", with: "1", options: .regularExpression, range: nil)
-        bitField.text = allToBits
-        
-        if gestureRecognizer.state == UIGestureRecognizerState.began {
-            DispatchQueue.main.async {
-                rotateAnimation(imageView: self.imageView as! UIImageView)
+        if self.isWalletEncrypted == true {
+            
+            displayAlert(viewController: self, title: "Wallet is Locked!", message: "You can not create new keys while the wallet is locked, please unlock the wallet and try again.")
+            
+        } else {
+            
+            self.addressBookButton.removeFromSuperview()
+            self.toolboxButton.removeFromSuperview()
+            self.priceButton.removeFromSuperview()
+            self.lockButton.removeFromSuperview()
+            self.infoButton.removeFromSuperview()
+            self.multiSigButton.removeFromSuperview()
+            self.sweepButton.removeFromSuperview()
+            self.checkAddressButton.removeFromSuperview()
+            self.diceButton.removeFromSuperview()
+            self.transactionsButton.removeFromSuperview()
+            self.importButton.removeFromSuperview()
+            self.newAddressButton.removeFromSuperview()
+            self.exportButton.removeFromSuperview()
+            self.settingsButton.removeFromSuperview()
+            
+            let translation = gestureRecognizer.translation(in: view)
+            let bitcoinView = gestureRecognizer.view!
+            bitcoinView.center = CGPoint(x: self.view.bounds.width / 2 + translation.x, y: self.view.bounds.height / 2 + translation.y)
+            let xFromCenter = bitcoinView.center.x - self.view.bounds.width / 2
+            numberArray.append(String(describing: abs(Int(xFromCenter))))
+            var shuffledArray = self.numberArray.shuffled()
+            var joinedArray = shuffledArray.joined()
+            var evenNumbersToZeros = joinedArray.replacingOccurrences(of: "[2468]", with: "0", options: .regularExpression, range: nil)
+            var allToBits = evenNumbersToZeros.replacingOccurrences(of: "[3579]", with: "1", options: .regularExpression, range: nil)
+            bitField.text = allToBits
+            
+            if gestureRecognizer.state == UIGestureRecognizerState.began {
+                DispatchQueue.main.async {
+                    rotateAnimation(imageView: self.imageView as! UIImageView)
+                }
             }
-        }
-        
-        if allToBits.count > 800 {
             
-            self.imageView.alpha = 0
-        }
-        
-        if gestureRecognizer.state == UIGestureRecognizerState.ended {
-            
-            if allToBits.count < 800 {
+            if allToBits.count > 800 {
                 
-                UIView.animate(withDuration: 0.5, animations: {
+                self.imageView.alpha = 0
+            }
+            
+            if gestureRecognizer.state == UIGestureRecognizerState.ended {
+                
+                if allToBits.count < 800 {
                     
-                    bitcoinView.center =  self.view.center
+                    UIView.animate(withDuration: 0.5, animations: {
+                        
+                        bitcoinView.center =  self.view.center
+                        
+                    }, completion: { _ in
+                        
+                        DispatchQueue.main.async {
+                            
+                            let alert = UIAlertController(title: "Keep Going!", message: "Please move the Bitcoin around more so we have a large enough number to generate a private key, it should not take more then 10 seconds of your time, this ensures we create a really large really random number that makes your Bitcoin ultra secure.", preferredStyle: UIAlertControllerStyle.alert)
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
+                                
+                            }))
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                
+                                self.removeBitField()
+                                
+                            }))
+                            
+                            self.present(alert, animated: true, completion: nil)
+                        }
+                        
+                    })
                     
-                }, completion: { _ in
+                } else {
                     
-                    DispatchQueue.main.async {
+                    self.imageView.removeFromSuperview()
+                    
+                    for character in allToBits {
                         
-                        let alert = UIAlertController(title: "Keep Going!", message: "Please move the Bitcoin around more so we have a large enough number to generate a private key, it should not take more then 10 seconds of your time, this ensures we create a really large really random number that makes your Bitcoin ultra secure.", preferredStyle: UIAlertControllerStyle.alert)
+                        self.bitArray.append(String(character))
                         
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
-                            
-                        }))
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                            
-                            self.removeBitField()
-                            
-                        }))
-                        
-                        self.present(alert, animated: true, completion: nil)
                     }
                     
-                })
-                
-            } else {
-                
-                self.imageView.removeFromSuperview()
-                
-                for character in allToBits {
+                    var bit256Array = [String]()
                     
-                    self.bitArray.append(String(character))
-                    
-                }
-                
-                var bit256Array = [String]()
-                    
-                for (index, bit) in self.bitArray.enumerated() {
+                    for (index, bit) in self.bitArray.enumerated() {
                         
-                    if index < 256 {
+                        if index < 256 {
                             
-                        bit256Array.append(bit)
+                            bit256Array.append(bit)
                             
-                        if bit256Array.count == 256 {
+                            if bit256Array.count == 256 {
                                 
-                            let bits = bit256Array.joined()
+                                let bits = bit256Array.joined()
                                 
-                            print("bitnumber = \(bits.count)")
+                                print("bitnumber = \(bits.count)")
                                 
-                            self.parseBitResult = self.parseBinary(binary: bits)!
+                                self.parseBitResult = self.parseBinary(binary: bits)!
                                 
-                            UIView.animate(withDuration: 0.5, animations: {
+                                UIView.animate(withDuration: 0.5, animations: {
                                     
-                                bitcoinView.center =  self.view.center
+                                    bitcoinView.center =  self.view.center
                                     
-                            }, completion: { _ in
-                                
-                                DispatchQueue.main.async {
-                                    allToBits = ""
-                                    evenNumbersToZeros = ""
-                                    self.bitField.text = ""
-                                    shuffledArray.removeAll()
-                                    joinedArray = ""
-                                    self.bitArray.removeAll()
-                                    self.numberArray.removeAll()
-                                }
-                                
-                                if self.hotMode {
+                                }, completion: { _ in
+                                    
+                                    DispatchQueue.main.async {
+                                        allToBits = ""
+                                        evenNumbersToZeros = ""
+                                        self.bitField.text = ""
+                                        shuffledArray.removeAll()
+                                        joinedArray = ""
+                                        self.bitArray.removeAll()
+                                        self.numberArray.removeAll()
+                                    }
+                                    
+                                    if self.hotMode {
                                         
-                                    self.privateKeyWIF = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).privateKeyAddress
-                                    self.bitcoinAddress = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).publicKeyAddress
-                                    self.words = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).recoveryPhrase
+                                        self.privateKeyWIF = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).privateKeyAddress
+                                        self.bitcoinAddress = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).publicKeyAddress
+                                        self.words = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).recoveryPhrase
                                         
-                                    if self.privateKeyWIF != "" {
+                                        if self.privateKeyWIF != "" {
                                             
-                                        
-                                            //self.showPrivateKeyAndAddressQRCodes()
-                                        self.showRecoveryPhraseAndQRCode()
-                                                
+                                            self.showRecoveryPhraseAndQRCode()
+                                            
                                             if isInternetAvailable() {
-                                                    
+                                                
                                                 DispatchQueue.main.async {
-                                                        
+                                                    
                                                     displayAlert(viewController: self, title: "Security Alert", message: "You should only create private keys offline. Please enable airplane mode, turn off wifi and try again.")
                                                 }
-                                                    
+                                                
                                             }
-                                                
-                                        
-                                    } else {
                                             
-                                        DispatchQueue.main.async {
-                                                
-                                            let alert = UIAlertController(title: "There was an error", message: "Please try again.", preferredStyle: UIAlertControllerStyle.alert)
-                                                
-                                            alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
-                                                
-                                                self.removeBitField()
-                                                
-                                            }))
-                                                
-                                            self.present(alert, animated: true, completion: nil)
-                                                
-                                        }
+                                        } else {
                                             
-                                    }
-                                        
-                                } else {
-                                        
-                                    self.privateKeyWIF = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).privateKeyAddress
-                                    self.bitcoinAddress = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).publicKeyAddress
-                                    self.words = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).recoveryPhrase
-                                        
-                                    if self.privateKeyWIF != "" {
-                                            
-                                        //self.showPrivateKeyAndAddressQRCodes()
-                                        self.showRecoveryPhraseAndQRCode()
-                                    
-                                    } else {
-                                            
-                                        DispatchQueue.main.async {
+                                            DispatchQueue.main.async {
                                                 
-                                            let alert = UIAlertController(title: "There was an error", message: "Please try again.", preferredStyle: UIAlertControllerStyle.alert)
+                                                let alert = UIAlertController(title: "There was an error", message: "Please try again.", preferredStyle: UIAlertControllerStyle.alert)
                                                 
-                                            alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .destructive, handler: { (action) in
-                                                
-                                                self.removeBitField()
+                                                alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
                                                     
-                                            }))
+                                                    self.removeBitField()
+                                                    
+                                                }))
                                                 
-                                            self.present(alert, animated: true, completion: nil)
-                                        }
+                                                self.present(alert, animated: true, completion: nil)
+                                                
+                                            }
                                             
-                                    }
+                                        }
                                         
-                                }
+                                    } else {
+                                        
+                                        self.privateKeyWIF = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).privateKeyAddress
+                                        self.bitcoinAddress = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).publicKeyAddress
+                                        self.words = createPrivateKey(viewController: self, userRandomness: self.parseBitResult).recoveryPhrase
+                                        
+                                        if self.privateKeyWIF != "" {
+                                            
+                                            self.showRecoveryPhraseAndQRCode()
+                                            
+                                        } else {
+                                            
+                                            DispatchQueue.main.async {
+                                                
+                                                let alert = UIAlertController(title: "There was an error", message: "Please try again.", preferredStyle: UIAlertControllerStyle.alert)
+                                                
+                                                alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .destructive, handler: { (action) in
+                                                    
+                                                    self.removeBitField()
+                                                    
+                                                }))
+                                                
+                                                self.present(alert, animated: true, completion: nil)
+                                            }
+                                            
+                                        }
+                                        
+                                    }
                                     
-                            })
+                                })
                                 
-                        }
+                            }
                             
-                    }
+                        }
                         
-                }
+                    }
                     
+                }
+                
             }
-            
         }
         
     }
@@ -964,11 +1252,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
         self.privateKeyQRCode = self.generateQrCode(key: self.bitcoinAddress)
         self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
-        self.privateKeyQRView.frame = CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 130, width: self.view.frame.width - 10, height: self.view.frame.width - 10)
+        self.privateKeyQRView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 70) / 2), y: 130, width: self.view.frame.width - 70, height: self.view.frame.width - 70)
         self.privateKeyQRView.alpha = 0
         self.view.addSubview(self.privateKeyQRView)
             
-        self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 150 + (self.view.frame.width - 10) - 11, width: self.view.frame.width - 10, height: 13))
+        self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.view.frame.minX + 5, y: self.privateKeyQRView.frame.maxY + 10, width: self.view.frame.width - 10, height: 13))
+        
         self.WIFprivateKeyFieldLabel.font = .systemFont(ofSize: 12)
         self.WIFprivateKeyFieldLabel.textColor = UIColor.black
         self.WIFprivateKeyFieldLabel.textAlignment = .left
@@ -989,12 +1278,10 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     
             }, completion: { _ in
                     
-                //self.scrollView.setContentOffset(.zero, animated: false)
-                    
                 DispatchQueue.main.async {
                         
                     self.WIFprivateKeyFieldLabel.text = "Text Format:"
-                    self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.frame.minX + 20, y: self.view.frame.minY + 70, width: self.view.frame.width - 40, height: 50))
+                    self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.frame.minX, y: self.view.frame.minY + 70, width: self.view.frame.width, height: 50))
                     self.privateKeyTitle.text = "Send Bitcoin to \"\(walletName)\""
                     self.privateKeyTitle.adjustsFontSizeToFitWidth = true
                     self.privateKeyTitle.font = .systemFont(ofSize: 32)
@@ -1004,7 +1291,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                         
                 }
                     
-                self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.privateKeyQRView.frame.maxY + 40, width: self.view.frame.width - 50, height: 100))
+                self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 10)/2), y: self.WIFprivateKeyFieldLabel.frame.maxY + 10, width: self.view.frame.width - 10, height: 150))
                 self.myField.isEditable = false
                 self.myField.isSelectable = true
                 self.myField.font = .systemFont(ofSize: 24)
@@ -1140,15 +1427,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
                 self.view.addSubview(self.button)
                 
-                /*if self.coldMode {
-                    
-                    self.bitcoinAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: 20, width: 55 , height: 55))
-                    self.bitcoinAddressButton.setImage(#imageLiteral(resourceName: "switch.jpg"), for: .normal)
-                    self.bitcoinAddressButton.addTarget(self, action: #selector(self.getAddress), for: .touchUpInside)
-                    self.view.addSubview(self.bitcoinAddressButton)
-                }*/
-                
- 
             }
             
         
@@ -1302,88 +1580,9 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         }
     }
     
-    /*@objc func export() {
-        
-        if let wif = UserDefaults.standard.object(forKey: "wif") as? String {
-            
-            if UserDefaults.standard.object(forKey: "seed") != nil {
-                
-             self.words = UserDefaults.standard.object(forKey: "seed") as! String
-                
-            }
-            
-            self.privateKeyWIF = wif
-            
-            if testnetMode {
-                
-                let privateKey = BTCPrivateKeyAddressTestnet.init(string: wif)
-                let addressHD = privateKey?.key.addressTestnet
-                
-                if self.legacyMode {
-                    
-                    let legacyAddress2 = (addressHD?.description)?.components(separatedBy: " ")
-                    self.bitcoinAddress = legacyAddress2![1].replacingOccurrences(of: ">", with: "")
-                    
-                } else if segwitMode {
-                    
-                    
-                    let compressedPKData = BTCRIPEMD160(BTCSHA256(privateKey?.key.compressedPublicKey as Data!) as Data!) as Data!
-                    
-                    do {
-                        
-                        self.bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
-                        
-                    } catch {
-                        
-                        displayAlert(viewController: self, title: "Error", message: "Please try again.")
-                    }
-                    
-                }
-                
-            } else if mainnetMode {
-                
-                let privateKey = BTCPrivateKeyAddress.init(string: wif)
-                let addressHD = privateKey?.key.address
-                
-                if self.legacyMode {
-                    
-                    let legacyAddress2 = (addressHD?.description)?.components(separatedBy: " ")
-                    self.bitcoinAddress = legacyAddress2![1].replacingOccurrences(of: ">", with: "")
-                    
-                } else if segwitMode {
-                    
-                    
-                    let compressedPKData = BTCRIPEMD160(BTCSHA256(privateKey?.key.compressedPublicKey as Data!) as Data!) as Data!
-                    
-                    do {
-                        
-                        self.bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
-                            
-                    } catch {
-                        
-                        displayAlert(viewController: self, title: "Error", message: "Please try again.")
-                    }
-                    
-                }
-                
-            }
-            
-            showPrivateKeyAndAddressQRCodes()
-            
-        } else {
-            
-            shakeAlert(viewToShake: self.imageView)
-            
-        }
-        
-    }*/
-    
     @objc func newAddress() {
         print("newAddress")
         
-        self.addressBook = checkUserDefaults().addressBook
-        
-        //action alert to ask which wallet youd like to receiev to
         DispatchQueue.main.async {
             
             if self.addressBook.count > 1 {
@@ -1561,7 +1760,14 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     if self.segwitMode {
                         
                         DispatchQueue.main.async {
-                            self.privateKeyTitle.text = "Segwit Address"
+                            self.privateKeyTitle.text = "Address"
+                            
+                            if self.walletName != "" {
+                                
+                                self.privateKeyTitle.text = "\"" + self.walletName + "\"" + " " + "Address"
+                                
+                            }
+                            
                             self.WIFprivateKeyFieldLabel.text = "Native Segwit Bech32 Format:"
                             
                         }
@@ -1569,7 +1775,14 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     } else if self.legacyMode {
                         
                         DispatchQueue.main.async {
-                            self.privateKeyTitle.text = "Legacy Bitcoin Address"
+                            self.privateKeyTitle.text = "Address"
+                            
+                            if self.walletName != "" {
+                                
+                                self.privateKeyTitle.text = "\"" + self.walletName + "\"" + " " + "Address"
+                                
+                            }
+                            
                             self.WIFprivateKeyFieldLabel.text = "Legacy Format:"
                         }
                         
@@ -1587,7 +1800,14 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
                 DispatchQueue.main.async {
                     
-                    self.privateKeyTitle.text = "Bitcoin Private Key"
+                    self.privateKeyTitle.text = "Private Key"
+                    
+                    if self.walletName != "" {
+                        
+                        self.privateKeyTitle.text = "\"" + self.walletName + "\"" + " " + "Private Key"
+                        
+                    }
+                    
                     self.WIFprivateKeyFieldLabel.text = "WIF Format:"
                     self.myField.text = self.privateKeyText
                     self.privateKeyQRCode = self.generateQrCode(key: self.privateKeyText)
@@ -1654,7 +1874,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
         }
         
-        //CGRect(x: self.view.center.x - ((self.view.frame.width - 70) / 2), y: self.mnemonicView.frame.maxY + 10, width: self.view.frame.width - 70, height: self.view.frame.width - 70)
         self.privateKeyText = self.privateKeyWIF
         self.privateKeyQRCode = self.generateQrCode(key: self.privateKeyWIF)
         self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
@@ -1687,7 +1906,15 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 self.WIFprivateKeyFieldLabel.text = "WIF Format:"
                 
                 self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.frame.minX, y: self.view.frame.minY + 70, width: self.view.frame.width, height: 50))
-                self.privateKeyTitle.text = "Bitcoin Private Key"
+                self.privateKeyTitle.text = "Private Key"
+                
+                if self.walletName != "" {
+                    
+                    self.privateKeyTitle.text = "\"" + self.walletName + "\"" + " " + "Private Key"
+                    
+                }
+                
+                self.privateKeyTitle.adjustsFontSizeToFitWidth = true
                 self.privateKeyTitle.font = .systemFont(ofSize: 32)
                 self.privateKeyTitle.textColor = UIColor.black
                 self.privateKeyTitle.textAlignment = .center
@@ -1948,64 +2175,137 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     
     func addPasswordAlert() {
         
-        var firstPassword = String()
-        var secondPassword = String()
+        //setEncryptionPassword()
         
-        let alert = UIAlertController(title: "BIP39 Password", message: "Please create a password, this will require you to remember your password along with your recovery phrase to import your Bitcoin, this is fully compatible with all BIP39 wallets.", preferredStyle: .alert)
-        
-        alert.addTextField { (textField1) in
+        func addBIP39Password() {
             
-            textField1.placeholder = "Add Password"
-            textField1.isSecureTextEntry = true
+            var firstPassword = String()
+            var secondPassword = String()
             
-        }
-        
-        alert.addAction(UIAlertAction(title: NSLocalizedString("Add", comment: ""), style: .destructive, handler: { (action) in
+            let alert = UIAlertController(title: "BIP39 Password", message: "Please create a password, this will require you to remember your password along with your recovery phrase to import your Bitcoin, this is fully compatible with all BIP39 wallets.", preferredStyle: .alert)
             
-            firstPassword = alert.textFields![0].text!
-            
-            let confirmationAlert = UIAlertController(title: "Confirm Password", message: "Please input your password again to make sure there were no typos.", preferredStyle: .alert)
-            
-            confirmationAlert.addTextField { (textField1) in
+            alert.addTextField { (textField1) in
                 
-                textField1.placeholder = "Confirm Password"
+                textField1.placeholder = "Add Password"
                 textField1.isSecureTextEntry = true
                 
             }
             
-            confirmationAlert.addAction(UIAlertAction(title: NSLocalizedString("Confirm", comment: ""), style: .destructive, handler: { (action) in
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Add", comment: ""), style: .destructive, handler: { (action) in
                 
-                secondPassword = confirmationAlert.textFields![0].text!
+                firstPassword = alert.textFields![0].text!
                 
-                if firstPassword == secondPassword {
+                let confirmationAlert = UIAlertController(title: "Confirm Password", message: "Please input your password again to make sure there were no typos.", preferredStyle: .alert)
+                
+                confirmationAlert.addTextField { (textField1) in
                     
-                    UserDefaults.standard.set(secondPassword, forKey: "password")
+                    textField1.placeholder = "Confirm Password"
+                    textField1.isSecureTextEntry = true
                     
-                    displayAlert(viewController: self, title: "Success", message: "You have succesfully added a password that will be used when creating all your future wallets, please ensure you don't forget as you will need it along with your recovery phrase to recover your Bitcoin.")
+                }
+                
+                confirmationAlert.addAction(UIAlertAction(title: NSLocalizedString("Confirm", comment: ""), style: .destructive, handler: { (action) in
+                    
+                    secondPassword = confirmationAlert.textFields![0].text!
+                    
+                    if firstPassword == secondPassword {
+                        
+                        UserDefaults.standard.set(secondPassword, forKey: "password")
+                        UserDefaults.standard.synchronize()
+                        
+                        displayAlert(viewController: self, title: "Success", message: "You have succesfully added a password that will be used when creating all your future wallets, please ensure you don't forget as you will need it along with your recovery phrase to recover your Bitcoin.")
+                        
+                    } else {
+                        
+                        displayAlert(viewController: self, title: "Error", message: "Passwords did not match please start over.")
+                        
+                    }
+                    
+                }))
+                
+                confirmationAlert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                    
+                    
+                }))
+                
+                self.present(confirmationAlert, animated: true, completion: nil)
+                
+            }))
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                
+                
+            }))
+            
+            self.present(alert, animated: true, completion: nil)
+            
+        }
+        
+        DispatchQueue.main.async {
+            
+            let alert = UIAlertController(title: "Choose an option", message: "You can either add a password that will act as a dual factor password for your BIP39 compaitble recovery phrase, OR create a password that will lock your wallet so that only you can spend from it, both passwords can be the same but they do very different things so be careful and make sure you understand before proceeding.", preferredStyle: UIAlertControllerStyle.actionSheet)
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Set BIP39 Password", comment: ""), style: .default, handler: { (action) in
+                
+                if UserDefaults.standard.object(forKey: "password") != nil {
+                    
+                    let alert = UIAlertController(title: "Alert!", message: "This will overwrite your existing password, are you sure you want to continue?", preferredStyle: UIAlertControllerStyle.alert)
+                    
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Yes", comment: ""), style: .destructive, handler: { (action) in
+                        
+                        addBIP39Password()
+                        
+                    }))
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                        
+                    }))
+                    
+                    self.present(alert, animated: true, completion: nil)
                     
                 } else {
                     
-                    displayAlert(viewController: self, title: "Error", message: "Passwords did not match please start over.")
+                    addBIP39Password()
                     
                 }
                 
             }))
             
-            confirmationAlert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+            if self.isWalletEncrypted == true {
                 
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Unlock Wallet", comment: ""), style: .default, handler: { (action) in
+                    
+                    self.unencryptWalletAlert()
+                    
+                }))
+                
+            } else if self.isWalletEncrypted == false {
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Set Lock Wallet Password", comment: ""), style: .default, handler: { (action) in
+                    
+                    self.setEncryptionPassword()
+                    
+                }))
+                
+                if UserDefaults.standard.object(forKey: "unlockAESPassword") != nil {
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Lock Wallet Now", comment: ""), style: .default, handler: { (action) in
+                        
+                     self.encryptWalletAlert()
+                        
+                    }))
+                    
+                }
+                
+            }
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
                 
             }))
             
-            self.present(confirmationAlert, animated: true, completion: nil)
-            
-        }))
-        
-        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
-            
-            
-        }))
-        
-        self.present(alert, animated: true, completion: nil)
+            self.present(alert, animated: true, completion: nil)
+        }
         
     }
     
@@ -2026,29 +2326,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         case self.lockButton:
             
             print("lock button")
-            
-            if UserDefaults.standard.object(forKey: "password") != nil {
-                
-                let alert = UIAlertController(title: "Alert!", message: "This will overwrite your existing password, are you sure you want to continue?", preferredStyle: UIAlertControllerStyle.alert)
-                
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Yes", comment: ""), style: .destructive, handler: { (action) in
-                    
-                    self.addPasswordAlert()
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                    
-                }))
-                
-                self.present(alert, animated: true, completion: nil)
-                
-            } else {
-                
-                self.addPasswordAlert()
-                
-            }
+            self.addPasswordAlert()
             
         case self.priceButton:
             
@@ -2418,6 +2696,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     alert.addAction(UIAlertAction(title: NSLocalizedString("Don't show me this again", comment: ""), style: .destructive, handler: { (action) in
                         
                         UserDefaults.standard.set(true, forKey: "hideExplanation")
+                        UserDefaults.standard.synchronize()
                         self.hideExplanation = true
                         
                     }))

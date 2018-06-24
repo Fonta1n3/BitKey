@@ -13,6 +13,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
 
     @IBOutlet var addressBookTable: UITableView!
     
+    var walletNameToExport = String()
     var backButton = UIButton()
     var addButton = UIButton()
     var addressBook: [[String: Any]] = []
@@ -59,6 +60,16 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
         }
         
+        if UserDefaults.standard.object(forKey: "isWalletEncrypted") != nil {
+            
+            if UserDefaults.standard.object(forKey: "isWalletEncrypted") as! Bool == true {
+                
+                displayAlert(viewController: self, title: "Wallet is Locked!", message: "Good luck trying to use the wallet while its locked, please go back and unlock it to gain full functionality.")
+                
+            }
+            
+        }
+        
         getArrays()
         
         
@@ -72,6 +83,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             if self.privateKeyToExport != "" {
                 
                 let vc = segue.destination as! ViewController
+                vc.walletName = self.walletNameToExport
                 vc.bitcoinAddress = addressToExport
                 vc.privateKeyWIF = privateKeyToExport
                 vc.exportPrivateKeyFromTable = true
@@ -79,6 +91,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             } else {
                 
                 let vc = segue.destination as! ViewController
+                vc.walletName = self.walletNameToExport
                 vc.bitcoinAddress = addressToExport
                 vc.exportAddressFromTable = true
                 
@@ -328,6 +341,8 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
                     
                     saveWallet(viewController: self, address: multiSigAddress, privateKey: "", publicKey: "", redemptionScript: redemptionScript, network: network, type: "cold")
+                    
+                    UserDefaults.standard.synchronize()
                     
                     self.multiSigMode = false
                     
@@ -806,6 +821,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                 
                                 self.addressBook.remove(at: index)
                                     UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+                                    UserDefaults.standard.synchronize()
                                     self.hotMainnetArray.remove(at: indexPath.row)
                                     tableView.deleteRows(at: [indexPath], with: .fade)
                                     
@@ -837,6 +853,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                     
                                     self.addressBook.remove(at: index)
                                     UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+                                    UserDefaults.standard.synchronize()
                                     self.hotTestnetArray.remove(at: indexPath.row)
                                     tableView.deleteRows(at: [indexPath], with: .fade)
                                     
@@ -868,6 +885,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                     
                                     self.addressBook.remove(at: index)
                                     UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+                                    UserDefaults.standard.synchronize()
                                     self.coldMainnetArray.remove(at: indexPath.row)
                                     tableView.deleteRows(at: [indexPath], with: .fade)
                                     
@@ -899,6 +917,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                     
                                     self.addressBook.remove(at: index)
                                     UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+                                    UserDefaults.standard.synchronize()
                                     self.coldTestnetArray.remove(at: indexPath.row)
                                     tableView.deleteRows(at: [indexPath], with: .fade)
                                     
@@ -944,6 +963,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 
                 self.addressToExport = wallet["address"] as! String
                 self.privateKeyToExport = wallet["privateKey"] as! String
+                self.walletNameToExport = wallet["label"] as! String
                 self.performSegue(withIdentifier: "goHome", sender: self)
                 
             }))
@@ -980,6 +1000,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                     self.addressBook[index]["privateKey"] = ""
                                     self.addressBook[index]["type"] = "cold"
                                     UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+                                    UserDefaults.standard.synchronize()
                                     
                                 }
                                 
@@ -1021,6 +1042,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                             self.addressBook[index]["label"] = label
                             
                             UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
+                            UserDefaults.standard.synchronize()
                             
                             displayAlert(viewController: self, title: "Success", message: "You updated a \"\(oldName)\" to \"\(label)\"")
                             
@@ -1295,7 +1317,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             if self.imageView != nil {
               self.imageView.removeFromSuperview()
             }
-            let bitcoinImage = UIImage(named: "img_311477.png")
+            let bitcoinImage = UIImage(named: "Bitsense image.png")
             self.imageView = UIImageView(image: bitcoinImage!)
             self.imageView.center = self.view.center
             self.imageView.frame = CGRect(x: self.view.center.x - 25, y: 20, width: 50, height: 50)
