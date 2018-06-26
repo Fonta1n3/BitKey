@@ -10,6 +10,7 @@ import UIKit
 import Signer
 import AVFoundation
 import SystemConfiguration
+//import CoreData
 
 class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate {
     
@@ -64,6 +65,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     var decodeRawTransactionButton = UIButton()
     var xpubkey = String()
     var privateKeytoDebit = ""
+    var isWalletEncrypted = Bool()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -88,14 +90,11 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     
     override func viewDidAppear(_ animated: Bool) {
         
-        print("wallet = \(walletToSpendFrom)")
-        print("sendingfromaddress = \(sendingFromAddress)")
-        
+        isWalletEncrypted = isWalletEncryptedFromCoreData()
         recievingAddress = ""
         getUserDefaults()
         getReceivingAddressMode = true
         getSignatureMode = false
-        //manuallySetFee = false
         addBackButton()
         addAmount()
         addChooseOptionButton()
@@ -111,6 +110,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         self.privateKeyToSign = ""
         self.walletToSpendFrom = [:]
         self.privateKeytoDebit = ""
+        
     }
     
     func getUserDefaults() {
@@ -118,10 +118,11 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         print("checkUserDefaults")
         
         addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String:Any]]
-        coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
-        hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
-        testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
-        mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
+        
+        hotMode = checkSettingsForKey(keyValue: "hotMode")
+        coldMode = checkSettingsForKey(keyValue: "coldMode")
+        mainnetMode = checkSettingsForKey(keyValue: "mainnetMode")
+        testnetMode = checkSettingsForKey(keyValue: "testnetMode")
         
         if UserDefaults.standard.object(forKey: "preference") != nil {
             
@@ -161,7 +162,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     @objc func openAddressBook() {
         print("openAddressBook")
         
-        if UserDefaults.standard.object(forKey: "isWalletEncrypted") != nil && UserDefaults.standard.object(forKey: "isWalletEncrypted") as! Bool == false {
+        if self.isWalletEncrypted == false {
             
             DispatchQueue.main.async {
                 
@@ -396,7 +397,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     func setPreference() {
         print("setPreference")
         
-            
             DispatchQueue.main.async {
                 
                 let alert = UIAlertController(title: NSLocalizedString("Please set your miner fee preference", comment: ""), message: "", preferredStyle: UIAlertControllerStyle.actionSheet)
@@ -405,6 +405,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                     
                     self.preference = "high"
                     UserDefaults.standard.set(self.preference, forKey: "preference")
+                    self.fees = Int()
                     UserDefaults.standard.synchronize()
                     
                 }))
@@ -413,6 +414,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                     
                     self.preference = "medium"
                     UserDefaults.standard.set(self.preference, forKey: "preference")
+                    self.fees = Int()
                     UserDefaults.standard.synchronize()
                     
                 }))
@@ -421,6 +423,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                     
                     self.preference = "low"
                     UserDefaults.standard.set(self.preference, forKey: "preference")
+                    self.fees = Int()
                     UserDefaults.standard.synchronize()
                     
                 }))
@@ -453,13 +456,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         self.optionsButton.removeFromSuperview()
         self.optionsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 50, y: 20, width: 45, height: 45))
         self.optionsButton.showsTouchWhenHighlighted = true
-        //self.optionsButton.layer.cornerRadius = 10
-        //self.optionsButton.backgroundColor = UIColor.black
-        //self.optionsButton.layer.shadowColor = UIColor.black.cgColor
-        //self.optionsButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        //self.optionsButton.layer.shadowRadius = 2.5
-        //self.optionsButton.layer.shadowOpacity = 0.8
-        //self.optionsButton.setTitle("More Options", for: .normal)
         self.optionsButton.setImage(#imageLiteral(resourceName: "settings2.png"), for: .normal)
         self.optionsButton.addTarget(self, action: #selector(self.getAmount), for: .touchUpInside)
         self.view.addSubview(self.optionsButton)
@@ -1529,11 +1525,11 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             self.addSpinner()
             var url:URL!
             
-            if testnetMode {
+            if self.sendingFromAddress.hasPrefix("m") || self.sendingFromAddress.hasPrefix("2") || self.sendingFromAddress.hasPrefix("n") {
                 
                 url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/new")
                 
-            } else {
+            } else if self.sendingFromAddress.hasPrefix("1") || self.sendingFromAddress.hasPrefix("3") {
                 
                 url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/new")
                 
@@ -1585,9 +1581,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                             do {
                                 
                                 let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
-                                
-                                print("jsonAddressResult = \(jsonAddressResult)")
-                                print("response = \(response)")
                                 
                                 if let error = jsonAddressResult["errors"] as? NSArray {
                                     
@@ -1707,11 +1700,11 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             let jsonData = try? JSONSerialization.data(withJSONObject: self.json)
             var url:URL!
             
-            if testnetMode {
+            if self.sendingFromAddress.hasPrefix("m") || self.sendingFromAddress.hasPrefix("2") || self.sendingFromAddress.hasPrefix("n") {
                 
                 url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/send")
                 
-            } else {
+            } else if self.sendingFromAddress.hasPrefix("1") || self.sendingFromAddress.hasPrefix("3") {
                 
                 url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/send")
                 

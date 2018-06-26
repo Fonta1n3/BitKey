@@ -8,6 +8,7 @@
 
 import UIKit
 import AVFoundation
+//import CoreData
 
 class AddressBookViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, AVCaptureMetadataOutputObjectsDelegate {
 
@@ -30,6 +31,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     var keyArray = [[String: Any]]()
     var ableToDelete = Bool()
     var wallet = [String:Any]()
+    var isWalletEncrypted = Bool()
     
     
     override func viewDidLoad() {
@@ -44,29 +46,21 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
     override func viewDidAppear(_ animated: Bool) {
         
         ableToDelete = false
         
+        isWalletEncrypted = isWalletEncryptedFromCoreData()
+        
         if UserDefaults.standard.object(forKey: "addressBook") != nil {
             
             addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String: Any]]
-            //print("addressBook = \(addressBook)")
             
         }
         
-        if UserDefaults.standard.object(forKey: "isWalletEncrypted") != nil {
-            
-            if UserDefaults.standard.object(forKey: "isWalletEncrypted") as! Bool == true {
-                
-                displayAlert(viewController: self, title: "Wallet is Locked!", message: "Good luck trying to use the wallet while its locked, please go back and unlock it to gain full functionality.")
-                
-            }
+        if isWalletEncrypted {
+         
+            displayAlert(viewController: self, title: "Wallet is Locked!", message: "Good luck trying to use the wallet while its locked, please go back and unlock it to gain full functionality.")
             
         }
         

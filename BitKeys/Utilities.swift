@@ -8,7 +8,121 @@
 
 import Foundation
 import SystemConfiguration
+import CoreData
 
+
+public func isWalletEncryptedFromCoreData() -> Bool {
+    
+    var bool = Bool()
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
+    let context = appDelegate.persistentContainer.viewContext
+    let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Wallet")
+    //request.predicate = NSPredicate(format: "age = %@", "12")
+    request.returnsObjectsAsFaults = false
+    do {
+        
+        let result = try context.fetch(request)
+        
+        print("result = \(result)")
+        
+        for data in result as! [NSManagedObject] {
+            
+            print(data.value(forKey: "isEncrypted") as! Bool)
+            bool = data.value(forKey: "isEncrypted") as! Bool
+        }
+        
+    } catch {
+        
+        print("Failed")
+        
+    }
+    
+    return bool
+}
+
+public func checkAddressBook() {
+    
+    print("checkAddressBook")
+    
+    guard let appDelegate =
+        UIApplication.shared.delegate as? AppDelegate else {
+            return
+    }
+    
+    let context = appDelegate.persistentContainer.viewContext
+    let request = NSFetchRequest<NSFetchRequestResult>(entityName: "AddressBook")
+    request.returnsObjectsAsFaults = false
+    
+    do {
+        
+        if let results = try context.fetch(request) as? [NSManagedObject] {
+            
+            print("results addressbook = \(results)")
+            print("results.count = \(results.count)")
+            
+            /*for data in results {
+                
+                if let _ = data.value(forKey: keyValue) as? Bool {
+                    
+                    bool = data.value(forKey: keyValue) as! Bool
+                    
+                }
+                
+            }*/
+            
+        }
+        
+        
+        
+    } catch {
+        
+        print("Failed")
+        
+    }
+    
+    
+}
+
+public func checkSettingsForKey(keyValue: String) -> Bool {
+    
+    print("checkSettingsForKey = \(keyValue)")
+    
+    guard let appDelegate =
+        UIApplication.shared.delegate as? AppDelegate else {
+            return false
+    }
+    
+    var bool = Bool()
+    
+    let context = appDelegate.persistentContainer.viewContext
+    let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Settings")
+    
+    do {
+        
+        if let results = try context.fetch(request) as? [NSManagedObject] {
+            
+            for data in results {
+                
+                if let _ = data.value(forKey: keyValue) as? Bool {
+                    
+                    bool = data.value(forKey: keyValue) as! Bool
+                    
+                }
+                
+            }
+            
+        }
+        
+        
+        
+    } catch {
+        
+        print("Failed")
+        
+    }
+    
+    return bool
+}
 
 public func displayAlert(viewController: UIViewController, title: String, message: String) {
     

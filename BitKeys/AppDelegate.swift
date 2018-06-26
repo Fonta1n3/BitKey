@@ -34,28 +34,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         if url.scheme == "com.fontaine.bitkeys1.coinbase-oauth" {
             
-            CoinbaseOAuth.finishAuthentication(for: url, clientId: "942e989d2c6fa86b120846408f1c188e2aec25ee9f5395fcce02ea690c568c03", clientSecret: "925f9bb9bcddb01f6d548115bb4d0c333a3c546b0bcce15d1c2546346f64adbe") { (result, error) in
-                if error != nil {
-                    
-                    print("error = \(String(describing: error))")
-                    
-                } else {
-                    
-                    if let result = result as? [String : AnyObject] {
-                        print("result = \(result)")
-                        if let accessToken = result["access_token"] as? String {
-                            let apiClient = Coinbase(oAuthAccessToken: accessToken)
-                            UserDefaults.standard.set(accessToken, forKey: "accessToken")
-                        }
-                        if let refreshToken = result["refresh_token"] as? String {
-                            
-                            UserDefaults.standard.set(refreshToken, forKey: "refreshToken")
-                        }
-                    }
-                    // Note that you should also store 'expire_in' and refresh the token using CoinbaseOAuth.getOAuthTokensForRefreshToken() when it expires
-                }
-                
-                }
+            
             
             return true
             

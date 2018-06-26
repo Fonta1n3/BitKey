@@ -1,4 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <elements/>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="13533" systemVersion="16G29" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="AddressBook" representedClassName="AddressBook" syncable="YES" codeGenerationType="class">
+        <attribute name="address" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="balance" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="label" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="network" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="privateKey" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="publicKey" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="recoveryPhrase" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="redemptionScript" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="type" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="xpriv" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="xpub" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="Settings" representedClassName="Settings" syncable="YES" codeGenerationType="class">
+        <attribute name="coldMode" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="hotMode" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="legacyMode" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="mainnetMode" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="segwitMode" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="testnetMode" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+    </entity>
+    <entity name="Wallet" representedClassName="Wallet" syncable="YES" codeGenerationType="class">
+        <attribute name="isEncrypted" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="Settings" positionX="-63" positionY="-9" width="128" height="135"/>
+        <element name="Wallet" positionX="-63" positionY="-18" width="128" height="60"/>
+        <element name="AddressBook" positionX="-63" positionY="36" width="128" height="210"/>
+    </elements>
 </model>

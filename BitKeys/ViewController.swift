@@ -10,6 +10,7 @@ import UIKit
 import AES256CBC
 import BigInt
 import AVFoundation
+import CoreData
 
 class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate, AVCaptureMetadataOutputObjectsDelegate {
     
@@ -100,8 +101,83 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     var clearMnemonicButton = UIButton()
     var addressBook: [[String: Any]] = []
     
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if UserDefaults.standard.object(forKey: "firstTime") != nil {
+            
+            
+            
+        } else {
+            
+           //users first time, set default settings
+            UserDefaults.standard.set(true, forKey: "firstTime")
+            
+            guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+                
+                return
+                
+            }
+            
+            let context = appDelegate.persistentContainer.viewContext
+            let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "Settings")
+            
+            do {
+                
+                let results = try context.fetch(fetchRequest) as [NSManagedObject]
+                
+                if results.count > 0 {
+                    
+                    
+                } else {
+                    
+                    print("no results so create one")
+                    let entity = NSEntityDescription.entity(forEntityName: "Settings", in: context)
+                    let mySettings = NSManagedObject(entity: entity!, insertInto: context)
+                    mySettings.setValue(true, forKey: "hotMode")
+                    mySettings.setValue(false, forKey: "coldMode")
+                    mySettings.setValue(true, forKey: "legacyMode")
+                    mySettings.setValue(false, forKey: "segwitMode")
+                    mySettings.setValue(true, forKey: "mainnetMode")
+                    mySettings.setValue(false, forKey: "testnetMode")
+                    
+                    do {
+                        
+                        try context.save()
+                        
+                    } catch {
+                        
+                        print("Failed saving")
+                        
+                    }
+                    
+                }
+                
+            } catch {
+                
+                print("Failed")
+                
+            }
+            
+        }
+        
+        /*let appDelegate = UIApplication.shared.delegate as! AppDelegate
+         let context = appDelegate.persistentContainer.viewContext
+         let fetch = NSFetchRequest<NSFetchRequestResult>(entityName: "AddressBook")
+         let request = NSBatchDeleteRequest(fetchRequest: fetch)
+         
+         
+         do {
+         
+         let result = try context.execute(request)
+         
+         } catch {
+         
+         print("error")
+         }*/
+        
+        
         
         if UserDefaults.standard.object(forKey: "hideExplanation") != nil {
             
@@ -140,103 +216,28 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
     }
     
+    
+    
     override func viewDidAppear(_ animated: Bool) {
         
-        //UserDefaults.standard.object(forKey: "isWalletEncrypted")
-        //UserDefaults.standard.set(true, forKey: "isWalletEncrypted")
         
-        if UserDefaults.standard.object(forKey: "isWalletEncrypted") != nil {
-            
-            self.isWalletEncrypted = UserDefaults.standard.object(forKey: "isWalletEncrypted") as! Bool
-            print("self.isWalletEncrypted = \(self.isWalletEncrypted)")
-            
-        } else {
-            
-            UserDefaults.standard.set(false, forKey: "isWalletEncrypted")
-            self.isWalletEncrypted = UserDefaults.standard.object(forKey: "isWalletEncrypted") as! Bool
-            print("self.isWalletEncrypted = \(self.isWalletEncrypted)")
-        }
+        checkAddressBook()
+        //isWalletEncrypted = true
+        isWalletEncrypted = isWalletEncryptedFromCoreData()
+        print("self.isWalletEncrypted = \(self.isWalletEncrypted)")
+        
+        hotMode = checkSettingsForKey(keyValue: "hotMode")
+        coldMode = checkSettingsForKey(keyValue: "coldMode")
+        legacyMode = checkSettingsForKey(keyValue: "legacyMode")
+        segwitMode = checkSettingsForKey(keyValue: "segwitMode")
+        mainnetMode = checkSettingsForKey(keyValue: "mainnetMode")
+        testnetMode = checkSettingsForKey(keyValue: "testnetMode")
         
         if UserDefaults.standard.object(forKey: "addressBook") != nil {
             
             addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String:Any]]
             
         }
-        
-        if UserDefaults.standard.object(forKey: "coldMode") != nil {
-            
-            coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
-            
-        } else {
-            
-            coldMode = false
-            UserDefaults.standard.set(coldMode, forKey: "coldMode")
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "hotMode") != nil {
-            
-            hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
-            
-        } else {
-            
-            hotMode = true
-            UserDefaults.standard.set(hotMode, forKey: "hotMode")
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "legacyMode") != nil {
-            
-            legacyMode = UserDefaults.standard.object(forKey: "legacyMode") as! Bool
-            
-        } else {
-            
-            legacyMode = true
-            UserDefaults.standard.set(legacyMode, forKey: "legacyMode")
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "segwitMode") != nil {
-            
-            segwitMode = UserDefaults.standard.object(forKey: "segwitMode") as! Bool
-            
-        } else {
-            
-            segwitMode = false
-            UserDefaults.standard.set(segwitMode, forKey: "segwitMode")
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "testnetMode") != nil {
-            
-            testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
-            
-        } else {
-            
-            testnetMode = false
-            UserDefaults.standard.set(testnetMode, forKey: "testnetMode")
-            
-        }
-        
-        if UserDefaults.standard.object(forKey: "mainnetMode") != nil {
-            
-            mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
-            
-        } else {
-            
-            mainnetMode = true
-            UserDefaults.standard.set(mainnetMode, forKey: "mainnetMode")
-            
-        }
-        
-        UserDefaults.standard.synchronize()
-        
-        print("coldmode = \(coldMode)")
-        print("hotmode = \(hotMode)")
-        print("legacymode = \(legacyMode)")
-        print("segwitmode = \(segwitMode)")
-        print("mainnetmode = \(mainnetMode)")
-        print("testnetmode = \(testnetMode)")
         
         words = ""
         
@@ -266,8 +267,94 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
         }
         
-        ensureBackwardsCompatibility()
+        if UserDefaults.standard.object(forKey: "wif") != nil {
+           
+            ensureBackwardsCompatibility()
+            
+        }
         
+    }
+    
+   func saveEncryptedBool(bool: Bool) {
+        
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let context = appDelegate.persistentContainer.viewContext
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "Wallet")
+        //fetchRequest.returnsObjectsAsFaults = false
+    
+        do {
+        
+            let results = try context.fetch(fetchRequest) as [NSManagedObject]
+            
+            print("results = \(results)")
+        
+            if results.count > 0 {
+            
+                for data in results {
+                
+                    if let _ = data.value(forKey: "isEncrypted") as? Bool {
+                    
+                        //overwrites exisiting value if it exists
+                        results[0].setValue(bool, forKey: "isEncrypted")
+                        print("setValue isEncrypted = \(results[0].value(forKey: "isEncrypted") as! Bool)")
+                    
+                    } else {
+                    
+                        print("it doesnt exist so create it")
+                        data.setValue(bool, forKey: "isEncrypted")
+                    }
+                    
+                    do {
+                        
+                        try context.save()
+                        print(" Saved isEncrypted = \(bool)")
+                        
+                    } catch {
+                        
+                        print("Failed saving")
+                        
+                    }
+                
+                }
+            
+            } else {
+            
+                print("no results so create one")
+            
+                let entity = NSEntityDescription.entity(forEntityName: "Wallet", in: context)
+                let mySettings = NSManagedObject(entity: entity!, insertInto: context)
+                mySettings.setValue(bool, forKey: "isEncrypted")
+            
+                do {
+                
+                    try context.save()
+                    print(" Saved isEncrypted = \(bool)")
+                
+                } catch {
+                
+                    print("Failed saving")
+                
+                }
+            
+            }
+        
+        } catch {
+        
+            print("Failed")
+        
+        }
+    
+    /*
+        let entity = NSEntityDescription.entity(forEntityName: "Wallet", in: context)
+        let myWallet = NSManagedObject(entity: entity!, insertInto: context)
+        myWallet.setValue(bool, forKey: "isEncrypted")
+        
+        do {
+            try context.save()
+        } catch {
+            print("Failed saving")
+        }
+    */
     }
     
     func unlockAddressBook() {
@@ -567,7 +654,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         }
         
         self.isWalletEncrypted = false
-        UserDefaults.standard.set(false, forKey: "isWalletEncrypted")
+        saveEncryptedBool(bool: false)
         UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
         UserDefaults.standard.synchronize()
         
@@ -615,15 +702,13 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         }
         
         self.isWalletEncrypted = true
-        UserDefaults.standard.set(true, forKey: "isWalletEncrypted")
+        saveEncryptedBool(bool: true)
         UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
         UserDefaults.standard.synchronize()
         
     }
     
     func ensureBackwardsCompatibility() {
-        
-        if UserDefaults.standard.object(forKey: "wif") != nil {
         
         DispatchQueue.main.async {
             
@@ -737,7 +822,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
         }
             
-        }
+        
         
     }
     
@@ -2243,7 +2328,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         DispatchQueue.main.async {
             
-            let alert = UIAlertController(title: "Choose an option", message: "You can either add a password that will act as a dual factor password for your BIP39 compaitble recovery phrase, OR create a password that will lock your wallet so that only you can spend from it, both passwords can be the same but they do very different things so be careful and make sure you understand before proceeding.", preferredStyle: UIAlertControllerStyle.actionSheet)
+            let alert = UIAlertController(title: "Choose an option", message: "You can either add a password that will act as a dual factor password for your BIP39 compatible recovery phrase, OR create a password that will lock your wallet so that only you can spend from it, both passwords can be the same but they do very different things so be careful and make sure you understand before proceeding.", preferredStyle: UIAlertControllerStyle.actionSheet)
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Set BIP39 Password", comment: ""), style: .default, handler: { (action) in
                 
@@ -2336,7 +2421,17 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         case self.toolboxButton:
             
             print("tool box button")
-            self.showKeyManagementAlert()
+            
+            if self.isWalletEncrypted == false {
+             
+                self.showKeyManagementAlert()
+                
+            } else {
+                
+                displayAlert(viewController: self, title: "Oops", message: "Wallet is locked, please unlock your wallet to use these tools.")
+                
+            }
+            
             
         case self.infoButton:
             
@@ -2400,7 +2495,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
             }
             
-            let alert = UIAlertController(title: "Share", message: "You can share the QR Code or the text format of the address however you'd like", preferredStyle: UIAlertControllerStyle.actionSheet)
+            let alert = UIAlertController(title: "Share", message: "You can share the QR Code or the text format however you'd like", preferredStyle: UIAlertControllerStyle.actionSheet)
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("QR Code", comment: ""), style: .default, handler: { (action) in
                 

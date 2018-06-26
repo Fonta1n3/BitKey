@@ -7,11 +7,13 @@
 //
 
 import UIKit
+import CoreData
 
 class SettingsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     @IBOutlet var settingsTable: UITableView!
     
+    var rowSelections = [Int:Int]()
     var backButton = UIButton()
     var segwitMode = Bool()
     var legacyMode = Bool()
@@ -19,7 +21,10 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
     var coldMode = Bool()
     var testnetMode = Bool()
     var mainnetMode = Bool()
+    var sections = ["Key Management Setting", "Address Format Settings", "Nework Settings"]
+    var settingsArray = [[String:Bool]]()
 
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -27,36 +32,42 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
         
         settingsTable.delegate = self
         
+        
+        
+        /*let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let context = appDelegate.persistentContainer.viewContext
+        let fetch = NSFetchRequest<NSFetchRequestResult>(entityName: "Settings")
+        let request = NSBatchDeleteRequest(fetchRequest: fetch)
+        
+        
+        do {
+           
+           let result = try context.execute(request)
+            
+        } catch {
+            
+           print("error")
+        }*/
    }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
     override func viewDidAppear(_ animated: Bool) {
         
-        getUserDefaults()
         addButtons()
+        
+        hotMode = checkSettingsForKey(keyValue: "hotMode")
+        coldMode = checkSettingsForKey(keyValue: "coldMode")
+        legacyMode = checkSettingsForKey(keyValue: "legacyMode")
+        segwitMode = checkSettingsForKey(keyValue: "segwitMode")
+        mainnetMode = checkSettingsForKey(keyValue: "mainnetMode")
+        testnetMode = checkSettingsForKey(keyValue: "testnetMode")
+        
+        settingsArray = [["Hot Mode":hotMode, "Cold Mode":coldMode], ["Legacy Mode":legacyMode, "Segwit Mode":segwitMode], ["Mainnet Mode":mainnetMode, "Testnet Mode":testnetMode]]
+        
         settingsTable.reloadData()
+        
     }
     
-    func getUserDefaults() {
-        
-        print("checkUserDefaults")
-        
-        coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
-        hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
-        legacyMode = UserDefaults.standard.object(forKey: "legacyMode") as! Bool
-        segwitMode = UserDefaults.standard.object(forKey: "segwitMode") as! Bool
-        testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
-        mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
-        
-    }
- 
     func addButtons() {
-        
-        print("addButtons")
         
         DispatchQueue.main.async {
             
@@ -79,13 +90,13 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
     
     func numberOfSections(in tableView: UITableView) -> Int {
         
-        return 3
+        return settingsArray.count
         
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return 2
+        return settingsArray[section].count
         
     }
     
@@ -93,114 +104,29 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "settingsCell", for: indexPath)
         
-        if indexPath.section == 0 {
+        cell.selectionStyle = .none
+        
+        let dictionary = settingsArray[indexPath.section]
+        let key = Array(dictionary.keys)[indexPath.row]
+        let value = Array(dictionary.values)[indexPath.row]
+        
+        if value == true {
             
-            if indexPath.row == 0 {
-                
-                cell.textLabel?.text = "Hot Mode"
-                
-                if self.hotMode {
-                    
-                    cell.isSelected = true
-                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                    
-                } else if self.hotMode == false {
-                    
-                    cell.isSelected = false
-                    cell.accessoryType = UITableViewCellAccessoryType.none
-                    
-                }
-                
-            } else if indexPath.row == 1 {
-                
-                cell.textLabel?.text = "Cold Mode"
-                
-                if self.coldMode {
-                    
-                    cell.isSelected = true
-                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                    
-                } else if self.coldMode == false {
-                    
-                    cell.isSelected = false
-                    cell.accessoryType = UITableViewCellAccessoryType.none
-                }
-                
-            }
+            cell.isSelected = true
+            cell.accessoryType = UITableViewCellAccessoryType.checkmark
+            cell.textLabel?.textColor = UIColor.black
             
-        } else if indexPath.section == 1 {
+        } else if value == false {
             
-            if indexPath.row == 0 {
-                
-                cell.textLabel?.text = "Legacy Mode"
-                
-                if self.legacyMode {
-                    
-                    cell.isSelected = true
-                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                    
-                } else if self.legacyMode == false {
-                    
-                    cell.isSelected = false
-                    cell.accessoryType = UITableViewCellAccessoryType.none
-                    
-                }
-                
-            } else if indexPath.row == 1 {
-                
-                cell.textLabel?.text = "Segwit Mode"
-                
-                if self.segwitMode {
-                    
-                    cell.isSelected = true
-                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                    
-                } else if self.segwitMode == false {
-                    
-                    cell.isSelected = false
-                    cell.accessoryType = UITableViewCellAccessoryType.none
-                    
-                }
-                
-            }
-            
-        } else if indexPath.section == 2 {
-            
-            if indexPath.row == 0 {
-                
-                cell.textLabel?.text = "Mainnet Mode"
-                
-                if self.mainnetMode {
-                    
-                    cell.isSelected = true
-                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                    
-                } else if self.mainnetMode == false {
-                    
-                    cell.isSelected = false
-                    cell.accessoryType = UITableViewCellAccessoryType.none
-                    
-                }
-                
-            } else if indexPath.row == 1 {
-                
-                cell.textLabel?.text = "Testnet Mode"
-                
-                if self.testnetMode {
-                    
-                    cell.isSelected = true
-                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                    
-                } else if self.testnetMode == false {
-                    
-                    cell.isSelected = false
-                    cell.accessoryType = UITableViewCellAccessoryType.none
-                    
-                }
-                
-            }
+            cell.isSelected = false
+            cell.accessoryType = UITableViewCellAccessoryType.none
+            cell.textLabel?.textColor = UIColor.lightGray
             
         }
+        
+        cell.textLabel?.text = key
+        
+        
         
         return cell
         
@@ -208,205 +134,245 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         
+        return sections[section]
+        
+    }
+    
+    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        
+        var footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 60))
+        var explanationLabel = UILabel(frame: CGRect(x: 10, y: 0, width: view.frame.size.width - 20, height: 60))
+        explanationLabel.textColor = UIColor.darkGray
+        explanationLabel.numberOfLines = 0
+        explanationLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
+        
         if section == 0 {
             
-            return "Key Management Settings"
+            explanationLabel.text = "When Hot Mode is enabled all the private keys you create will be saved to your address book enabling effortless spending. In Cold Mode we never save your private key on the device, you will have to scan or type in the private key manually to create the signature for the transaction."
+            footerView.addSubview(explanationLabel)
+            
             
         } else if section == 1 {
             
-            return "Address Format Settings"
+            footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 60))
+            explanationLabel = UILabel(frame: CGRect(x: 10, y: 0, width: view.frame.size.width - 20, height: 60))
+            explanationLabel.textColor = UIColor.darkGray
+            explanationLabel.numberOfLines = 0
+            explanationLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
+            explanationLabel.text = "In Segwit mode all the addresses you create for your wallets will be bech32 native segwit addresses. We do not yet support spending from bech32 addresses but are working on it. In legacy mode all addresses produced are legacy addresses."
+            footerView.addSubview(explanationLabel)
             
         } else if section == 2 {
             
-            return "Network Settings"
+            footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 50))
+            explanationLabel = UILabel(frame: CGRect(x: 10, y: 0, width: view.frame.size.width - 20, height: 50))
+            explanationLabel.textColor = UIColor.darkGray
+            explanationLabel.numberOfLines = 0
+            explanationLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
+            explanationLabel.text = "In Testnet Mode you have the option to test the app on Bitcoins test network \"Testnet\" or in Mainnet Mode go straight to the real deal Bitcoin network \"Mainnet\"."
+            footerView.addSubview(explanationLabel)
             
         }
         
-        return ""
+        return footerView
+    }
+    
+    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        
+        if section == 2 {
+            
+            return 50
+        }
+        
+        return 70
+        
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 50
+    }
+    
+    
+    
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        
+        func updateTableViewSelections(deselectedIndex: IndexPath) {
+            
+            for section in 0 ..< tableView.numberOfSections {
+                
+                for row in 0 ..< tableView.numberOfRows(inSection: section) {
+                    
+                    if let cell = self.settingsTable.cellForRow(at: IndexPath(row: row, section: section)) {
+                        
+                        if deselectedIndex.row == row && cell.isSelected {
+                            
+                            if deselectedIndex.section == section {
+                              
+                                cell.isSelected = false
+                                cell.accessoryType = UITableViewCellAccessoryType.none
+                                cell.selectionStyle = .none
+                                
+                            }
+                            
+                        } else if deselectedIndex.row == row && cell.isSelected == false {
+                            
+                            if deselectedIndex.section == section {
+                                
+                                cell.isSelected = true
+                                cell.accessoryType = UITableViewCellAccessoryType.checkmark
+                                cell.selectionStyle = .none
+                                
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                }
+                
+            }
+                
+        }
+        
+        updateTableViewSelections(deselectedIndex: indexPath)
+        
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        let cell = tableView.cellForRow(at: indexPath)!
+        tableView.allowsMultipleSelection = true
         
-        if indexPath.section == 0 {
-          
-            //"Hot Mode"
-            if indexPath.row == 0 {
-                
-                if cell.isSelected {
-                    
-                    cell.isSelected = false
-                    
-                    if cell.accessoryType == UITableViewCellAccessoryType.none {
-                        
-                        cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                        
-                        self.hotMode = true
-                        self.coldMode = false
-                        
-                    } else {
-                        
-                        cell.accessoryType = UITableViewCellAccessoryType.none
-                        
-                        self.hotMode = false
-                        self.coldMode = true
-                        
-                    }
-                    
-                }
-                //Cold Mode
-            } else if indexPath.row == 1 {
-                
-                if cell.isSelected {
-                    
-                    cell.isSelected = false
-                    
-                    if cell.accessoryType == UITableViewCellAccessoryType.none {
-                        
-                        cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                        
-                        self.coldMode = true
-                        self.hotMode = false
-                        
-                    } else {
-                        
-                        cell.accessoryType = UITableViewCellAccessoryType.none
-                        
-                        self.coldMode = false
-                        self.hotMode = true
-                        
-                    }
-                    
-                }
-                
-            }
+        func updateTableViewSelections(selectedIndex: IndexPath) {
             
-            UserDefaults.standard.synchronize()
-            self.settingsTable.reloadData()
-            
-        } else if indexPath.section == 1 {
-            
-            //"Legacy Mode"
-            if indexPath.row == 0 {
+            for section in 0 ..< tableView.numberOfSections {
                 
-                if cell.isSelected {
+                for row in 0 ..< tableView.numberOfRows(inSection: section) {
                     
-                    cell.isSelected = false
-                    
-                    if cell.accessoryType == UITableViewCellAccessoryType.none {
+                    if let cell = self.settingsTable.cellForRow(at: IndexPath(row: row, section: section)) {
                         
-                        cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                        
-                        self.legacyMode = true
-                        self.segwitMode = false
-                        
-                    } else {
-                        
-                        cell.accessoryType = UITableViewCellAccessoryType.none
-                        
-                        self.legacyMode = false
-                        self.segwitMode = true
-                        
-                    }
-                    
-                }
-                
-                //segwit mode
-            } else if indexPath.row == 1 {
-                
-                if cell.isSelected {
-                    
-                    cell.isSelected = false
-                    
-                    if cell.accessoryType == UITableViewCellAccessoryType.none {
-                        
-                        cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                        
-                        self.segwitMode = true
-                        self.legacyMode = false
-                        
-                    } else {
-                        
-                        cell.accessoryType = UITableViewCellAccessoryType.none
-                        
-                        self.segwitMode = false
-                        self.legacyMode = true
-                        
-                    }
-                    
-                }
-                
-            }
-            UserDefaults.standard.synchronize()
-            self.settingsTable.reloadData()
-                
-        } else if indexPath.section == 2 {
-                
-                //mainnet mode
-                if indexPath.row == 0 {
-                    
-                    if cell.isSelected {
-                        
-                        cell.isSelected = false
-                        
-                        if cell.accessoryType == UITableViewCellAccessoryType.none {
+                        if selectedIndex.row == row && cell.isSelected {
                             
-                            cell.accessoryType = UITableViewCellAccessoryType.checkmark
+                            if selectedIndex.section == section {
+                                
+                                cell.isSelected = true
+                                cell.accessoryType = UITableViewCellAccessoryType.checkmark
+                                cell.selectionStyle = .none
+                                let key = cell.textLabel?.text!
+                                self.saveSettings(bool: true, forKey: key!)
+                                self.settingsArray[selectedIndex.section][key!] = true
+                                cell.textLabel?.textColor = UIColor.black
+                                
+                            }
                             
-                            self.mainnetMode = true
-                            self.testnetMode = false
+                        } else if selectedIndex.section == section && cell.isSelected {
                             
-                        } else {
-                            
+                            cell.isSelected = false
                             cell.accessoryType = UITableViewCellAccessoryType.none
-                            
-                            self.mainnetMode = false
-                            self.testnetMode = true
-                            
-                        }
-                        
-                    }
-                    
-                    //testnet mode
-                } else if indexPath.row == 1 {
-                    
-                    if cell.isSelected {
-                        
-                        cell.isSelected = false
-                        
-                        if cell.accessoryType == UITableViewCellAccessoryType.none {
-                            
-                            cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                            
-                            self.testnetMode = true
-                            self.mainnetMode = false
-                            
-                        } else {
-                            
-                            cell.accessoryType = UITableViewCellAccessoryType.none
-                            
-                            self.testnetMode = false
-                            self.mainnetMode = true
-                            
-                        }
-                        
-                    }
-                    
-                }
-            
-            UserDefaults.standard.set(self.testnetMode, forKey: "testnetMode")
-            UserDefaults.standard.set(self.mainnetMode, forKey: "mainnetMode")
-            UserDefaults.standard.set(self.segwitMode, forKey: "segwitMode")
-            UserDefaults.standard.set(self.legacyMode, forKey: "legacyMode")
-            UserDefaults.standard.set(self.coldMode, forKey: "coldMode")
-            UserDefaults.standard.set(self.hotMode, forKey: "hotMode")
-            UserDefaults.standard.synchronize()
-            self.settingsTable.reloadData()
+                            cell.selectionStyle = .none
+                            let key = cell.textLabel?.text!
+                            self.saveSettings(bool: false, forKey: key!)
+                            self.settingsArray[selectedIndex.section][key!] = false
+                            cell.textLabel?.textColor = UIColor.lightGray
 
+                            
+                        } else if selectedIndex.section == section && cell.isSelected == false {
+                            
+                            cell.isSelected = false
+                            cell.accessoryType = UITableViewCellAccessoryType.none
+                            cell.selectionStyle = .none
+                            let key = cell.textLabel?.text!
+                            self.saveSettings(bool: false, forKey: key!)
+                            self.settingsArray[selectedIndex.section][key!] = false
+                            cell.textLabel?.textColor = UIColor.lightGray
+
+                        }
+                        
+                    }
+                    
+                }
+                
             }
             
+        }
+        
+        updateTableViewSelections(selectedIndex: indexPath)
+        
     }
+    
+    func saveSettings(bool: Bool, forKey: String) {
+        
+        var key = String()
+        
+        switch(forKey) {
+        case "Hot Mode":key = "hotMode"
+        case "Cold Mode":key = "coldMode"
+        case "Segwit Mode":key = "segwitMode"
+        case "Legacy Mode":key = "legacyMode"
+        case "Mainnet Mode":key = "mainnetMode"
+        case "Testnet Mode":key = "testnetMode"
+        default: break
+        }
+        
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let context = appDelegate.persistentContainer.viewContext
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "Settings")
+        
+        do {
+            
+            let results = try context.fetch(fetchRequest) as [NSManagedObject]
+            
+            if results.count > 0 {
+                    
+                for data in results {
+                        
+                    if let _ = data.value(forKey: key) as? Bool {
+                            
+                        results[0].setValue(bool, forKey: key)
+                        
+                    } else {
+                            
+                        data.setValue(bool, forKey: key)
+                            
+                    }
+                        
+                    do {
+                            
+                        try context.save()
+                        
+                    } catch {
+                            
+                        print("Failed saving")
+                            
+                    }
+                        
+                }
+                    
+            } else {
+                    
+                print("no results so create one")
+                let entity = NSEntityDescription.entity(forEntityName: "Settings", in: context)
+                let mySettings = NSManagedObject(entity: entity!, insertInto: context)
+                mySettings.setValue(bool, forKey: key)
+                    
+                do {
+                        
+                    try context.save()
+                    
+                } catch {
+                        
+                    print("Failed saving")
+                        
+                    }
+                    
+                }
+                
+            } catch {
+            
+            print("Failed")
+            
+        }
+        
+   }
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask { return UIInterfaceOrientationMask.portrait }
 

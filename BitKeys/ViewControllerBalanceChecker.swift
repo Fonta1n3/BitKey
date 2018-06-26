@@ -28,8 +28,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     var myAddressButton = UIButton()
     var addressLabel = UILabel()
     var addressBook: [[String: Any]] = []
-    
     var addresses = String()
+    var isWalletEncrypted = Bool()
 
     
     @IBAction func addressText(_ sender: Any) {
@@ -40,6 +40,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     
     override func viewDidAppear(_ animated: Bool) {
         
+        isWalletEncrypted = isWalletEncryptedFromCoreData()
         addHomeButton()
         addAddressBookButton()
         scanQRCode()
@@ -514,7 +515,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     @objc func openAddressBook() {
         print("openAddressBook")
         
-        if UserDefaults.standard.object(forKey: "isWalletEncrypted") != nil && UserDefaults.standard.object(forKey: "isWalletEncrypted") as! Bool == false {
+        if self.isWalletEncrypted == false {
         
         DispatchQueue.main.async {
             
@@ -592,7 +593,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             
         } else {
                 
-            displayAlert(viewController: self, title: "Error", message: "Your wallet is locked, you will only be able to use it in cold mode. Please go to the home screen and unlock the wallet for full functionality.")
+            displayAlert(viewController: self, title: "Error", message: "Your wallet is locked. Please go to the home screen and unlock the wallet for full functionality.")
         }
 
     }
@@ -758,7 +759,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         DispatchQueue.main.async {
             
-            let alert = UIAlertController(title: "Save/Share/Copy", message: nil, preferredStyle: UIAlertControllerStyle.actionSheet)
+            let alert = UIAlertController(title: "Share", message: "You can share the QR Code or the text format of the address however you'd like", preferredStyle: UIAlertControllerStyle.actionSheet)
             
             var addressAlreadySaved = Bool()
             
@@ -792,7 +793,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 
             }
             
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Bitcoin Address QR Code", comment: ""), style: .default, handler: { (action) in
+            alert.addAction(UIAlertAction(title: NSLocalizedString("QR Code", comment: ""), style: .default, handler: { (action) in
                     
                     if let data = UIImagePNGRepresentation(self.bitcoinAddressQRCode) {
                         
@@ -810,7 +811,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     
                 }))
                 
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Bitcoin Address Text", comment: ""), style: .default, handler: { (action) in
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Text", comment: ""), style: .default, handler: { (action) in
                     
                     let activityViewController = UIActivityViewController(activityItems: [self.addresses], applicationActivities: nil)
                     self.present(activityViewController, animated: true, completion: nil)

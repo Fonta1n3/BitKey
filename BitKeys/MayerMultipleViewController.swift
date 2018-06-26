@@ -34,7 +34,6 @@ class MayerMultipleViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Do any additional setup after loading the view.
         print("MayerMultipleViewController")
         
         let bitcoinImage = UIImage(named: "Bitsense image.png")
@@ -54,7 +53,6 @@ class MayerMultipleViewController: UIViewController {
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        
         
         getMayerMultiple()
         self.addSpinner()
@@ -147,6 +145,7 @@ class MayerMultipleViewController: UIViewController {
                                                                     let percentage = Int((priceDifference / twoHundredDayMovingAverage) * 100)
                                                                     
                                                                     let mayerMultipleLabel = UITextView()
+                                                                    mayerMultipleLabel.textAlignment = .natural
                                                                     mayerMultipleLabel.frame = CGRect(x: self.view.frame.minX + 15, y: self.view.center.y - (self.view.frame.height / 3), width: self.view.frame.width - 30, height: 500)
                                                                     
                                                                     //if self.simpleMode {
@@ -154,8 +153,10 @@ class MayerMultipleViewController: UIViewController {
                                                                         
                                                                         
                                                                     //} else {
+                                                                    
+                                                                    mayerMultipleLabel.text = "One Bitcoin costs:\n$\((round(100 * exchangeRate) / 100).withCommas()) USD\n\n200 Day Moving Average:\n$\((round(100 * twoHundredDayMovingAverage) / 100).withCommas()) USD\n\nMayer Multiple:\n\(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100)"
                                                                         
-                                                                        if priceDifference < 0 {
+                                                                        /*if priceDifference < 0 {
                                                                             
                                                                             mayerMultipleLabel.text = "The Bitcoin Mayer Multiple is \(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100) with a current price of $\(round(100 * exchangeRate) / 100) USD and a 200 day moving average of $\(round(100 * twoHundredDayMovingAverage) / 100) USD.\n\nThe current price is $\(priceDifference) USD below the 200 day moving average.\n\nThat is a \(percentage)% deviation from the 200 day moving average."
                                                                             
@@ -167,7 +168,7 @@ class MayerMultipleViewController: UIViewController {
                                                                             
                                                                             mayerMultipleLabel.text = "The Bitcoin Mayer Multiple is \(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100) with a current price of $\(round(100 * exchangeRate) / 100) USD and a 200 day moving average of $\(round(100 * twoHundredDayMovingAverage) / 100) USD.\n\nThe current price is equal to the 200 day moving average.\n\nThat is a \(percentage)% deviation from the 200 day moving average."
                                                                             
-                                                                        }
+                                                                        }*/
                                                                         
                                                                     //}
                                                                     

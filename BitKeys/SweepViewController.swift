@@ -248,7 +248,7 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                 
                 print("stringURL = \(stringURL)")
                 
-                if self.testnetMode {
+                if stringURL.hasPrefix("9") || stringURL.hasPrefix("c") {
                     print("testnetMode")
                     
                     if let privateKey = BTCPrivateKeyAddressTestnet(string: stringURL) {
@@ -281,7 +281,7 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                     }
                     
                     
-                } else if self.mainnetMode {
+                } else if stringURL.hasPrefix("5") || stringURL.hasPrefix("K") || stringURL.hasPrefix("L") {
                     print("mainnetMode")
                     
                     if let privateKey = BTCPrivateKeyAddress(string: stringURL) {

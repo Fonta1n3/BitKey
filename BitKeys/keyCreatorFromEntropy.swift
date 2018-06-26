@@ -25,71 +25,12 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
     var words = ""
     var recoveryPhrase = String()
     
-    if UserDefaults.standard.object(forKey: "coldMode") != nil {
-        
-        coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
-        
-    } else {
-        
-        coldMode = false
-        UserDefaults.standard.set(false, forKey: "coldMode")
-        
-    }
-    
-    if UserDefaults.standard.object(forKey: "hotMode") != nil {
-        
-        hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
-        
-    } else {
-        
-        hotMode = true
-        UserDefaults.standard.set(true, forKey: "hotMode")
-        
-    }
-    
-    if UserDefaults.standard.object(forKey: "legacyMode") != nil {
-        
-        legacyMode = UserDefaults.standard.object(forKey: "legacyMode") as! Bool
-        
-    } else {
-        
-        legacyMode = true
-        UserDefaults.standard.set(true, forKey: "legacyMode")
-        
-    }
-    
-    if UserDefaults.standard.object(forKey: "segwitMode") != nil {
-        
-        segwitMode = UserDefaults.standard.object(forKey: "segwitMode") as! Bool
-        
-    } else {
-        
-        segwitMode = false
-        UserDefaults.standard.set(false, forKey: "segwitMode")
-        
-    }
-    
-    if UserDefaults.standard.object(forKey: "testnetMode") != nil {
-        
-        testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
-        
-    } else {
-        
-        testnetMode = false
-        UserDefaults.standard.set(false, forKey: "testnetMode")
-        
-    }
-    
-    if UserDefaults.standard.object(forKey: "mainnetMode") != nil {
-        
-        mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
-        
-    } else {
-        
-        mainnetMode = true
-        UserDefaults.standard.set(true, forKey: "mainnetMode")
-        
-    }
+    hotMode = checkSettingsForKey(keyValue: "hotMode")
+    coldMode = checkSettingsForKey(keyValue: "coldMode")
+    legacyMode = checkSettingsForKey(keyValue: "legacyMode")
+    segwitMode = checkSettingsForKey(keyValue: "segwitMode")
+    mainnetMode = checkSettingsForKey(keyValue: "mainnetMode")
+    testnetMode = checkSettingsForKey(keyValue: "testnetMode")
     
     print("data.count = \(data.count)")
     
