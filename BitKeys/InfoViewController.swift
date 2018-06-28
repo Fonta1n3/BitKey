@@ -23,6 +23,8 @@ class InfoViewController: UIViewController, UITextViewDelegate {
         addBackButton()
         addTextView()
         
+        
+        
     }
 
     override func didReceiveMemoryWarning() {

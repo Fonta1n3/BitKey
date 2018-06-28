@@ -554,7 +554,11 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     
                 }))
                 
-                self.present(alert, animated: true, completion: nil)
+                alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+                
+                self.present(alert, animated: true) {
+                    print("option menu presented")
+                }
                 
             } else if self.addressBook.count == 1 {
                 
@@ -773,7 +777,11 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     
                 }))
                 
-                self.present(alert, animated: true, completion: nil)
+            alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+            
+            self.present(alert, animated: true) {
+                print("option menu presented")
+            }
                 
                 
             

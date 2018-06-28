@@ -13,7 +13,7 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
     
     let segwit = SegwitAddrCoder()
     
-    var coldMode = Bool()
+    //var coldMode = Bool()
     var hotMode = Bool()
     var legacyMode = Bool()
     var segwitMode = Bool()
@@ -21,12 +21,12 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
     var mainnetMode = Bool()
     var data = BigUInt(userRandomness).serialize()
     var bitcoinAddress = String()
-    var privateKey = String()
+    //var privateKey = String()
     var words = ""
     var recoveryPhrase = String()
     
     hotMode = checkSettingsForKey(keyValue: "hotMode")
-    coldMode = checkSettingsForKey(keyValue: "coldMode")
+    //coldMode = checkSettingsForKey(keyValue: "coldMode")
     legacyMode = checkSettingsForKey(keyValue: "legacyMode")
     segwitMode = checkSettingsForKey(keyValue: "segwitMode")
     mainnetMode = checkSettingsForKey(keyValue: "mainnetMode")
@@ -47,7 +47,6 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
     if let mnemonic = BTCMnemonic.init(entropy: sha256OfData as Data!, password: password, wordListType: BTCMnemonicWordListType.english) {
             
         words = mnemonic.words.description
-            
         let formatMnemonic1 = words.replacingOccurrences(of: "[", with: "")
         let formatMnemonic2 = formatMnemonic1.replacingOccurrences(of: "]", with: "")
         recoveryPhrase = formatMnemonic2.replacingOccurrences(of: ",", with: "")
@@ -56,29 +55,18 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
                 
             let keychain = mnemonic.keychain.derivedKeychain(withPath: "m/44'/0'/0'/0")
             keychain?.key.isPublicKeyCompressed = true
-                
-            var privateKeyHD = String()
-            var addressHD = String()
-                
-            privateKeyHD = (keychain?.key(at: 0).privateKeyAddressTestnet.description)!
-            addressHD = (keychain?.key(at: 0).addressTestnet.description)!
-                
+            let privateKeyWIF = (keychain?.key(at: 0).privateKeyAddressTestnet.string)!
+            let addressHD = (keychain?.key(at: 0).addressTestnet.string)!
             let publicKey = (keychain?.key(at: 0).compressedPublicKey.hex())!
+            //let xpub = keychain?.bitcoinTestnet.extendedPublicKey
+            //let xpriv = keychain?.bitcoinTestnet.extendedPrivateKey
+            //let watchOnlyTestKey = BTCKeychain.init(extendedKey: xpub)
+            //let childkeychain = watchOnlyTestKey?.key(at: 2).addressTestnet
             
-            let xpub = keychain?.bitcoinTestnet.extendedPublicKey
-            let xpriv = keychain?.bitcoinTestnet.extendedPrivateKey
-            let watchOnlyTestKey = BTCKeychain.init(extendedKey: xpub)
-            let childkeychain = watchOnlyTestKey?.key(at: 2).addressTestnet
-            
-            var privateKey3 = privateKeyHD.components(separatedBy: " ")
-            let privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
-                
             if legacyMode {
                     
-                let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                print("legacyAddress2 = \(legacyAddress2)")
-                bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
-                print("bitcoinAddress = \(bitcoinAddress)")
+                bitcoinAddress = addressHD
+                
             }
                 
             if segwitMode {
@@ -116,34 +104,25 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
                 
             let keychain = mnemonic.keychain.derivedKeychain(withPath: "m/44'/0'/0'/0")
             keychain?.key.isPublicKeyCompressed = true
-                
-            var privateKeyHD = String()
-            var addressHD = String()
-                
-            privateKeyHD = (keychain?.key(at: 0).privateKeyAddress.description)!
-            addressHD = (keychain?.key(at: 0).address.description)!
-            print("addressHD = \(addressHD)")
-                
+            let privateKeyWIF = (keychain?.key(at: 0).privateKeyAddress.string)!
+            let addressHD = (keychain?.key(at: 0).address.string)!
             let publicKey = (keychain?.key(at: 0).compressedPublicKey.hex())!
-            print("publicKey = \(String(describing: publicKey))")
+            //print("publicKey = \(String(describing: publicKey))")
                 
-            let xpub = keychain?.extendedPublicKey
-            let xpriv = keychain?.extendedPrivateKey
-            print("xpub = \(String(describing: xpub))")
-            print("xpriv = \(String(describing: xpriv))")
-            UserDefaults.standard.set(xpub, forKey: "xpub")
-            UserDefaults.standard.set(0, forKey: "int")
-            let watchOnlyTestKey = BTCKeychain.init(extendedKey: xpub)
-            let childkeychain = watchOnlyTestKey?.key(at: 2).address
-            print("childkeychain address = \(String(describing: childkeychain))")
-                
-            let privateKey3 = privateKeyHD.components(separatedBy: " ")
-            let privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
+            //let xpub = keychain?.extendedPublicKey
+            //let xpriv = keychain?.extendedPrivateKey
+            //print("xpub = \(String(describing: xpub))")
+            //print("xpriv = \(String(describing: xpriv))")
+            //UserDefaults.standard.set(xpub, forKey: "xpub")
+            //UserDefaults.standard.set(0, forKey: "int")
+            //let watchOnlyTestKey = BTCKeychain.init(extendedKey: xpub)
+            //let childkeychain = watchOnlyTestKey?.key(at: 2).address
+            //print("childkeychain address = \(String(describing: childkeychain))")
+            
                 
             if legacyMode {
                     
-                let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                bitcoinAddress = addressHD
                     
             }
                 

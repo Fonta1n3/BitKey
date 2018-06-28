@@ -399,23 +399,17 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     if let key = BTCKey.init(privateKeyAddress: privateKey) {
                         
                         print("privateKey = \(key.privateKeyAddressTestnet)")
-                        var privateKeyHD = String()
-                        var addressHD = String()
                         var bitcoinAddress = String()
                         
-                        privateKeyHD = key.privateKeyAddressTestnet.description
-                        addressHD = key.addressTestnet.description
-                        
-                        let privateKey3 = privateKeyHD.components(separatedBy: " ")
-                        let privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
+                        let privateKeyWIF = key.privateKeyAddressTestnet.string
+                        let addressHD = key.addressTestnet.string
                         
                         let publicKey = key.compressedPublicKey.hex()!
                         print("publicKey = \(publicKey)")
                         
                         if self.legacyMode {
                             
-                            let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                            bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                            bitcoinAddress = addressHD
                             
                         }
                         
@@ -451,23 +445,18 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     if let key = BTCKey.init(privateKeyAddress: privateKey) {
                         
                         print("privateKey = \(key.privateKeyAddress)")
-                        var privateKeyHD = String()
-                        var addressHD = String()
+                        //var privateKeyHD = String()
+                        //var addressHD = String()
                         var bitcoinAddress = String()
                         
-                        privateKeyHD = key.privateKeyAddress.description
-                        addressHD = key.address.description
-                        
-                        let privateKey3 = privateKeyHD.components(separatedBy: " ")
-                        let privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
-                        
+                        let privateKeyWIF = key.privateKeyAddress.string
+                        let addressHD = key.address.string
                         let publicKey = key.compressedPublicKey.hex()!
                         print("publicKey = \(publicKey)")
                         
                         if self.legacyMode {
                             
-                            let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                            bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                            bitcoinAddress = addressHD
                             
                         }
                         
@@ -611,16 +600,15 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     
                     if network == "testnet" {
                         
-                        multiSigAddress1 = multiSigWallet.scriptHashAddressTestnet.description
+                        multiSigAddress1 = multiSigWallet.scriptHashAddressTestnet.string
                         
                     } else if network == "mainnet" {
                         
-                        multiSigAddress1 = multiSigWallet.scriptHashAddress.description
+                        multiSigAddress1 = multiSigWallet.scriptHashAddress.string
                         
                     }
                     
-                    let multiSigAddress2 = multiSigAddress1.components(separatedBy: " ")
-                    let multiSigAddress = multiSigAddress2[1].replacingOccurrences(of: ">", with: "")
+                    let multiSigAddress = multiSigAddress1
                     let redemptionScript = multiSigWallet.hex!
                     
                     for (index, wallet) in self.addressBook.enumerated() {
@@ -1375,7 +1363,11 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 
             }))
             
-            self.present(alert, animated: true, completion: nil)
+            alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+            
+            self.present(alert, animated: true) {
+                print("option menu presented")
+            }
         }
     }
     

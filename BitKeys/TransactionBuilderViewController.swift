@@ -9,8 +9,8 @@
 import UIKit
 import Signer
 import AVFoundation
-import SystemConfiguration
-//import CoreData
+//import SystemConfiguration
+import CoreData
 
 class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate {
     
@@ -54,7 +54,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     var preference = String()
     var transactionID = ""
     var rawTransaction = String()
-    var fees = 0
+    var fees:UInt16! = 0
     var manuallySetFee = Bool()
     var totalSize = Int()
     var transactionView = UITextView()
@@ -66,13 +66,76 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     var xpubkey = String()
     var privateKeytoDebit = ""
     var isWalletEncrypted = Bool()
+    var high = Bool()
+    var medium = Bool()
+    var low = Bool()
+    var BTC = Bool()
+    var USD = Bool()
+    var EUR = Bool()
+    var SAT = Bool()
+    var GBP = Bool()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        print("TransactionBuilderViewController")
+       if UserDefaults.standard.object(forKey: "firstTimeHere") != nil {
+            
+       } else {
+            
+            //users first time, set default settings
+            UserDefaults.standard.set(true, forKey: "firstTimeHere")
+            
+            guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+                
+                return
+                
+            }
+            
+            let context = appDelegate.persistentContainer.viewContext
+            let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "TransactionSettings")
+            
+            do {
+                
+                let results = try context.fetch(fetchRequest) as [NSManagedObject]
+                
+                if results.count > 0 {
+                    
+                    
+                } else {
+                    
+                    print("no results so create one")
+                    let entity = NSEntityDescription.entity(forEntityName: "TransactionSettings", in: context)
+                    let mySettings = NSManagedObject(entity: entity!, insertInto: context)
+                    mySettings.setValue(true, forKey: "dollar")
+                    mySettings.setValue(false, forKey: "bitcoin")
+                    mySettings.setValue(false, forKey: "satoshi")
+                    mySettings.setValue(false, forKey: "pounds")
+                    mySettings.setValue(false, forKey: "euro")
+                    mySettings.setValue(0, forKey: "customFee")
+                    mySettings.setValue(false, forKey: "high")
+                    mySettings.setValue(true, forKey: "low")
+                    mySettings.setValue(false, forKey: "medium")
+                    
+                    do {
+                        
+                        try context.save()
+                        
+                    } catch {
+                        
+                        print("Failed saving")
+                        
+                    }
+                    
+                }
+                
+            } catch {
+                
+                print("Failed")
+                
+            }
+            
+        }
         
-        //UserDefaults.standard.removeObject(forKey: "preference")
         
         addressToDisplay.delegate = self
         rawTransactionView.delegate = self
@@ -121,6 +184,26 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         coldMode = checkSettingsForKey(keyValue: "coldMode")
         mainnetMode = checkSettingsForKey(keyValue: "mainnetMode")
         testnetMode = checkSettingsForKey(keyValue: "testnetMode")
+        high = checkTransactionSettingsForKey(keyValue: "high") as! Bool
+        medium = checkTransactionSettingsForKey(keyValue: "medium") as! Bool
+        low = checkTransactionSettingsForKey(keyValue: "low") as! Bool
+        BTC = checkTransactionSettingsForKey(keyValue: "bitcoin") as! Bool
+        SAT = checkTransactionSettingsForKey(keyValue: "satoshi") as! Bool
+        USD = checkTransactionSettingsForKey(keyValue: "dollar") as! Bool
+        GBP = checkTransactionSettingsForKey(keyValue: "pounds") as! Bool
+        EUR = checkTransactionSettingsForKey(keyValue: "euro") as! Bool
+        fees = checkTransactionSettingsForKey(keyValue: "customFee") as! UInt16
+        
+        if high {
+            preference = "high"
+        } else if low {
+            preference = "low"
+        } else if medium {
+            preference = "medium"
+        } else if fees != 0 {
+            preference = ""
+            self.manuallySetFee = true
+        }
         
         if let networkCheck = walletToSpendFrom["network"] as? String {
             
@@ -133,19 +216,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                 
                 self.mainnetMode = true
                 self.testnetMode = false
-                
-            }
-        }
-        
-        if UserDefaults.standard.object(forKey: "preference") != nil {
-            
-            self.preference = UserDefaults.standard.object(forKey: "preference") as! String
-            print("self.preference = \(self.preference)")
-            
-            if self.preference != "high" && self.preference != "medium" && self.preference != "low" {
-                
-                self.fees = Int(self.preference)!
-                self.manuallySetFee = true
                 
             }
         }
@@ -262,7 +332,11 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                             
                         }))
                         
-                        self.present(alert, animated: true, completion: nil)
+                        alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+                        
+                        self.present(alert, animated: true) {
+                            print("option menu presented")
+                        }
                         
                     } else if self.getPayerAddressMode {
                         
@@ -394,7 +468,11 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                             
                         }))
                         
-                        self.present(alert, animated: true, completion: nil)
+                        alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+                        
+                        self.present(alert, animated: true) {
+                            print("option menu presented")
+                        }
                         
                     } else {
                         
@@ -414,64 +492,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         
     }
    
-    func setPreference() {
-        print("setPreference")
-        
-            DispatchQueue.main.async {
-                
-                let alert = UIAlertController(title: NSLocalizedString("Please set your miner fee preference", comment: ""), message: "", preferredStyle: UIAlertControllerStyle.actionSheet)
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("High Fee (1-2 blocks)", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.preference = "high"
-                    UserDefaults.standard.set(self.preference, forKey: "preference")
-                    self.fees = Int()
-                    UserDefaults.standard.synchronize()
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Medium Fee (3-6 blocks)", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.preference = "medium"
-                    UserDefaults.standard.set(self.preference, forKey: "preference")
-                    self.fees = Int()
-                    UserDefaults.standard.synchronize()
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Low Fee (7 blocks plus)", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.preference = "low"
-                    UserDefaults.standard.set(self.preference, forKey: "preference")
-                    self.fees = Int()
-                    UserDefaults.standard.synchronize()
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Manually Set", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.preference = ""
-                    self.manuallySetFee = true
-                    self.addFeeAmount()
-                    
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                    
-                    self.dismiss(animated: true, completion: nil)
-                    
-                }))
-                
-                self.present(alert, animated: true, completion: nil)
-                
-            }
-
-        
-        
-    }
-    
-    func addChooseOptionButton() {
+   func addChooseOptionButton() {
         
         self.optionsButton.removeFromSuperview()
         self.optionsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 50, y: 20, width: 45, height: 45))
@@ -485,82 +506,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     @objc func getAmount() {
         print("getAmount")
         
-        DispatchQueue.main.async {
-                
-                let alert = UIAlertController(title: NSLocalizedString("Choose a different currency or option", comment: ""), message: "BitSense will automatically remember the currency and mining fee for future transactions, they can be changed at any time.", preferredStyle: UIAlertControllerStyle.actionSheet)
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Satoshis", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.amountToSend.placeholder = "Amount to send in Satoshis"
-                    self.currency = "SAT"
-                    self.amountToSend.becomeFirstResponder()
-                    UserDefaults.standard.set(self.currency, forKey: "currency")
-                    UserDefaults.standard.synchronize()
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("USD", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.amountToSend.placeholder = "Amount to send in USD"
-                    self.currency = "USD"
-                    self.amountToSend.becomeFirstResponder()
-                    UserDefaults.standard.set(self.currency, forKey: "currency")
-                    UserDefaults.standard.synchronize()
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("EUR", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.amountToSend.placeholder = "Amount to send in EUR"
-                    self.currency = "EUR"
-                    self.amountToSend.becomeFirstResponder()
-                    UserDefaults.standard.set(self.currency, forKey: "currency")
-                    UserDefaults.standard.synchronize()
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("GBP", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.amountToSend.placeholder = "Amount to send in GBP"
-                    self.currency = "GBP"
-                    self.amountToSend.becomeFirstResponder()
-                    UserDefaults.standard.set(self.currency, forKey: "currency")
-                    UserDefaults.standard.synchronize()
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Sweep All Funds", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.amountToSend.removeFromSuperview()
-                    self.currency = "SAT"
-                    self.amount = "-1"
-                    self.optionsButton.removeFromSuperview()
-                    self.getSatsAndBTCs()
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Raw Transaction Tool", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.amountToSend.removeFromSuperview()
-                    self.addRawTransactionView()
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Set Miner Fee", comment: ""), style: .default, handler: { (action) in
-                    
-                        self.setPreference()
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                    
-                    
-                }))
-                
-                self.present(alert, animated: true, completion: nil)
-                
-            }
-            
+        self.performSegue(withIdentifier: "goToTransactionSettings", sender: self)
         
     }
     
@@ -643,56 +589,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         self.view.addSubview(self.videoPreview)
     }
     
-    func addFeeAmount() {
-        print("addFeeAmount")
-        
-        self.amountToSend.resignFirstResponder()
-        self.minerfeeInput.removeFromSuperview()
-        self.minerfeeInput.frame = CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 150, width: self.view.frame.width - 10, height: 50)
-        self.minerfeeInput.textAlignment = .center
-        self.minerfeeInput.borderStyle = .roundedRect
-        self.minerfeeInput.backgroundColor = UIColor.groupTableViewBackground
-        self.minerfeeInput.keyboardType = UIKeyboardType.decimalPad
-        self.minerfeeInput.addDoneButtonToKeyboard(myAction:  #selector(self.setFee))
-        self.minerfeeInput.becomeFirstResponder()
-        self.minerfeeInput.placeholder = "Fee in Satoshis"
-        
-        if UserDefaults.standard.object(forKey: "preference") != nil {
-            
-            self.preference = UserDefaults.standard.object(forKey: "preference") as! String
-            
-            if self.preference != "high" && self.preference != "medium" && self.preference != "low" {
-                
-                self.minerfeeInput.text = self.preference
-                self.manuallySetFee = true
-                
-            }
-        }
-        
-        self.view.addSubview(self.minerfeeInput)
-    }
-    
-    @objc func setFee() {
-        print("setFee")
-        
-        if self.minerfeeInput.text != "" && self.minerfeeInput.text != "0" {
-            
-            self.fees = Int(self.minerfeeInput.text!)!
-            UserDefaults.standard.set(self.minerfeeInput.text!, forKey: "preference")
-            self.minerfeeInput.resignFirstResponder()
-            self.minerfeeInput.removeFromSuperview()
-            self.amountToSend.becomeFirstResponder()
-            displayAlert(viewController: self, title: "Great job", message: "You set a custom mining fee for \(self.fees) Satoshis, this feature is for advanced users who understand the risks associated with setting custom fees.")
-            
-        } else {
-            
-            shakeAlert(viewToShake: self.minerfeeInput)
-        }
-        
-    }
-    
-    
-    
     func addAmount() {
         print("addAmount")
         
@@ -703,50 +599,30 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         self.amountToSend.keyboardType = UIKeyboardType.decimalPad
         self.amountToSend.addDoneButtonToKeyboard(myAction:  #selector(self.saveAmountInSatoshis))
         
-        if UserDefaults.standard.object(forKey: "currency") != nil {
-            
-            self.currency = UserDefaults.standard.object(forKey: "currency") as! String
-            
-            if self.currency == "SAT" {
-                
-                self.amountToSend.placeholder = "Amount to send in Satoshis"
-                self.currency = "SAT"
-                self.amountToSend.becomeFirstResponder()
-                
-            } else if self.currency == "BTC" {
-                
-                self.amountToSend.placeholder = "Amount to send in Bitcoin"
-                self.currency = "BTC"
-                self.amountToSend.becomeFirstResponder()
-                
-            } else if self.currency == "USD" {
-                
-                self.amountToSend.placeholder = "Amount to send in Dollars"
-                self.currency = "USD"
-                self.amountToSend.becomeFirstResponder()
-                
-            } else if self.currency == "GBP" {
-                
-                self.amountToSend.placeholder = "Amount to send in Pounds"
-                self.currency = "GBP"
-                self.amountToSend.becomeFirstResponder()
-                
-            } else if self.currency == "EUR" {
-                
-                self.amountToSend.placeholder = "Amount to send in Euros"
-                self.currency = "EUR"
-                self.amountToSend.becomeFirstResponder()
-                
-            }
-            
-        } else {
-            
+        if BTC {
+            currency = "BTC"
             self.amountToSend.placeholder = "Amount to send in Bitcoin"
-            self.currency = "BTC"
+            self.amountToSend.becomeFirstResponder()
+        } else if SAT {
+            currency = "SAT"
+            self.amountToSend.placeholder = "Amount to send in Satoshis"
+            self.amountToSend.becomeFirstResponder()
+        } else if GBP {
+            currency = "GBP"
+            self.amountToSend.placeholder = "Amount to send in Pounds"
+            self.amountToSend.becomeFirstResponder()
+        } else if USD {
+            currency = "USD"
+            self.amountToSend.placeholder = "Amount to send in Dollars"
+            self.amountToSend.becomeFirstResponder()
+        } else if EUR {
+            currency = "EUR"
+            self.amountToSend.placeholder = "Amount to send in Euros"
             self.amountToSend.becomeFirstResponder()
         }
         
         self.view.addSubview(self.amountToSend)
+        
     }
     
     @objc func saveAmountInSatoshis() {
@@ -972,7 +848,11 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                             
                     }))
                         
-                    self.present(alert, animated: true, completion: nil)
+                    alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+                    
+                    self.present(alert, animated: true) {
+                        print("option menu presented")
+                    }
                 }
             }
                 
@@ -1567,9 +1447,9 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             
             if self.manuallySetFee {
                 
-                request.httpBody = "{\"inputs\": [{\"addresses\": [\"\(self.sendingFromAddress)\"]}], \"outputs\": [{\"addresses\": [\"\(self.recievingAddress)\"], \"value\": \(self.satoshiAmount)}],\"fees\": \(self.fees)}".data(using: .utf8)
+                request.httpBody = "{\"inputs\": [{\"addresses\": [\"\(self.sendingFromAddress)\"]}], \"outputs\": [{\"addresses\": [\"\(self.recievingAddress)\"], \"value\": \(self.satoshiAmount)}],\"fees\": \(self.fees!)}".data(using: .utf8)
                 
-                print("{\"inputs\": [{\"addresses\": [\"\(self.sendingFromAddress)\"]}], \"outputs\": [{\"addresses\": [\"\(self.recievingAddress)\"], \"value\": \(self.satoshiAmount)}],\"fees\": \(self.fees)}")
+                print("{\"inputs\": [{\"addresses\": [\"\(self.sendingFromAddress)\"]}], \"outputs\": [{\"addresses\": [\"\(self.recievingAddress)\"], \"value\": \(self.satoshiAmount)}],\"fees\": \(self.fees!)}")
                 
             } else {
                 
@@ -1641,7 +1521,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                                         
                                         if let sizeCheck = (jsonAddressResult["tx"] as? NSDictionary)?["fees"] as? NSInteger {
                                                 
-                                            self.fees = sizeCheck
+                                            self.fees = UInt16(sizeCheck)
                                                 
                                         }
                                         
@@ -1812,7 +1692,11 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                                                     
                                                 }))
                                                 
-                                                self.present(alert, animated: true, completion: nil)
+                                                alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+                                                
+                                                self.present(alert, animated: true) {
+                                                    print("option menu presented")
+                                                }
                                                 
                                             }
                                         }
@@ -1952,7 +1836,11 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                                                 
                                             }))
                                             
-                                            self.present(alert, animated: true, completion: nil)
+                                            alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+                                            
+                                            self.present(alert, animated: true) {
+                                                print("option menu presented")
+                                            }
                                             
                                         }
                                     }

@@ -117,6 +117,62 @@ public func checkSettingsForKey(keyValue: String) -> Bool {
     return bool
 }
 
+public func checkTransactionSettingsForKey(keyValue: String) -> Any {
+    
+    
+    guard let appDelegate =
+        UIApplication.shared.delegate as? AppDelegate else {
+            return false
+    }
+    
+    var value:Any!
+    
+    if keyValue == "currency" {
+        
+        value = String()
+        
+    } else if keyValue == "customFee" {
+        
+        value = UInt16()
+        
+    } else if keyValue == "high" || keyValue == "medium" || keyValue == "low" {
+        
+        value = Bool()
+        
+    }
+    
+    
+    
+    let context = appDelegate.persistentContainer.viewContext
+    let request = NSFetchRequest<NSFetchRequestResult>(entityName: "TransactionSettings")
+    
+    do {
+        
+        if let results = try context.fetch(request) as? [NSManagedObject] {
+            
+            for data in results {
+                
+                if let _ = data.value(forKey: keyValue) as? Any {
+                    
+                    value = data.value(forKey: keyValue) as Any
+                    
+                }
+                
+            }
+            
+        }
+        
+        
+        
+    } catch {
+        
+        print("Failed")
+        
+    }
+    
+    return value
+}
+
 public func displayAlert(viewController: UIViewController, title: String, message: String) {
     
     let alertcontroller = UIAlertController(title: title, message: message, preferredStyle: .alert)
@@ -266,6 +322,17 @@ public extension Double {
 }
 
 public extension Int {
+    
+    func withCommas() -> String {
+        
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = NumberFormatter.Style.decimal
+        return numberFormatter.string(from: NSNumber(value:self))!
+    }
+    
+}
+
+public extension UInt16 {
     
     func withCommas() -> String {
         

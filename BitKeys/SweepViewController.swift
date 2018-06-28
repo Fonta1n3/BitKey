@@ -120,23 +120,16 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                     privateKeyImportText.removeFromSuperview()
                     self.removeScanner()
                     
-                    var privateKeyHD = String()
-                    var addressHD = String()
                     var bitcoinAddress = String()
                     
-                    privateKeyHD = key.privateKeyAddressTestnet.description
-                    addressHD = key.addressTestnet.description
-                    
-                    let privateKey3 = privateKeyHD.components(separatedBy: " ")
-                    let privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
-                    
+                    let privateKeyWIF = key.privateKeyAddressTestnet.string
+                    let addressHD = key.addressTestnet.string
                     let publicKey = key.compressedPublicKey.hex()!
                     print("publicKey = \(publicKey)")
                     
                     if self.legacyMode {
                         
-                        let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                        bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                        bitcoinAddress = addressHD
                         
                     }
                     
@@ -173,23 +166,16 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                     privateKeyImportText.removeFromSuperview()
                     self.removeScanner()
                     
-                    var privateKeyHD = String()
-                    var addressHD = String()
                     var bitcoinAddress = String()
                     
-                    privateKeyHD = key.privateKeyAddress.description
-                    addressHD = key.address.description
-                    
-                    let privateKey3 = privateKeyHD.components(separatedBy: " ")
-                    let privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
-                    
+                    let privateKeyWIF = key.privateKeyAddress.string
+                    let addressHD = key.address.string
                     let publicKey = key.compressedPublicKey.hex()!
                     print("publicKey = \(publicKey)")
                     
                     if self.legacyMode {
                         
-                        let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                        bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                        bitcoinAddress = addressHD
                         
                     }
                     
@@ -294,23 +280,16 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                             privateKeyImportText.removeFromSuperview()
                             self.removeScanner()
                             
-                            var privateKeyHD = String()
-                            var addressHD = String()
                             var bitcoinAddress = String()
                             
-                            privateKeyHD = key.privateKeyAddressTestnet.description
-                            addressHD = key.addressTestnet.description
-                            
-                            let privateKey3 = privateKeyHD.components(separatedBy: " ")
-                            let privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
-                            
+                            let privateKeyWIF = key.privateKeyAddressTestnet.string
+                            let addressHD = key.addressTestnet.string
                             let publicKey = key.compressedPublicKey.hex()!
                             print("publicKey = \(publicKey)")
                             
                             if self.legacyMode {
                                 
-                                let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                                bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                bitcoinAddress = addressHD
                                 
                             }
                             
@@ -346,24 +325,17 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                             print("privateKey = \(key.privateKeyAddress)")
                             privateKeyImportText.removeFromSuperview()
                             self.removeScanner()
-                            
-                            var privateKeyHD = String()
-                            var addressHD = String()
                             var bitcoinAddress = String()
                             
-                            privateKeyHD = key.privateKeyAddress.description
-                            addressHD = key.address.description
-                            
-                            let privateKey3 = privateKeyHD.components(separatedBy: " ")
-                            let privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
+                            let privateKeyWIF = key.privateKeyAddress.string
+                            let addressHD = key.address.string
                             
                             let publicKey = key.compressedPublicKey.hex()!
                             print("publicKey = \(publicKey)")
                             
                             if self.legacyMode {
                                 
-                                let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                                bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                bitcoinAddress = addressHD
                                 
                             }
                             

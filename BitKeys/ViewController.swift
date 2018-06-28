@@ -799,23 +799,15 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                         
                         if let key = BTCKey.init(privateKeyAddress: privateKey) {
                             
-                            var privateKeyHD = String()
-                            var addressHD = String()
-                            
-                            privateKeyHD = key.privateKeyAddress.description
-                            addressHD = key.address.description
-                            
-                            let privateKey3 = privateKeyHD.components(separatedBy: " ")
-                            let privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
-                            
+                            let privateKeyWIF = key.privateKeyAddress.string
+                            let addressHD = key.address.string
                             let publicKey = key.compressedPublicKey.hex()!
                             
                             var bitcoinAddress = String()
                             
                             if self.legacyMode {
                                 
-                                let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                                bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                bitcoinAddress = addressHD
                                 
                             } else if self.segwitMode {
                                 
@@ -847,23 +839,15 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                         
                         if let key = BTCKey.init(privateKeyAddress: privateKey) {
                             
-                            var privateKeyHD = String()
-                            var addressHD = String()
-                            
-                            privateKeyHD = key.privateKeyAddressTestnet.description
-                            addressHD = key.addressTestnet.description
-                            
-                            let privateKey3 = privateKeyHD.components(separatedBy: " ")
-                            let privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
-                            
+                            let privateKeyWIF = key.privateKeyAddressTestnet.string
+                            let addressHD = key.addressTestnet.string
                             let publicKey = key.compressedPublicKey.hex()!
                             
                             var bitcoinAddress = String()
                             
                             if self.legacyMode {
                                 
-                                let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                                bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                bitcoinAddress = addressHD
                                 
                             } else if self.segwitMode {
                                 
@@ -1500,7 +1484,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             keychain?.key.isPublicKeyCompressed = true
             
             let publicKey = (keychain?.key(at: 0).compressedPublicKey.hex())!
-            var privateKeyHD = String()
             var addressHD = String()
             
             var network = ""
@@ -1509,26 +1492,21 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
                 network = "testnet"
                 
-                privateKeyHD = (keychain?.key(at: 0).privateKeyAddressTestnet.description)!
-                addressHD = (keychain?.key(at: 0).addressTestnet.description)!
+                self.privateKeyWIF = (keychain?.key(at: 0).privateKeyAddressTestnet.string)!
+                addressHD = (keychain?.key(at: 0).addressTestnet.string)!
                 
             } else if mainnetMode {
                 
                 network = "mainnet"
                 
-                privateKeyHD = (keychain?.key(at: 0).privateKeyAddress.description)!
-                addressHD = (keychain?.key(at: 0).address.description)!
+                self.privateKeyWIF = (keychain?.key(at: 0).privateKeyAddress.string)!
+                addressHD = (keychain?.key(at: 0).address.string)!
                 
             }
             
-            var privateKey3 = privateKeyHD.components(separatedBy: " ")
-            self.privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
-            
-            
             if self.legacyMode {
                 
-                let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                self.bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                self.bitcoinAddress = addressHD
                 
             }
             
@@ -1564,6 +1542,8 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
                 saveWallet(viewController: self, address: self.bitcoinAddress, privateKey: "", publicKey: publicKey, redemptionScript: "", network: network, type: "cold")
             }
+            
+            self.addressBook = checkAddressBook()
             
             keychain?.key.clear()
             
@@ -1781,7 +1761,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                         
                     }))
                     
-                    self.present(alert, animated: true, completion: nil)
+                    alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+                    
+                    self.present(alert, animated: true) {
+                        print("option menu presented")
+                    }
                     
                 } else if self.addressBook.count == 1 {
                     
@@ -2349,7 +2333,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
             }))
             
-            self.present(alert, animated: true, completion: nil)
+            //self.present(alert, animated: true, completion: nil)
+            alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+            
+            self.present(alert, animated: true) {
+                print("option menu presented")
+            }
         }
     }
     
@@ -2442,7 +2431,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                         
                     }))
                     
-                    self.present(alert, animated: true, completion: nil)
+                    alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+                    
+                    self.present(alert, animated: true) {
+                        print("option menu presented")
+                    }
                     
                 } else {
                     
@@ -2484,7 +2477,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
             }))
             
-            self.present(alert, animated: true, completion: nil)
+            alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+            
+            self.present(alert, animated: true) {
+                print("option menu presented")
+            }
         }
         
     }
@@ -2501,6 +2498,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         case self.addressBookButton:
             
             print("addressBookButton")
+            
+            if addressBook.count == 0 {
+                
+                displayAlert(viewController: self, title: "Your address book is empty.", message: "Move the Bitcoin around to create your first wallet which will be saved to your address book.")
+            }
+            
             self.performSegue(withIdentifier: "goToAddressBook", sender: self)
             
         case self.lockButton:
@@ -2626,7 +2629,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
             }))
             
-            self.present(alert, animated: true, completion: nil)
+            alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+            
+            self.present(alert, animated: true) {
+                print("option menu presented")
+            }
             
         }
         

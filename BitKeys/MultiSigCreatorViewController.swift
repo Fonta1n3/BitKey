@@ -190,7 +190,11 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
                         
                     }))
                     
-                    self.present(alert, animated: true, completion: nil)
+                    alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+                    
+                    self.present(alert, animated: true) {
+                        print("option menu presented")
+                    }
                     
                 }
                 
@@ -257,7 +261,11 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
                         
                     }))
                     
-                    self.present(alert, animated: true, completion: nil)
+                    alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+                    
+                    self.present(alert, animated: true) {
+                        print("option menu presented")
+                    }
                     
                 }
                 
@@ -328,9 +336,7 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
                                         
                                         if let multiSigWallet = BTCScript.init(publicKeys: publickKeyArray, signaturesRequired: UInt(self.numberOfSignatures)) {
                                             
-                                            let multiSigAddress1 = multiSigWallet.scriptHashAddressTestnet.description
-                                            let multiSigAddress2 = multiSigAddress1.components(separatedBy: " ")
-                                            self.multiSigAddress = multiSigAddress2[1].replacingOccurrences(of: ">", with: "")
+                                            self.multiSigAddress = multiSigWallet.scriptHashAddressTestnet.string
                                             print("multiSigAddress = \(multiSigAddress)")
                                             
                                             self.redemptionScript = multiSigWallet.hex!
@@ -376,9 +382,7 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
                             
                                 if let multiSigWallet = BTCScript.init(publicKeys: publickKeyArray, signaturesRequired: UInt(self.numberOfSignatures)) {
                                 
-                                    let multiSigAddress1 = multiSigWallet.scriptHashAddressTestnet.description
-                                    let multiSigAddress2 = multiSigAddress1.components(separatedBy: " ")
-                                    self.multiSigAddress = multiSigAddress2[1].replacingOccurrences(of: ">", with: "")
+                                    self.multiSigAddress = multiSigWallet.scriptHashAddressTestnet.string
                                     print("multiSigAddress = \(multiSigAddress)")
                                 
                                     self.redemptionScript = multiSigWallet.hex!
@@ -431,11 +435,8 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
                                         
                                         if let multiSigWallet = BTCScript.init(publicKeys: publickKeyArray, signaturesRequired: UInt(self.numberOfSignatures)) {
                                             
-                                            let multiSigAddress1 = multiSigWallet.scriptHashAddress.description
-                                            let multiSigAddress2 = multiSigAddress1.components(separatedBy: " ")
-                                            self.multiSigAddress = multiSigAddress2[1].replacingOccurrences(of: ">", with: "")
+                                            self.multiSigAddress = multiSigWallet.scriptHashAddress.string
                                             print("multiSigAddress = \(multiSigAddress)")
-                                            
                                             self.redemptionScript = multiSigWallet.hex!
                                             print("redemptionScript = \(redemptionScript)")
                                             self.removeScanner()
@@ -479,11 +480,8 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
                                 
                                 if let multiSigWallet = BTCScript.init(publicKeys: publickKeyArray, signaturesRequired: UInt(self.numberOfSignatures)) {
                                     
-                                    let multiSigAddress1 = multiSigWallet.scriptHashAddress.description
-                                    let multiSigAddress2 = multiSigAddress1.components(separatedBy: " ")
-                                    self.multiSigAddress = multiSigAddress2[1].replacingOccurrences(of: ">", with: "")
+                                    self.multiSigAddress = multiSigWallet.scriptHashAddress.string
                                     print("multiSigAddress = \(multiSigAddress)")
-                                    
                                     self.redemptionScript = multiSigWallet.hex!
                                     print("redemptionScript = \(redemptionScript)")
                                     self.removeScanner()
@@ -852,7 +850,11 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
                 
             }))
             
-            self.present(alert, animated: true, completion: nil)
+            alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+            
+            self.present(alert, animated: true) {
+                print("option menu presented")
+            }
             
         } else if redemptionMode {
             
@@ -885,7 +887,11 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
                 
             }))
             
-            self.present(alert, animated: true, completion: nil)
+            alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+            
+            self.present(alert, animated: true) {
+                print("option menu presented")
+            }
         }
         
         
