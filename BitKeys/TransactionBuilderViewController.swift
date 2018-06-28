@@ -99,7 +99,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         addAmount()
         addChooseOptionButton()
         
-        
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -117,12 +116,26 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         
         print("checkUserDefaults")
         
-        addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String:Any]]
-        
+        addressBook = checkAddressBook()
         hotMode = checkSettingsForKey(keyValue: "hotMode")
         coldMode = checkSettingsForKey(keyValue: "coldMode")
         mainnetMode = checkSettingsForKey(keyValue: "mainnetMode")
         testnetMode = checkSettingsForKey(keyValue: "testnetMode")
+        
+        if let networkCheck = walletToSpendFrom["network"] as? String {
+            
+            if networkCheck == "testnet" {
+                
+                self.testnetMode = true
+                self.mainnetMode = false
+                
+            } else if networkCheck == "mainnet" {
+                
+                self.mainnetMode = true
+                self.testnetMode = false
+                
+            }
+        }
         
         if UserDefaults.standard.object(forKey: "preference") != nil {
             
@@ -135,6 +148,13 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                 self.manuallySetFee = true
                 
             }
+        }
+        
+        if isWalletEncrypted {
+            
+            coldMode = true
+            hotMode = false
+            
         }
         
     }
@@ -615,8 +635,11 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     func addQRScannerView() {
         print("addQRScannerView")
         
-        self.videoPreview.backgroundColor = UIColor.black
         self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y - ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: self.view.frame.width - 50)
+        self.videoPreview.layer.shadowColor = UIColor.black.cgColor
+        self.videoPreview.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.videoPreview.layer.shadowRadius = 2.5
+        self.videoPreview.layer.shadowOpacity = 0.8
         self.view.addSubview(self.videoPreview)
     }
     
@@ -835,36 +858,40 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                 
                 if addressAlreadySaved != true {
                     
-                    DispatchQueue.main.async {
+                    if isWalletEncrypted != true {
                         
-                        let alert = UIAlertController(title: "Save this address?", message: "Would you like to save this address for future payments?", preferredStyle: UIAlertControllerStyle.alert)
+                        DispatchQueue.main.async {
+                            
+                            let alert = UIAlertController(title: "Save this address?", message: "Would you like to save this address for future payments?", preferredStyle: UIAlertControllerStyle.alert)
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("Yes", comment: ""), style: .default, handler: { (action) in
+                                
+                                saveWallet(viewController: self, address: key, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold")
+                                
+                                self.recievingAddress = key
+                                self.getReceivingAddressMode = false
+                                self.getPayerAddressMode = true
+                                self.removeScanner()
+                                self.addScanner()
+                                self.addressToDisplay.text = ""
+                                
+                            }))
+                            
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("No", comment: ""), style: .default, handler: { (action) in
+                                
+                                self.recievingAddress = key
+                                self.getReceivingAddressMode = false
+                                self.getPayerAddressMode = true
+                                self.removeScanner()
+                                self.addScanner()
+                                self.addressToDisplay.text = ""
+                                
+                                
+                            }))
+                            
+                            self.present(alert, animated: true, completion: nil)
+                        }
                         
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("Yes", comment: ""), style: .default, handler: { (action) in
-                            
-                            saveWallet(viewController: self, address: key, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold")
-                            
-                            self.recievingAddress = key
-                            self.getReceivingAddressMode = false
-                            self.getPayerAddressMode = true
-                            self.removeScanner()
-                            self.addScanner()
-                            self.addressToDisplay.text = ""
-                            
-                        }))
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("No", comment: ""), style: .default, handler: { (action) in
-                            
-                            self.recievingAddress = key
-                            self.getReceivingAddressMode = false
-                            self.getPayerAddressMode = true
-                            self.removeScanner()
-                            self.addScanner()
-                            self.addressToDisplay.text = ""
-                            
-                            
-                        }))
-                        
-                        self.present(alert, animated: true, completion: nil)
                     }
                     
                 } else {
@@ -1307,12 +1334,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             
             var receiveAddress = ""
             var sendAddress = ""
-            
-            if UserDefaults.standard.object(forKey: "addressBook") != nil {
-                
-                self.addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String:Any]]
-                
-            }
             
             for wallet in self.addressBook {
                 

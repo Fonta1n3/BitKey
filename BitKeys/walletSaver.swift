@@ -13,27 +13,7 @@ public func saveWallet(viewController: UIViewController, address: String, privat
     
     print("saveWallet")
     
-    var addressBook = [[String: Any]]()
     var addressAlreadySaved = Bool()
-    
-    if UserDefaults.standard.object(forKey: "addressBook") != nil {
-        
-        addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String: Any]]
-        print("addressBook = \(addressBook)")
-        
-        if addressBook.count > 1 {
-            
-            for savedAddress in addressBook {
-                
-                if address == savedAddress["address"] as! String {
-                    
-                    addressAlreadySaved = true
-                    
-                }
-            }
-        }
-        
-    }
     
     func saveWalletToAddressBook() {
         
@@ -45,29 +25,17 @@ public func saveWallet(viewController: UIViewController, address: String, privat
             
         }
         
-        alert.addAction(UIAlertAction(title: NSLocalizedString("Add", comment: ""), style: .default, handler: { (action) in
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Add Name", comment: ""), style: .default, handler: { (action) in
             
             let label = alert.textFields![0].text!
             
-            addressBook.append(["address": "\(address)", "label": "\(label)",  "balance": "", "network": "\(network)", "privateKey": "\(privateKey)", "publicKey": "\(publicKey)", "redemptionScript": redemptionScript, "type":"\(type)"])
-            
             saveToCoreData(label: label)
-            
-            UserDefaults.standard.set(addressBook, forKey: "addressBook")
-            
-            displayAlert(viewController: viewController, title: "Success", message: "You added a new wallet named: \"\(label)\" to your address book.")
             
         }))
         
         alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
             
-            addressBook.append(["address": "\(address)", "label": "",  "balance": "", "network": "\(network)", "privateKey": "\(privateKey)", "publicKey": "\(publicKey)", "redemptionScript": redemptionScript, "type":"\(type)"])
-            
-            
-            
-            UserDefaults.standard.set(addressBook, forKey: "addressBook")
-            
-            displayAlert(viewController: viewController, title: "Success", message: "You added a new wallet with address: \"\(address)\" to your address book.")
+            saveToCoreData(label: "")
             
         }))
         
@@ -76,23 +44,27 @@ public func saveWallet(viewController: UIViewController, address: String, privat
         
     }
     
-    if addressAlreadySaved {
-        
-        displayAlert(viewController: viewController, title: "Error, Address already saved.", message: "You can not save duplicate addresses to your address book.")
-        
-    } else {
-        
-        saveWalletToAddressBook()
-        
-    }
+    saveWalletToAddressBook()
     
     func saveToCoreData(label: String) {
         
         let keys = ["address", "balance", "label", "network", "privateKey", "publicKey", "recoveryPhrase", "redemptionScript", "type", "xpriv", "xpub"]
         let values = [address, "", label, network, privateKey, publicKey, "", redemptionScript, type, "", ""]
         var alreadySaved = Bool()
+        var success = Bool()
         
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        var appDelegate = AppDelegate()
+        
+        if let appDelegateCheck = UIApplication.shared.delegate as? AppDelegate {
+            
+            appDelegate = appDelegateCheck
+            
+        } else {
+            
+            displayAlert(viewController: viewController, title: "Error", message: "Something strange has happened and we do not have access to app delegate, please try again.")
+            
+        }
+        
         let context = appDelegate.persistentContainer.viewContext
         let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "AddressBook")
         fetchRequest.returnsObjectsAsFaults = false
@@ -100,8 +72,6 @@ public func saveWallet(viewController: UIViewController, address: String, privat
         do {
             
             let results = try context.fetch(fetchRequest) as [NSManagedObject]
-            
-            print("results in saver = \(results)")
             
             if results.count > 0 {
                 
@@ -133,12 +103,27 @@ public func saveWallet(viewController: UIViewController, address: String, privat
                         do {
                             
                             try context.save()
+                            success = true
                             
                         } catch {
                             
                             print("Failed saving")
+                            success = false
+                        }
+                    }
+                    
+                    if success {
+                        
+                        if label == "" {
+                            
+                            displayAlert(viewController: viewController, title: "Success", message: "You added a new wallet with address: \"\(address)\" to your address book.")
+                            
+                        } else {
+                            
+                            displayAlert(viewController: viewController, title: "Success", message: "You added a new wallet named: \"\(label)\" to your address book.")
                             
                         }
+                        
                     }
                     
                 }
@@ -158,14 +143,28 @@ public func saveWallet(viewController: UIViewController, address: String, privat
                     do {
                         
                         try context.save()
+                        success = true
                         
                     } catch {
                         
                         print("Failed saving")
+                        success = false
                         
                     }
                 }
-               
+                
+                if success {
+                    
+                    if label == "" {
+                        
+                        displayAlert(viewController: viewController, title: "Success", message: "You added a new wallet with address: \"\(address)\" to your address book.")
+                        
+                    } else {
+                        
+                        displayAlert(viewController: viewController, title: "Success", message: "You added a new wallet named: \"\(label)\" to your address book.")
+                    }
+                    
+                }
                 
             }
             

@@ -21,7 +21,7 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
     var coldMode = Bool()
     var testnetMode = Bool()
     var mainnetMode = Bool()
-    var sections = ["Key Management Setting", "Address Format Settings", "Nework Settings"]
+    var sections = ["Key Management", "Address Format", "Network"]
     var settingsArray = [[String:Bool]]()
 
     
@@ -126,8 +126,6 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
         
         cell.textLabel?.text = key
         
-        
-        
         return cell
         
     }
@@ -135,6 +133,15 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         
         return sections[section]
+        
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        
+        (view as! UITableViewHeaderFooterView).backgroundView?.backgroundColor = UIColor.white
+        (view as! UITableViewHeaderFooterView).textLabel?.textAlignment = .center
+        (view as! UITableViewHeaderFooterView).textLabel?.font = UIFont.init(name: "HelveticaNeue", size: 15)
+        (view as! UITableViewHeaderFooterView).textLabel?.textColor = UIColor.darkGray
         
     }
     

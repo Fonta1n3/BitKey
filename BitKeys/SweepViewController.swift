@@ -14,26 +14,30 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
     var backButton = UIButton()
     var testnetMode = Bool()
     var mainnetMode = Bool()
+    var legacyMode = Bool()
+    var segwitMode = Bool()
     var imageView:UIView!
     let avCaptureSession = AVCaptureSession()
     var videoPreview = UIView()
     var privateKeyImportText = UITextField()
     var stringURL = String()
     var addressBook: [[String: Any]] = []
+    var segwit = SegwitAddrCoder()
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         print("SweepViewController")
         privateKeyImportText.delegate = self
-        getUserDefaults()
         addScanner()
         addBackButton()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         
-       getUserDefaults()
+       addressBook = checkAddressBook()
+        legacyMode = checkSettingsForKey(keyValue: "legacyMode")
+        segwitMode = checkSettingsForKey(keyValue: "segwitMode")
         
     }
 
@@ -66,6 +70,10 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
         print("addQRScannerView")
         
         self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y - ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: self.view.frame.width - 50)
+        self.videoPreview.layer.shadowColor = UIColor.black.cgColor
+        self.videoPreview.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.videoPreview.layer.shadowRadius = 2.5
+        self.videoPreview.layer.shadowOpacity = 0.8
         self.view.addSubview(self.videoPreview)
     }
     
@@ -114,6 +122,7 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                     
                     var privateKeyHD = String()
                     var addressHD = String()
+                    var bitcoinAddress = String()
                     
                     privateKeyHD = key.privateKeyAddressTestnet.description
                     addressHD = key.addressTestnet.description
@@ -124,8 +133,28 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                     let publicKey = key.compressedPublicKey.hex()!
                     print("publicKey = \(publicKey)")
                     
-                    let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                    let bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                    if self.legacyMode {
+                        
+                        let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
+                        bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                        
+                    }
+                    
+                    if segwitMode {
+                        
+                        let compressedPKData = BTCRIPEMD160(BTCSHA256(key.compressedPublicKey as Data!) as Data!) as Data!
+                        
+                        do {
+                            
+                            bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
+                            
+                        } catch {
+                            
+                            displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                            
+                        }
+                        
+                    }
                     
                     saveWallet(viewController: self, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot")
                         
@@ -140,11 +169,13 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                 
                 if let key = BTCKey.init(privateKeyAddress: privateKey) {
                     
+                    print("privateKey = \(key.privateKeyAddress)")
                     privateKeyImportText.removeFromSuperview()
                     self.removeScanner()
                     
                     var privateKeyHD = String()
                     var addressHD = String()
+                    var bitcoinAddress = String()
                     
                     privateKeyHD = key.privateKeyAddress.description
                     addressHD = key.address.description
@@ -155,8 +186,28 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                     let publicKey = key.compressedPublicKey.hex()!
                     print("publicKey = \(publicKey)")
                     
-                    let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                    let bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                    if self.legacyMode {
+                        
+                        let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
+                        bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                        
+                    }
+                    
+                    if segwitMode {
+                        
+                        let compressedPKData = BTCRIPEMD160(BTCSHA256(key.compressedPublicKey as Data!) as Data!) as Data!
+                        
+                        do {
+                            
+                            bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                            
+                        } catch {
+                            
+                            displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                            
+                        }
+                        
+                    }
                     
                     saveWallet(viewController: self, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot")
                     
@@ -219,23 +270,7 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
         
     }
     
-    func getUserDefaults() {
-        
-        print("checkUserDefaults")
-        
-        if UserDefaults.standard.object(forKey: "addressBook") != nil {
-            
-            addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String: Any]]
-            
-        }
-        
-        testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
-        mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
-        
-    }
-    
-
-    func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+   func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
         
         if metadataObjects.count > 0 {
             print("metadataOutput")
@@ -261,6 +296,7 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                             
                             var privateKeyHD = String()
                             var addressHD = String()
+                            var bitcoinAddress = String()
                             
                             privateKeyHD = key.privateKeyAddressTestnet.description
                             addressHD = key.addressTestnet.description
@@ -268,12 +304,31 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                             let privateKey3 = privateKeyHD.components(separatedBy: " ")
                             let privateKeyWIF = privateKey3[1].replacingOccurrences(of: ">", with: "")
                             
-                            
                             let publicKey = key.compressedPublicKey.hex()!
                             print("publicKey = \(publicKey)")
                             
-                            let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                            let bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                            if self.legacyMode {
+                                
+                                let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
+                                bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                
+                            }
+                            
+                            if segwitMode {
+                                
+                                let compressedPKData = BTCRIPEMD160(BTCSHA256(key.compressedPublicKey as Data!) as Data!) as Data!
+                                
+                                do {
+                                    
+                                    bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
+                                    
+                                } catch {
+                                    
+                                    displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                                    
+                                }
+                                
+                            }
                             
                             saveWallet(viewController: self, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot")
                             
@@ -294,6 +349,7 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                             
                             var privateKeyHD = String()
                             var addressHD = String()
+                            var bitcoinAddress = String()
                             
                             privateKeyHD = key.privateKeyAddress.description
                             addressHD = key.address.description
@@ -304,8 +360,28 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                             let publicKey = key.compressedPublicKey.hex()!
                             print("publicKey = \(publicKey)")
                             
-                            let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
-                            let bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                            if self.legacyMode {
+                                
+                                let legacyAddress2 = (addressHD.description).components(separatedBy: " ")
+                                bitcoinAddress = legacyAddress2[1].replacingOccurrences(of: ">", with: "")
+                                
+                            }
+                            
+                            if segwitMode {
+                                
+                                let compressedPKData = BTCRIPEMD160(BTCSHA256(key.compressedPublicKey as Data!) as Data!) as Data!
+                                
+                                do {
+                                    
+                                    bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                                    
+                                } catch {
+                                    
+                                    displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                                    
+                                }
+                                
+                            }
                             
                             saveWallet(viewController: self, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot")
                             

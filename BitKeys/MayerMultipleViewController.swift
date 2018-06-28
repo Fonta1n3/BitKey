@@ -140,9 +140,9 @@ class MayerMultipleViewController: UIViewController {
                                                                     self.removeSpinner()
                                                                     
                                                                     let exchangeRate = Double(rateCheck)
-                                                                    print("exchangeRate = \(exchangeRate)")
-                                                                    let priceDifference = round(100 * (exchangeRate - twoHundredDayMovingAverage)) / 100
-                                                                    let percentage = Int((priceDifference / twoHundredDayMovingAverage) * 100)
+                                                                    //print("exchangeRate = \(exchangeRate)")
+                                                                    //let priceDifference = round(100 * (exchangeRate - twoHundredDayMovingAverage)) / 100
+                                                                    //let percentage = Int((priceDifference / twoHundredDayMovingAverage) * 100)
                                                                     
                                                                     let mayerMultipleLabel = UITextView()
                                                                     mayerMultipleLabel.textAlignment = .natural

@@ -57,7 +57,7 @@ class SpendMultiSigViewController: UIViewController {
                 
                 if error != nil {
                     
-                    print(error)
+                    print(error as Any)
                     
                 } else {
                     
@@ -174,7 +174,7 @@ class SpendMultiSigViewController: UIViewController {
                     
                     DispatchQueue.main.async {
                         
-                        print("error = \(error)")
+                        print("error = \(String(describing: error))")
                         
                     }
                     

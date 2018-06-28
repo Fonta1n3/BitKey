@@ -37,12 +37,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
     override func viewDidAppear(_ animated: Bool) {
         
         getLatestBlock()
-        
-        if UserDefaults.standard.object(forKey: "addressBook") != nil {
-            
-            addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String:Any]]
-            
-        }
+        addressBook = checkAddressBook()
         
     }
     
@@ -322,12 +317,12 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                                 var blockheight = Int()
                                                 var fromAddresses = [String]()
                                                 var toAddresses = [String]()
-                                                var amountSpent = Int()
+                                                //var amountSpent = Int()
                                                 var amountReceived = [Int]()
                                                 var amountSent = [Int]()
                                                 var confirmations = Int()
                                                 var secondsSince = Double()
-                                                let currentDate = Date()
+                                                //let currentDate = Date()
                                                 var dateString = ""
                                                 var hash = ""
                                                 
@@ -392,7 +387,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                                 var primaryRecipient = String()
                                                 var primaryAmountRecipientReceived = Double()
                                                 
-                                                for (index, inputAddr) in fromAddresses.enumerated() {
+                                                for inputAddr in fromAddresses {
                                                     
                                                     if fromAddresses.count > 1 {
                                                         
@@ -455,13 +450,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                                 }
                                                 
                                                 
-                                                DispatchQueue.main.async {
-                                                    
-                                                    self.transactionArray.append(dictionary)
-                                                    self.transactionHistoryTable.reloadData()
-                                                    
-                                                }
-                                                
+                                                self.transactionArray.append(dictionary)
                                                 fromAddresses.removeAll()
                                                 toAddresses.removeAll()
                                                 amountReceived.removeAll()
@@ -470,8 +459,13 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                             
                                         }
                                         
-                                        //print("historyCheck count = \(historyCheck.count)")
+                                    }
+                                    
+                                    DispatchQueue.main.async {
                                         
+                                        
+                                        //self.transactionArray = self.transactionArray.sorted{ ($0["date"] as? String)! > ($1["date"] as? String)! }
+                                        self.transactionHistoryTable.reloadData()
                                     }
                                     
                                     self.removeSpinner()
@@ -537,15 +531,15 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                             
                                             if let hashCheck = transaction["hash"] as? String {
                                                 
-                                                var blockheight = Int()
+                                                //var blockheight = Int()
                                                 var fromAddresses = [String]()
                                                 var toAddresses = [String]()
-                                                var amountSpent = Int()
+                                                //var amountSpent = Int()
                                                 var amountReceived = [Int]()
                                                 var amountSent = [Int]()
                                                 var confirmations = Int()
-                                                var secondsSince = Double()
-                                                let currentDate = Date()
+                                                //var secondsSince = Double()
+                                                //let currentDate = Date()
                                                 var dateString = ""
                                                 var hash = ""
                                                 
@@ -648,7 +642,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                                 var primaryRecipient = String()
                                                 var primaryAmountRecipientReceived = Double()
                                                 
-                                                for (index, inputAddr) in fromAddresses.enumerated() {
+                                                for inputAddr in fromAddresses {
                                                     
                                                     if fromAddresses.count > 1 {
                                                         
@@ -711,14 +705,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                                 }
                                                 
                                                 
-                                                DispatchQueue.main.async {
-                                                    
-                                                    self.transactionArray.append(dictionary)
-                                                    self.transactionArray = self.transactionArray.sorted{ ($0["date"] as? String)! > ($1["date"] as? String)! }
-                                                    self.transactionHistoryTable.reloadData()
-                                                    
-                                                }
-                                                
+                                                self.transactionArray.append(dictionary)
                                                 fromAddresses.removeAll()
                                                 toAddresses.removeAll()
                                                 amountReceived.removeAll()
@@ -729,6 +716,11 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                         
                                         //print("historyCheck count = \(historyCheck.count)")
                                         
+                                    }
+                                    
+                                    DispatchQueue.main.async {
+                                        //self.transactionArray = self.transactionArray.sorted{ ($0["date"] as? String)! > ($1["date"] as? String)! }
+                                        self.transactionHistoryTable.reloadData()
                                     }
                                     
                                     self.removeSpinner()
@@ -757,7 +749,6 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
             
             task.resume()
         }
-        
         
     }
     

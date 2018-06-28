@@ -54,18 +54,13 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         print("checkUserDefaults")
         
-        if UserDefaults.standard.object(forKey: "addressBook") != nil {
-            
-            addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String:Any]]
-            
-        }
-        
-        coldMode = UserDefaults.standard.object(forKey: "coldMode") as! Bool
-        hotMode = UserDefaults.standard.object(forKey: "hotMode") as! Bool
-        testnetMode = UserDefaults.standard.object(forKey: "testnetMode") as! Bool
-        mainnetMode = UserDefaults.standard.object(forKey: "mainnetMode") as! Bool
-        legacyMode = UserDefaults.standard.object(forKey: "legacyMode") as! Bool
-        segwitMode = UserDefaults.standard.object(forKey: "segwitMode") as! Bool
+        addressBook = checkAddressBook()
+        hotMode = checkSettingsForKey(keyValue: "hotMode")
+        coldMode = checkSettingsForKey(keyValue: "coldMode")
+        legacyMode = checkSettingsForKey(keyValue: "legacyMode")
+        segwitMode = checkSettingsForKey(keyValue: "segwitMode")
+        mainnetMode = checkSettingsForKey(keyValue: "mainnetMode")
+        testnetMode = checkSettingsForKey(keyValue: "testnetMode")
         
     }
     
@@ -100,6 +95,11 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         self.addressToDisplay.delegate = self
         print("ViewControllerBalanceChecker")
+        
+        videoPreview.layer.shadowColor = UIColor.black.cgColor
+        videoPreview.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        videoPreview.layer.shadowRadius = 2.5
+        videoPreview.layer.shadowOpacity = 0.8
         
     }
     
@@ -229,13 +229,9 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             
             url = NSURL(string: "https://blockchain.info/balance?active=\(address)")
             
-        } else if testnetMode {
+        } else if address.hasPrefix("m") || address.hasPrefix("2") {
             
             url = NSURL(string: "https://testnet.blockchain.info/balance?active=\(address)")
-            
-        } else if mainnetMode {
-            
-            url = NSURL(string: "https://blockchain.info/balance?active=\(address)")
             
         }
         
@@ -703,56 +699,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         task.resume()
     }
     
-    func addToAddressBookAlert() {
-        
-        //get a label for the address, add type watch only as defualt for now, create dictionary save it to array of dictionaries
-        let alert = UIAlertController(title: "Add a label?", message: "Adding a label will make it easier to differentiate between the addresses in your address book.", preferredStyle: .alert)
-        
-        alert.addTextField { (textField1) in
-            
-            textField1.placeholder = "Optional"
-            
-        }
-        
-        alert.addAction(UIAlertAction(title: NSLocalizedString("Add", comment: ""), style: .default, handler: { (action) in
-            
-            let label = alert.textFields![0].text!
-            let address = self.addressLabel.text!
-            var network = ""
-            
-            if address.hasPrefix("1") || address.hasPrefix("3") || address.hasPrefix("b") {
-                
-                network = "mainnet"
-                
-            } else if address.hasPrefix("m") || address.hasPrefix("2") || address.hasPrefix("t") {
-                
-                network = "testnet"
-                
-            }
-            
-            var addressBook: [[String: Any]] = []
-            
-            if UserDefaults.standard.object(forKey: "addressBook") != nil {
-                
-                addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String: Any]]
-                
-            }
-            
-            addressBook.append(["address": "\(address)", "label": label,  "balance": "", "network": "\(network)", "privateKey": "", "publicKey": "", "redemptionScript": "", "type": "cold"])
-            
-           UserDefaults.standard.set(addressBook, forKey: "addressBook")
-            
-            displayAlert(viewController: self, title: "Success", message: "You added \"\(address)\" with label \"\(label)\" to your address book.")
-            
-        }))
-        
-        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-            
-        }))
-        
-        self.present(alert, animated: true, completion: nil)
-    }
-    
     @objc func airDropImage() {
         
         print("airDropImage")
@@ -779,15 +725,20 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
               
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Add to Address Book", comment: ""), style: .default, handler: { (action) in
                     
-                    UserDefaults.standard.set(self.addressLabel.text, forKey: "address")
-                    print("addressToSave = \(String(describing: self.addressLabel.text))")
+                    let address = self.addressLabel.text!
+                    var network = ""
                     
-                    DispatchQueue.main.async {
+                    if address.hasPrefix("1") || address.hasPrefix("3") || address.hasPrefix("b") {
                         
-                        displayAlert(viewController: self, title: "Address Saved", message: "")
+                        network = "mainnet"
+                        
+                    } else if address.hasPrefix("m") || address.hasPrefix("2") || address.hasPrefix("t") {
+                        
+                        network = "testnet"
+                        
                     }
                     
-                    self.addToAddressBookAlert()
+                    saveWallet(viewController: self, address: address, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold")
                     
                 }))
                 

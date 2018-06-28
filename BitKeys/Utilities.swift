@@ -23,11 +23,8 @@ public func isWalletEncryptedFromCoreData() -> Bool {
         
         let result = try context.fetch(request)
         
-        print("result = \(result)")
-        
         for data in result as! [NSManagedObject] {
             
-            print(data.value(forKey: "isEncrypted") as! Bool)
             bool = data.value(forKey: "isEncrypted") as! Bool
         }
         
@@ -40,35 +37,31 @@ public func isWalletEncryptedFromCoreData() -> Bool {
     return bool
 }
 
-public func checkAddressBook() {
+public func checkAddressBook() -> [[String:Any]] {
     
     print("checkAddressBook")
     
+    var addressBook = [[String:Any]]()
+    
     guard let appDelegate =
         UIApplication.shared.delegate as? AppDelegate else {
-            return
+            return addressBook
     }
     
     let context = appDelegate.persistentContainer.viewContext
     let request = NSFetchRequest<NSFetchRequestResult>(entityName: "AddressBook")
     request.returnsObjectsAsFaults = false
+    request.resultType = .dictionaryResultType
     
     do {
         
-        if let results = try context.fetch(request) as? [NSManagedObject] {
+        if let results = try context.fetch(request) as? [[String:Any]] {
             
-            print("results addressbook = \(results)")
-            print("results.count = \(results.count)")
-            
-            /*for data in results {
+            for data in results {
                 
-                if let _ = data.value(forKey: keyValue) as? Bool {
-                    
-                    bool = data.value(forKey: keyValue) as! Bool
-                    
-                }
+                addressBook.append(data)
                 
-            }*/
+            }
             
         }
         
@@ -80,12 +73,12 @@ public func checkAddressBook() {
         
     }
     
+    return addressBook
     
 }
 
 public func checkSettingsForKey(keyValue: String) -> Bool {
     
-    print("checkSettingsForKey = \(keyValue)")
     
     guard let appDelegate =
         UIApplication.shared.delegate as? AppDelegate else {

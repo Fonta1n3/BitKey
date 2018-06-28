@@ -221,23 +221,14 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     override func viewDidAppear(_ animated: Bool) {
         
         
-        checkAddressBook()
-        //isWalletEncrypted = true
+        addressBook = checkAddressBook()
         isWalletEncrypted = isWalletEncryptedFromCoreData()
-        print("self.isWalletEncrypted = \(self.isWalletEncrypted)")
-        
         hotMode = checkSettingsForKey(keyValue: "hotMode")
         coldMode = checkSettingsForKey(keyValue: "coldMode")
         legacyMode = checkSettingsForKey(keyValue: "legacyMode")
         segwitMode = checkSettingsForKey(keyValue: "segwitMode")
         mainnetMode = checkSettingsForKey(keyValue: "mainnetMode")
         testnetMode = checkSettingsForKey(keyValue: "testnetMode")
-        
-        if UserDefaults.standard.object(forKey: "addressBook") != nil {
-            
-            addressBook = UserDefaults.standard.object(forKey: "addressBook") as! [[String:Any]]
-            
-        }
         
         words = ""
         
@@ -255,6 +246,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             for key in self.addressBook {
                 
                 if key["address"] as! String == self.bitcoinAddress {
+                    
+                    let walletName = key["label"] as! String
+                    self.showAddressQRCodes(walletName: walletName)
+                    
+                } else if key["redemptionScript"] as! String == self.bitcoinAddress {
                     
                     let walletName = key["label"] as! String
                     self.showAddressQRCodes(walletName: walletName)
@@ -280,23 +276,18 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         let context = appDelegate.persistentContainer.viewContext
         let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "Wallet")
-        //fetchRequest.returnsObjectsAsFaults = false
     
         do {
         
             let results = try context.fetch(fetchRequest) as [NSManagedObject]
             
-            print("results = \(results)")
-        
             if results.count > 0 {
             
                 for data in results {
                 
                     if let _ = data.value(forKey: "isEncrypted") as? Bool {
                     
-                        //overwrites exisiting value if it exists
                         results[0].setValue(bool, forKey: "isEncrypted")
-                        print("setValue isEncrypted = \(results[0].value(forKey: "isEncrypted") as! Bool)")
                     
                     } else {
                     
@@ -344,17 +335,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         }
     
-    /*
-        let entity = NSEntityDescription.entity(forEntityName: "Wallet", in: context)
-        let myWallet = NSManagedObject(entity: entity!, insertInto: context)
-        myWallet.setValue(bool, forKey: "isEncrypted")
-        
-        do {
-            try context.save()
-        } catch {
-            print("Failed saving")
-        }
-    */
     }
     
     func unlockAddressBook() {
@@ -435,11 +415,10 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                         if firstPassword == secondPassword {
                             
                             let password = AES256CBC.generatePassword()
-                            print("secondPassword = \(secondPassword)")
                             UserDefaults.standard.set(secondPassword, forKey: "unlockAESPassword")
                             UserDefaults.standard.set(password, forKey: "AESPassword")
                             UserDefaults.standard.synchronize()
-                            print("AESPassword = \(UserDefaults.standard.object(forKey: "AESPassword") as! String)")
+                            
                             displayAlert(viewController: self, title: "Success", message: "You have set your locking/unlocking password.")
                             
                         } else {
@@ -618,45 +597,92 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
             let decrypted = AES256CBC.decryptString(stringToDecrypt, password: password)!
             return decrypted
-        }
-        
-        for (index, wallet) in addressBook.enumerated() {
-            
-            if let privateKey = wallet["privateKey"] as? String {
-                
-                if privateKey != "" {
-                    
-                    let decryptedPrivateKey = decrypt(stringToDecrypt: privateKey, password: password)
-                    self.addressBook[index]["privateKey"] = decryptedPrivateKey
-                    
-                }
-                
-            }
-            
-            if let publicKey = wallet["publicKey"] as? String {
-                
-                if publicKey != "" {
-                    
-                    let decryptedPrivateKey = decrypt(stringToDecrypt: publicKey, password: password)
-                    self.addressBook[index]["publicKey"] = decryptedPrivateKey
-                    
-                }
-                
-            }
-            
-            if let address = wallet["address"] as? String {
-                
-                let decryptedAddress = decrypt(stringToDecrypt: address, password: password)
-                self.addressBook[index]["address"] = decryptedAddress
-                
-            }
             
         }
         
-        self.isWalletEncrypted = false
-        saveEncryptedBool(bool: false)
-        UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
-        UserDefaults.standard.synchronize()
+        var appDelegate = AppDelegate()
+        
+        if let appDelegateCheck = UIApplication.shared.delegate as? AppDelegate {
+            
+            appDelegate = appDelegateCheck
+            
+        } else {
+            
+            displayAlert(viewController: self, title: "Error", message: "Something strange has happened and we do not have access to app delegate, please try again.")
+            
+        }
+        
+        let context = appDelegate.persistentContainer.viewContext
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "AddressBook")
+        fetchRequest.returnsObjectsAsFaults = false
+        
+        do {
+            
+            let results = try context.fetch(fetchRequest) as [NSManagedObject]
+            
+            if results.count > 0 {
+                
+                for data in results {
+                    
+                    for wallets in self.addressBook {
+                        
+                        if wallets["address"] as? String == data.value(forKey: "address") as? String {
+                            
+                            let decryptedAddress = decrypt(stringToDecrypt: data.value(forKey: "address") as! String, password: password)
+                            data.setValue(decryptedAddress, forKey: "address")
+                            
+                            if let privateKey = wallets["privateKey"] as? String {
+                                
+                                if privateKey != "" {
+                                    
+                                    let decryptedPrivateKey = decrypt(stringToDecrypt: data.value(forKey: "privateKey") as! String, password: password)
+                                    data.setValue(decryptedPrivateKey, forKey: "privateKey")
+                                    
+                                }
+                                
+                            }
+                            
+                            if let publicKey = wallets["publicKey"] as? String {
+                                
+                                if publicKey != "" {
+                                    
+                                    let decryptedPublicKey = decrypt(stringToDecrypt: data.value(forKey: "publicKey") as! String, password: password)
+                                    data.setValue(decryptedPublicKey, forKey: "publicKey")
+                                    
+                                }
+                                
+                            }
+                            
+                            do {
+                                
+                                try context.save()
+                                print("decrypted succesfully")
+                                self.isWalletEncrypted = false
+                                saveEncryptedBool(bool: false)
+                                
+                            } catch {
+                                
+                                print("error decrypting")
+                                
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                }
+                
+            } else {
+                
+                print("no results")
+                
+            }
+            
+        } catch {
+            
+            print("Failed")
+            
+        }
         
     }
     
@@ -669,42 +695,89 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
         }
         
-        for (index, wallet) in addressBook.enumerated() {
+        var appDelegate = AppDelegate()
+        
+        if let appDelegateCheck = UIApplication.shared.delegate as? AppDelegate {
             
-            if let privateKey = wallet["privateKey"] as? String {
-                
-                if privateKey != "" {
-                    
-                    let encryptedPrivateKey = encrypt(stringToEncrypt: privateKey, password: password)
-                    self.addressBook[index]["privateKey"] = encryptedPrivateKey
-                    
-                }
-                
-            }
+            appDelegate = appDelegateCheck
             
-            if let publicKey = wallet["publicKey"] as? String {
-                
-                if publicKey != "" {
-                    
-                    let encryptedPublicKey = encrypt(stringToEncrypt: publicKey, password: password)
-                    self.addressBook[index]["publicKey"] = encryptedPublicKey
-                    
-                }
-                
-            }
+        } else {
             
-            if let address = wallet["address"] as? String {
-                
-                let encryptedAddress = encrypt(stringToEncrypt: address, password: password)
-                self.addressBook[index]["address"] = encryptedAddress
-            }
+            displayAlert(viewController: self, title: "Error", message: "Something strange has happened and we do not have access to app delegate, please try again.")
             
         }
         
-        self.isWalletEncrypted = true
-        saveEncryptedBool(bool: true)
-        UserDefaults.standard.set(self.addressBook, forKey: "addressBook")
-        UserDefaults.standard.synchronize()
+        let context = appDelegate.persistentContainer.viewContext
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "AddressBook")
+        fetchRequest.returnsObjectsAsFaults = false
+        
+        do {
+            
+            let results = try context.fetch(fetchRequest) as [NSManagedObject]
+            
+            if results.count > 0 {
+                
+                for data in results {
+                    
+                    for wallets in self.addressBook {
+                        
+                        if wallets["address"] as? String == data.value(forKey: "address") as? String {
+                            
+                            let encryptedAddress = encrypt(stringToEncrypt: data.value(forKey: "address") as! String, password: password)
+                            data.setValue(encryptedAddress, forKey: "address")
+                            
+                            if let privateKey = wallets["privateKey"] as? String {
+                                
+                                if privateKey != "" {
+                                    
+                                    let encryptedPrivateKey = encrypt(stringToEncrypt: data.value(forKey: "privateKey") as! String, password: password)
+                                    data.setValue(encryptedPrivateKey, forKey: "privateKey")
+                                    
+                                }
+                                
+                            }
+                            
+                            if let publicKey = wallets["publicKey"] as? String {
+                                
+                                if publicKey != "" {
+                                    
+                                    let encryptedPublicKey = encrypt(stringToEncrypt: data.value(forKey: "publicKey") as! String, password: password)
+                                    data.setValue(encryptedPublicKey, forKey: "publicKey")
+                                    
+                                }
+                                
+                            }
+                            
+                            do {
+                                
+                                try context.save()
+                                print("encrypted succesfully")
+                                self.isWalletEncrypted = true
+                                saveEncryptedBool(bool: true)
+                                
+                            } catch {
+                                
+                                print("error encrypting")
+                                
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                }
+                
+            } else {
+                
+                print("no results")
+                
+            }
+            
+        } catch {
+            
+            print("Failed")
+            
+        }
         
     }
     
@@ -1366,8 +1439,22 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 DispatchQueue.main.async {
                         
                     self.WIFprivateKeyFieldLabel.text = "Text Format:"
-                    self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.frame.minX, y: self.view.frame.minY + 70, width: self.view.frame.width, height: 50))
-                    self.privateKeyTitle.text = "Send Bitcoin to \"\(walletName)\""
+                    self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 20) / 2), y: self.view.frame.minY + 70, width: self.view.frame.width - 20, height: 50))
+                    
+                    if self.bitcoinAddress.count > 45 && self.isWalletEncrypted == false {
+                        
+                        self.privateKeyTitle.text = "Redemption Script"
+                        self.filename = "redemptionScript"
+                        
+                    } else {
+                        
+                       self.privateKeyTitle.text = "Send Bitcoin to \"\(walletName)\""
+                        self.filename = "bitcoinAddress"
+                        
+                    }
+                    
+                    self.textToShare = self.bitcoinAddress
+                    
                     self.privateKeyTitle.adjustsFontSizeToFitWidth = true
                     self.privateKeyTitle.font = .systemFont(ofSize: 32)
                     self.privateKeyTitle.textColor = UIColor.black
@@ -1670,43 +1757,50 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         DispatchQueue.main.async {
             
-            if self.addressBook.count > 1 {
-                
-                let alert = UIAlertController(title: "Which Wallet?", message: "Please select which wallet you'd like to receive to", preferredStyle: UIAlertControllerStyle.actionSheet)
-                
-                for (index, wallet) in self.addressBook.enumerated() {
+            if self.isWalletEncrypted == false {
+               
+                if self.addressBook.count > 1 {
                     
-                    let walletName = wallet["label"] as! String
+                    let alert = UIAlertController(title: "Which Wallet?", message: "Please select which wallet you'd like to receive to", preferredStyle: UIAlertControllerStyle.actionSheet)
                     
-                    alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
+                    for (index, wallet) in self.addressBook.enumerated() {
                         
-                        self.watchOnlyMode = true
-                        self.bitcoinAddress = self.addressBook[index]["address"] as! String
-                        self.showAddressQRCodes(walletName: walletName)
+                        let walletName = wallet["label"] as! String
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
+                            
+                            self.watchOnlyMode = true
+                            self.bitcoinAddress = self.addressBook[index]["address"] as! String
+                            self.showAddressQRCodes(walletName: walletName)
+                            
+                        }))
+                        
+                    }
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
                         
                     }))
                     
-                }
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                    self.present(alert, animated: true, completion: nil)
                     
-                }))
+                } else if self.addressBook.count == 1 {
+                    
+                    self.watchOnlyMode = true
+                    let walletName = self.addressBook[0]["label"] as! String
+                    self.bitcoinAddress = self.addressBook[0]["address"] as! String
+                    self.showAddressQRCodes(walletName: walletName)
+                    
+                } else if self.addressBook.count == 0 {
+                    
+                    shakeAlert(viewToShake: self.imageView)
+                    
+                }
+
+            } else {
                 
-                self.present(alert, animated: true, completion: nil)
-                
-            } else if self.addressBook.count == 1 {
-                
-                self.watchOnlyMode = true
-                let walletName = self.addressBook[0]["label"] as! String
-                self.bitcoinAddress = self.addressBook[0]["address"] as! String
-                self.showAddressQRCodes(walletName: walletName)
-                
-            } else if self.addressBook.count == 0 {
-                
-                shakeAlert(viewToShake: self.imageView)
+                displayAlert(viewController: self, title: "Wallet Locked!", message: "Please unlock it first.")
                 
             }
-            
             
         }
 
@@ -1990,7 +2084,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
                 self.WIFprivateKeyFieldLabel.text = "WIF Format:"
                 
-                self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.frame.minX, y: self.view.frame.minY + 70, width: self.view.frame.width, height: 50))
+                self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 20) / 2), y: self.view.frame.minY + 70, width: self.view.frame.width - 20, height: 50))
                 self.privateKeyTitle.text = "Private Key"
                 
                 if self.walletName != "" {
@@ -2051,7 +2145,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         diceMode = false
         
-        self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.frame.minX, y: 60, width: self.view.frame.width, height: 40))
+        self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 20) / 2), y: self.view.frame.minY + 70, width: self.view.frame.width - 20, height: 50))
         self.privateKeyTitle.text = "Recovery Phrase"
         self.privateKeyTitle.font = .systemFont(ofSize: 30)
         self.privateKeyTitle.textColor = UIColor.black
@@ -2123,6 +2217,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
             DispatchQueue.main.async {
                 
+                self.walletName = ""
                 self.mnemonicLabel.removeFromSuperview()
                 self.recoveryPhraseLabel.removeFromSuperview()
                 if self.recoveryPhraseQRView != nil {
