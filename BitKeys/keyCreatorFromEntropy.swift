@@ -8,6 +8,8 @@
 
 import Foundation
 import BigInt
+import SwiftKeychainWrapper
+import AES256CBC
 
 public func createPrivateKey(viewController: UIViewController, userRandomness: BigInt) -> (privateKeyAddress: String, publicKeyAddress: String, recoveryPhrase: String) {
     
@@ -32,8 +34,7 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
     mainnetMode = checkSettingsForKey(keyValue: "mainnetMode")
     testnetMode = checkSettingsForKey(keyValue: "testnetMode")
     
-    print("data.count = \(data.count)")
-    
+    let aesPassword = KeychainWrapper.standard.string(forKey: "AESPassword")
     
     let sha256OfData = BTCSHA256(data)
         
@@ -63,6 +64,10 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
             //let watchOnlyTestKey = BTCKeychain.init(extendedKey: xpub)
             //let childkeychain = watchOnlyTestKey?.key(at: 2).addressTestnet
             
+            
+            
+            let encryptedPrivateKey = AES256CBC.encryptString(privateKeyWIF, password: aesPassword!)!
+            
             if legacyMode {
                     
                 bitcoinAddress = addressHD
@@ -88,7 +93,7 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
                 
             if hotMode {
                     
-                saveWallet(viewController: viewController, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot")
+                saveWallet(viewController: viewController, address: bitcoinAddress, privateKey: encryptedPrivateKey, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot")
                     
             } else {
                     
@@ -118,7 +123,7 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
             //let watchOnlyTestKey = BTCKeychain.init(extendedKey: xpub)
             //let childkeychain = watchOnlyTestKey?.key(at: 2).address
             //print("childkeychain address = \(String(describing: childkeychain))")
-            
+            let encryptedPrivateKey = AES256CBC.encryptString(privateKeyWIF, password: aesPassword!)!
                 
             if legacyMode {
                     
@@ -145,7 +150,7 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
                 
             if hotMode {
                     
-                saveWallet(viewController: viewController, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot")
+                saveWallet(viewController: viewController, address: bitcoinAddress, privateKey: encryptedPrivateKey, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot")
                     
             } else {
                     

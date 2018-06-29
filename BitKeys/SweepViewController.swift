@@ -50,8 +50,8 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
         print("addScanner")
         
         DispatchQueue.main.async {
-            self.addQRScannerView()
             self.addTextInput()
+            self.addQRScannerView()
             self.scanQRCode()
         }
     }
@@ -69,7 +69,7 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
     func addQRScannerView() {
         print("addQRScannerView")
         
-        self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y - ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: self.view.frame.width - 50)
+        self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.privateKeyImportText.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
         self.videoPreview.layer.shadowColor = UIColor.black.cgColor
         self.videoPreview.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
         self.videoPreview.layer.shadowRadius = 2.5
@@ -80,7 +80,7 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
     func addTextInput() {
         print("addTextInput")
         
-        self.privateKeyImportText.frame = CGRect(x: self.view.frame.minX + 5, y: self.videoPreview.frame.minY - 55, width: self.view.frame.width - 10, height: 50)
+        self.privateKeyImportText.frame = CGRect(x: self.view.frame.minX + 25, y: 150, width: self.view.frame.width - 50, height: 50)
         self.privateKeyImportText.textAlignment = .center
         self.privateKeyImportText.borderStyle = .roundedRect
         self.privateKeyImportText.autocorrectionType = .no

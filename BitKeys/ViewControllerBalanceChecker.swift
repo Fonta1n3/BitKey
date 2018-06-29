@@ -11,6 +11,8 @@ import AVFoundation
 
 class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate {
     
+    var addressToDisplay = UITextField()
+    var videoPreview = UIView()
     let segwit = SegwitAddrCoder()
     var legacyMode = Bool()
     var segwitMode = Bool()
@@ -86,7 +88,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     }
     
     
-    @IBOutlet var addressToDisplay: UITextField!
+    //@IBOutlet var addressToDisplay: UITextField!
     
     
     
@@ -96,16 +98,39 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         self.addressToDisplay.delegate = self
         print("ViewControllerBalanceChecker")
         
-        videoPreview.layer.shadowColor = UIColor.black.cgColor
-        videoPreview.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        videoPreview.layer.shadowRadius = 2.5
-        videoPreview.layer.shadowOpacity = 0.8
+        addTextInput()
+        addQRScannerView()
+        
+    }
+    
+    func addQRScannerView() {
+        print("addQRScannerView")
+        
+        self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.addressToDisplay.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
+        self.videoPreview.layer.shadowColor = UIColor.black.cgColor
+        self.videoPreview.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.videoPreview.layer.shadowRadius = 2.5
+        self.videoPreview.layer.shadowOpacity = 0.8
+        self.view.addSubview(self.videoPreview)
+    }
+    
+    func addTextInput() {
+        
+        print("addTextInput")
+        
+        addressToDisplay.frame = CGRect(x: self.view.frame.minX + 25, y: 150, width: self.view.frame.width - 50, height: 50)
+        addressToDisplay.textAlignment = .center
+        addressToDisplay.borderStyle = .roundedRect
+        addressToDisplay.backgroundColor = UIColor.groupTableViewBackground
+        addressToDisplay.adjustsFontSizeToFitWidth = true
+        addressToDisplay.keyboardType = UIKeyboardType.default
+        addressToDisplay.placeholder = "Type or Scan a Bitcoin Address"
+        self.view.addSubview(self.addressToDisplay)
         
     }
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask { return UIInterfaceOrientationMask.portrait }
 
-    @IBOutlet var videoPreview: UIView!
     
     func textFieldDidEndEditing(_ textField: UITextField) {
         print("textFieldDidEndEditing")
@@ -235,15 +260,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             
         }
         
-        print("url = \(url)")
-        
-        /*if address.count == 64 {
-            
-            url = NSURL(string: "https://testnet.blockchain.info/rawtx/\(address)")
-            
-        } */
-        
-        let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
+       let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
             
             do {
                 

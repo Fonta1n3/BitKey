@@ -152,6 +152,8 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
         explanationLabel.textColor = UIColor.darkGray
         explanationLabel.numberOfLines = 0
         explanationLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
+        explanationLabel.backgroundColor = UIColor.white
+        footerView.backgroundColor = UIColor.white
         
         if section == 0 {
             
@@ -165,6 +167,8 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
             explanationLabel = UILabel(frame: CGRect(x: 10, y: 0, width: view.frame.size.width - 20, height: 60))
             explanationLabel.textColor = UIColor.darkGray
             explanationLabel.numberOfLines = 0
+            explanationLabel.backgroundColor = UIColor.white
+            footerView.backgroundColor = UIColor.white
             explanationLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
             explanationLabel.text = "In Segwit mode all the addresses you create for your wallets will be bech32 native segwit addresses. We do not yet support spending from bech32 addresses but are working on it. In legacy mode all addresses produced are legacy addresses."
             footerView.addSubview(explanationLabel)
@@ -175,6 +179,8 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
             explanationLabel = UILabel(frame: CGRect(x: 10, y: 0, width: view.frame.size.width - 20, height: 50))
             explanationLabel.textColor = UIColor.darkGray
             explanationLabel.numberOfLines = 0
+            explanationLabel.backgroundColor = UIColor.white
+            footerView.backgroundColor = UIColor.white
             explanationLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
             explanationLabel.text = "In Testnet Mode you have the option to test the app on Bitcoins test network \"Testnet\" or in Mainnet Mode go straight to the real deal Bitcoin network \"Mainnet\"."
             footerView.addSubview(explanationLabel)

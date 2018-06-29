@@ -103,6 +103,12 @@ class TransactionSettingsViewController: UIViewController, UITableViewDelegate, 
         
     }
     
+    func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
+        
+        //(view as! UITableViewHeaderFooterView).backgroundView?.backgroundColor = UIColor.white
+        
+    }
+    
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
         
         (view as! UITableViewHeaderFooterView).backgroundView?.backgroundColor = UIColor.white
@@ -126,6 +132,8 @@ class TransactionSettingsViewController: UIViewController, UITableViewDelegate, 
         
         var footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 60))
         var explanationLabel = UILabel(frame: CGRect(x: 10, y: 0, width: view.frame.size.width - 20, height: 60))
+        footerView.backgroundColor = UIColor.white
+        explanationLabel.backgroundColor = UIColor.white
         explanationLabel.textColor = UIColor.darkGray
         explanationLabel.numberOfLines = 0
         explanationLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
@@ -141,6 +149,8 @@ class TransactionSettingsViewController: UIViewController, UITableViewDelegate, 
             footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 60))
             explanationLabel = UILabel(frame: CGRect(x: 10, y: 0, width: view.frame.size.width - 20, height: 60))
             explanationLabel.textColor = UIColor.darkGray
+            footerView.backgroundColor = UIColor.white
+            explanationLabel.backgroundColor = UIColor.white
             explanationLabel.numberOfLines = 0
             explanationLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
             explanationLabel.text = "You can either input a custom fee which is denomianted in Satoshis or choose a preference. High preference is designed to get your transaction mined within the next block and is the most expensive, we recommend a low mining fee preference as it usually gets the transaction mined quickly at a reasonable rate and therefore set it as default."

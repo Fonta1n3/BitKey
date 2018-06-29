@@ -102,7 +102,7 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
         
         print("addTextInput")
         
-        textFieldInput.frame = CGRect(x: self.view.frame.minX + 5, y: 150, width: self.view.frame.width - 10, height: 50)
+        textFieldInput.frame = CGRect(x: self.view.frame.minX + 25, y: 150, width: self.view.frame.width - 50, height: 50)
         textFieldInput.textAlignment = .center
         textFieldInput.borderStyle = .roundedRect
         textFieldInput.backgroundColor = UIColor.groupTableViewBackground
@@ -557,8 +557,8 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
         
         DispatchQueue.main.async {
             
-            self.addQRScannerView()
             self.addTextInput()
+            self.addQRScannerView()
             self.scanQRCode()
             
         }

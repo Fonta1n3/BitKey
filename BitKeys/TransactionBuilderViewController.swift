@@ -9,8 +9,10 @@
 import UIKit
 import Signer
 import AVFoundation
-//import SystemConfiguration
+import LocalAuthentication
 import CoreData
+import AES256CBC
+import SwiftKeychainWrapper
 
 class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate {
     
@@ -77,6 +79,8 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //UserDefaults.standard.removeObject(forKey: "firstTimeHere")
         
        if UserDefaults.standard.object(forKey: "firstTimeHere") != nil {
             
@@ -153,6 +157,8 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     
     override func viewDidAppear(_ animated: Bool) {
         
+        print("self.walletToSpendFrom = \(self.walletToSpendFrom)")
+        
         isWalletEncrypted = isWalletEncryptedFromCoreData()
         recievingAddress = ""
         getUserDefaults()
@@ -193,6 +199,13 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         GBP = checkTransactionSettingsForKey(keyValue: "pounds") as! Bool
         EUR = checkTransactionSettingsForKey(keyValue: "euro") as! Bool
         fees = checkTransactionSettingsForKey(keyValue: "customFee") as! UInt16
+        
+        if addressBook.count == 0 {
+            
+            self.coldMode = true
+            self.hotMode = false
+            
+        }
         
         if high {
             preference = "high"
@@ -581,7 +594,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     func addQRScannerView() {
         print("addQRScannerView")
         
-        self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y - ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: self.view.frame.width - 50)
+        self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.addressToDisplay.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
         self.videoPreview.layer.shadowColor = UIColor.black.cgColor
         self.videoPreview.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
         self.videoPreview.layer.shadowRadius = 2.5
@@ -688,7 +701,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     func addTextInput() {
         print("addTextInput")
         
-        self.addressToDisplay.frame = CGRect(x: self.view.frame.minX + 5, y: self.videoPreview.frame.minY - 55, width: self.view.frame.width - 10, height: 50)
+        self.addressToDisplay.frame = CGRect(x: self.view.frame.minX + 25, y: 150, width: self.view.frame.width - 50, height: 50)
         self.addressToDisplay.textAlignment = .center
         self.addressToDisplay.borderStyle = .roundedRect
         self.addressToDisplay.autocorrectionType = .no
@@ -826,7 +839,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             
         } else if getSignatureMode {
                 
-            func processPrivateKey() {
+            /*func processPrivateKey() {
                     
                 DispatchQueue.main.async {
                         
@@ -854,19 +867,23 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                         print("option menu presented")
                     }
                 }
-            }
+            }*/
                 
             if let _ = BTCPrivateKeyAddressTestnet.init(string: key) {
-                    
-                processPrivateKey()
+                
+                self.removeSpinner()
+                self.removeScanner()
+                self.getPrivateKeySignature(key: key)
                     
             } else if let _ = BTCPrivateKeyAddress.init(string: key) {
                     
-                processPrivateKey()
+                self.removeSpinner()
+                self.removeScanner()
+                self.getPrivateKeySignature(key: key)
                     
             } else {
                     
-                displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address")
+                displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Private Key")
                     
             }
         }
@@ -1026,6 +1043,8 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     func addScanner() {
         print("addScanner")
         
+        print("wallet to spend from = \(self.walletToSpendFrom)")
+        
         if self.getPayerAddressMode, let _ = self.walletToSpendFrom["label"] as? String {
             
             if self.hotMode {
@@ -1048,8 +1067,8 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             
             DispatchQueue.main.async {
                 
-                self.addQRScannerView()
                 self.addTextInput()
+                self.addQRScannerView()
                 self.scanQRCode()
                 
             }
@@ -1058,8 +1077,8 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
            
             DispatchQueue.main.async {
                 
-                self.addQRScannerView()
                 self.addTextInput()
+                self.addQRScannerView()
                 self.scanQRCode()
                 
             }
@@ -1206,124 +1225,126 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     func getPrivateKeySignature(key: String) {
         print("getPrivateKeySignature")
         
-        if let privateKey = BTCPrivateKeyAddress(string: key) {
-          print("privateKey = \(String(describing: privateKey))")
+        func signNow(privateKey: String) {
             
-            let key = BTCKey.init(privateKeyAddress: privateKey)
-            print("privateKey = \(String(describing: privateKey))")
-            
-            var receiveAddress = ""
-            var sendAddress = ""
-            
-            for wallet in self.addressBook {
+            if let privateKey = BTCPrivateKeyAddress(string: privateKey) {
+                print("privateKey = \(String(describing: privateKey))")
                 
-                if wallet["address"] as! String == self.sendingFromAddress {
+                let key = BTCKey.init(privateKeyAddress: privateKey)
+                print("privateKey = \(String(describing: privateKey))")
+                
+                var receiveAddress = ""
+                var sendAddress = ""
+                
+                for wallet in self.addressBook {
                     
-                    sendAddress = wallet["label"] as! String
+                    if wallet["address"] as! String == self.sendingFromAddress {
+                        
+                        sendAddress = wallet["label"] as! String
+                    }
+                    
+                    if wallet["address"] as! String == self.recievingAddress {
+                        
+                        receiveAddress = wallet["label"] as! String
+                        
+                    }
+                    
                 }
                 
-                if wallet["address"] as! String == self.recievingAddress {
+                DispatchQueue.main.async {
                     
-                    receiveAddress = wallet["label"] as! String
+                    var message = String()
                     
-                }
-                
-            }
-            
-            DispatchQueue.main.async {
-                
-                var message = String()
-                
-                func postAlert() {
-                    
-                    let publicKey = key?.publicKey
-                    let publicKeyString = BTCHexFromData(publicKey as Data!)
-                    self.privateKeyToSign = (key?.privateKey.hex())!
-                    
-                    var signatureArray = [String]()
-                    var pubkeyArray = [String]()
-                    
-                    for transaction in self.transactionToBeSigned {
+                    func postAlert() {
                         
-                        SignerGetSignature(self.privateKeyToSign, transaction)
+                        let publicKey = key?.publicKey
+                        let publicKeyString = BTCHexFromData(publicKey as Data!)
+                        self.privateKeyToSign = (key?.privateKey.hex())!
                         
-                        if let signature = Signer.signature() {
+                        var signatureArray = [String]()
+                        var pubkeyArray = [String]()
+                        
+                        for transaction in self.transactionToBeSigned {
                             
-                            signatureArray.append(signature)
-                            pubkeyArray.append(publicKeyString!)
+                            SignerGetSignature(self.privateKeyToSign, transaction)
                             
-                        } else {
-                            
-                            DispatchQueue.main.async {
-                                displayAlert(viewController: self, title: "Error", message: "Error creating signatures.")
+                            if let signature = Signer.signature() {
+                                
+                                signatureArray.append(signature)
+                                pubkeyArray.append(publicKeyString!)
+                                
+                            } else {
+                                
+                                DispatchQueue.main.async {
+                                    displayAlert(viewController: self, title: "Error", message: "Error creating signatures.")
+                                }
                             }
+                            
+                            
+                        }
+                        
+                        self.json["signatures"] = signatureArray
+                        self.json["pubkeys"] = pubkeyArray
+                        
+                        self.sendButton.removeFromSuperview()
+                        self.sendButton = UIButton(frame: CGRect(x: 20, y: self.view.frame.maxY - 60, width: self.view.frame.width - 40, height: 50))
+                        self.sendButton.showsTouchWhenHighlighted = true
+                        self.sendButton.layer.cornerRadius = 10
+                        self.sendButton.backgroundColor = UIColor.black
+                        self.sendButton.layer.shadowColor = UIColor.black.cgColor
+                        self.sendButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+                        self.sendButton.layer.shadowRadius = 2.5
+                        self.sendButton.layer.shadowOpacity = 0.8
+                        self.sendButton.addTarget(self, action: #selector(self.postTransaction), for: .touchUpInside)
+                        self.sendButton.setTitle("Send", for: .normal)
+                        self.view.addSubview(self.sendButton)
+                        
+                        self.titleLable.frame = CGRect(x: 10, y: 60, width: self.view.frame.width - 20, height: 60)
+                        self.titleLable.textAlignment = .center
+                        self.titleLable.font = .systemFont(ofSize: 28)
+                        self.titleLable.adjustsFontSizeToFitWidth = true
+                        self.titleLable.numberOfLines = 2
+                        self.titleLable.text = "Confirm before sending"
+                        self.view.addSubview(self.titleLable)
+                        
+                        
+                        self.textView.frame = CGRect(x: 10, y: self.titleLable.frame.maxY + 20, width: self.view.frame.width - 20, height: 350)
+                        self.textView.font = .systemFont(ofSize: 18)
+                        self.textView.adjustsFontSizeToFitWidth = true
+                        self.textView.numberOfLines = 20
+                        self.textView.text = "\(message)"
+                        self.view.addSubview(self.textView)
+                        
+                    }
+                    
+                    
+                    
+                    if self.currency != "BTC" && self.currency != "SAT" {
+                        
+                        let feeInFiat = self.exchangeRate * (Double(self.fees) / 100000000)
+                        let roundedFiatFeeAmount = round(100 * feeInFiat) / 100
+                        let roundedFiatToSendAmount = (round(100 * Double(self.amount)!) / 100).withCommas()
+                        
+                        if receiveAddress != "" && sendAddress != "" {
+                            
+                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                            
+                        } else if receiveAddress != "" {
+                            
+                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                            
+                        } else if sendAddress != "" {
+                            
+                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                            
                         }
                         
                         
-                    }
-                    
-                    self.json["signatures"] = signatureArray
-                    self.json["pubkeys"] = pubkeyArray
-                    
-                    self.sendButton.removeFromSuperview()
-                    self.sendButton = UIButton(frame: CGRect(x: 20, y: self.view.frame.maxY - 60, width: self.view.frame.width - 40, height: 50))
-                    self.sendButton.showsTouchWhenHighlighted = true
-                    self.sendButton.layer.cornerRadius = 10
-                    self.sendButton.backgroundColor = UIColor.black
-                    self.sendButton.layer.shadowColor = UIColor.black.cgColor
-                    self.sendButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-                    self.sendButton.layer.shadowRadius = 2.5
-                    self.sendButton.layer.shadowOpacity = 0.8
-                    self.sendButton.addTarget(self, action: #selector(self.postTransaction), for: .touchUpInside)
-                    self.sendButton.setTitle("Send", for: .normal)
-                    self.view.addSubview(self.sendButton)
-                    
-                    self.titleLable.frame = CGRect(x: 10, y: 80, width: self.view.frame.width - 20, height: 60)
-                    self.titleLable.textAlignment = .center
-                    self.titleLable.font = .systemFont(ofSize: 28)
-                    self.titleLable.adjustsFontSizeToFitWidth = true
-                    self.titleLable.numberOfLines = 2
-                    self.titleLable.text = "Confirm before sending"
-                    self.view.addSubview(self.titleLable)
-                    
-                    
-                    self.textView.frame = CGRect(x: 10, y: self.titleLable.frame.maxY + 20, width: self.view.frame.width - 20, height: 350)
-                    self.textView.font = .systemFont(ofSize: 18)
-                    self.textView.adjustsFontSizeToFitWidth = true
-                    self.textView.numberOfLines = 20
-                    self.textView.text = "\(message)"
-                    self.view.addSubview(self.textView)
-                   
-                }
-                
-                
-                
-                if self.currency != "BTC" && self.currency != "SAT" {
-                    
-                    let feeInFiat = self.exchangeRate * (Double(self.fees) / 100000000)
-                    let roundedFiatFeeAmount = round(100 * feeInFiat) / 100
-                    let roundedFiatToSendAmount = (round(100 * Double(self.amount)!) / 100).withCommas()
-                    
-                    if receiveAddress != "" && sendAddress != "" {
+                        postAlert()
                         
-                        message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                    } else if self.currency == "BTC" || self.currency == "SAT" {
                         
-                    } else if receiveAddress != "" {
-                        
-                        message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
-                        
-                    } else if sendAddress != "" {
-                        
-                        message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
-                        
-                    }
-                    
-                    
-                    postAlert()
-                    
-                } else if self.currency == "BTC" || self.currency == "SAT" {
-                    
-                    if receiveAddress != "" && sendAddress != "" {
+                        if receiveAddress != "" && sendAddress != "" {
                             
                             message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis"
                             
@@ -1336,38 +1357,57 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                             message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis"
                             
                         }
-                    
-                    if self.amount == "-1" {
                         
-                        if receiveAddress != "" && sendAddress != "" {
+                        if self.amount == "-1" {
                             
-                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis"
-                            
-                        } else if receiveAddress != "" {
-                            
-                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis"
-                            
-                        } else if sendAddress != "" {
-                            
-                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis"
+                            if receiveAddress != "" && sendAddress != "" {
+                                
+                                message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis"
+                                
+                            } else if receiveAddress != "" {
+                                
+                                message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis"
+                                
+                            } else if sendAddress != "" {
+                                
+                                message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis"
+                                
+                            }
                             
                         }
                         
+                        postAlert()
+                        
                     }
-                    
-                    postAlert()
                     
                 }
                 
-           }
+            } else {
+                
+                DispatchQueue.main.async {
+                    
+                    displayAlert(viewController: self, title: "Error", message: "The Private Key is not valid, please try again.")
+                    
+                }
+                
+            }
+            
+        }
+        
+        //check if valid if not decrypt
+        if let _ = BTCPrivateKeyAddressTestnet.init(string: key) {
+            
+            signNow(privateKey: key)
+            
+        } else if let _ = BTCPrivateKeyAddress.init(string: key) {
+            
+            signNow(privateKey: key)
             
         } else {
             
-            DispatchQueue.main.async {
-                
-                displayAlert(viewController: self, title: "Error", message: "The Private Key is not valid, please try again.")
-                
-            }
+            let password = KeychainWrapper.standard.string(forKey: "AESPassword")!
+            let decrypted = AES256CBC.decryptString(key, password: password)!
+            signNow(privateKey: decrypted)
             
         }
         
@@ -1591,141 +1631,306 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     @objc func postTransaction() {
         print("postTransaction")
         
-        if isInternetAvailable() != false {
+        func sendNow() {
             
-            self.sendButton.removeFromSuperview()
-            self.titleLable.removeFromSuperview()
-            self.textView.removeFromSuperview()
-            
-            self.addSpinner()
-            let jsonData = try? JSONSerialization.data(withJSONObject: self.json)
-            var url:URL!
-            
-            if self.sendingFromAddress.hasPrefix("m") || self.sendingFromAddress.hasPrefix("2") || self.sendingFromAddress.hasPrefix("n") {
+            if isInternetAvailable() != false {
                 
-                url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/send")
+                self.sendButton.removeFromSuperview()
+                self.titleLable.removeFromSuperview()
+                self.textView.removeFromSuperview()
                 
-            } else if self.sendingFromAddress.hasPrefix("1") || self.sendingFromAddress.hasPrefix("3") {
+                self.addSpinner()
+                let jsonData = try? JSONSerialization.data(withJSONObject: self.json)
+                var url:URL!
                 
-                url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/send")
-                
-            }
-            
-            var request = URLRequest(url: url)
-            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-            request.httpMethod = "POST"
-            request.httpBody = jsonData
-            
-            let task = URLSession.shared.dataTask(with: request) { (data, response, error) -> Void in
-                
-                do {
+                if self.sendingFromAddress.hasPrefix("m") || self.sendingFromAddress.hasPrefix("2") || self.sendingFromAddress.hasPrefix("n") {
                     
-                    if error != nil {
+                    url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/send")
+                    
+                } else if self.sendingFromAddress.hasPrefix("1") || self.sendingFromAddress.hasPrefix("3") {
+                    
+                    url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/send")
+                    
+                }
+                
+                var request = URLRequest(url: url)
+                request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+                request.httpMethod = "POST"
+                request.httpBody = jsonData
+                
+                let task = URLSession.shared.dataTask(with: request) { (data, response, error) -> Void in
+                    
+                    do {
                         
-                        self.removeSpinner()
-                        
-                        DispatchQueue.main.async {
+                        if error != nil {
                             
-                            displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
+                            self.removeSpinner()
                             
-                        }
-                        
-                    } else {
-                        
-                        if let urlContent = data {
+                            DispatchQueue.main.async {
+                                
+                                displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
+                                
+                            }
                             
-                            do {
+                        } else {
+                            
+                            if let urlContent = data {
                                 
-                                let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
-                                
-                                print("jsonAddressResult = \(jsonAddressResult)")
-                                print("self.json = \(self.json)")
-                                
-                                if let error = jsonAddressResult["errors"] as? NSArray {
+                                do {
+                                    
+                                    let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
+                                    
+                                    print("jsonAddressResult = \(jsonAddressResult)")
+                                    print("self.json = \(self.json)")
+                                    
+                                    if let error = jsonAddressResult["errors"] as? NSArray {
+                                        
+                                        self.removeSpinner()
+                                        
+                                        DispatchQueue.main.async {
+                                            
+                                            var errors = [String]()
+                                            
+                                            for e in error {
+                                                
+                                                if let errordescription = (e as? NSDictionary)?["error"] as? String {
+                                                    
+                                                    errors.append(errordescription)
+                                                    
+                                                }
+                                                
+                                            }
+                                            
+                                            displayAlert(viewController: self, title: "Error", message: "\(errors)")
+                                            
+                                        }
+                                        
+                                    } else {
+                                        
+                                        if let txCheck = jsonAddressResult["tx"] as? NSDictionary {
+                                            
+                                            if let hashCheck = txCheck["hash"] as? String {
+                                                
+                                                self.transactionID = hashCheck
+                                                self.removeScanner()
+                                                
+                                                DispatchQueue.main.async {
+                                                    
+                                                    self.removeSpinner()
+                                                    
+                                                    let alert = UIAlertController(title: NSLocalizedString("Transaction Sent", comment: ""), message: "Transaction ID: \(hashCheck)", preferredStyle: UIAlertControllerStyle.actionSheet)
+                                                    
+                                                    alert.addAction(UIAlertAction(title: NSLocalizedString("Copy to Clipboard", comment: ""), style: .default, handler: { (action) in
+                                                        
+                                                        UIPasteboard.general.string = hashCheck
+                                                        
+                                                        self.dismiss(animated: true, completion: nil)
+                                                        
+                                                    }))
+                                                    
+                                                    alert.addAction(UIAlertAction(title: NSLocalizedString("Done", comment: ""), style: .cancel, handler: { (action) in
+                                                        
+                                                        self.dismiss(animated: true, completion: nil)
+                                                        
+                                                    }))
+                                                    
+                                                    alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+                                                    
+                                                    self.present(alert, animated: true) {
+                                                        print("option menu presented")
+                                                    }
+                                                    
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                } catch {
+                                    
+                                    print("JSon processing failed")
                                     
                                     self.removeSpinner()
                                     
                                     DispatchQueue.main.async {
                                         
-                                        var errors = [String]()
-                                        
-                                        for e in error {
-                                            
-                                            if let errordescription = (e as? NSDictionary)?["error"] as? String {
-                                                
-                                                errors.append(errordescription)
-                                                
-                                            }
-                                            
-                                        }
-                                        
-                                        displayAlert(viewController: self, title: "Error", message: "\(errors)")
+                                        displayAlert(viewController: self, title: "Error", message: "Please try again.")
                                         
                                     }
-                                    
-                                } else {
-                                    
-                                    if let txCheck = jsonAddressResult["tx"] as? NSDictionary {
-                                        
-                                        if let hashCheck = txCheck["hash"] as? String {
-                                            
-                                            self.transactionID = hashCheck
-                                            self.removeScanner()
-                                            
-                                            DispatchQueue.main.async {
-                                                
-                                                self.removeSpinner()
-                                                
-                                                let alert = UIAlertController(title: NSLocalizedString("Transaction Sent", comment: ""), message: "Transaction ID: \(hashCheck)", preferredStyle: UIAlertControllerStyle.actionSheet)
-                                                
-                                                alert.addAction(UIAlertAction(title: NSLocalizedString("Copy to Clipboard", comment: ""), style: .default, handler: { (action) in
-                                                    
-                                                    UIPasteboard.general.string = hashCheck
-                                                    
-                                                    self.dismiss(animated: true, completion: nil)
-                                                    
-                                                }))
-                                                
-                                                alert.addAction(UIAlertAction(title: NSLocalizedString("Done", comment: ""), style: .cancel, handler: { (action) in
-                                                    
-                                                    self.dismiss(animated: true, completion: nil)
-                                                    
-                                                }))
-                                                
-                                                alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
-                                                
-                                                self.present(alert, animated: true) {
-                                                    print("option menu presented")
-                                                }
-                                                
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                            } catch {
-                                
-                                print("JSon processing failed")
-                                
-                                self.removeSpinner()
-                                
-                                DispatchQueue.main.async {
-                                    
-                                    displayAlert(viewController: self, title: "Error", message: "Please try again.")
-                                    
                                 }
                             }
                         }
                     }
                 }
+                
+                task.resume()
+                
+            } else {
+                
+                displayAlert(viewController: self, title: "Oops", message: "You need to turn your wifi back on to actually send the transaction, don't worry we already signed the transaction with your private key and its not saved onto the phone at all, please turn wifi on and try again.")
             }
             
-            task.resume()
+        }
+        
+        func authenticationWithTouchID() {
+            
+            let localAuthenticationContext = LAContext()
+            localAuthenticationContext.localizedFallbackTitle = "Use Passcode"
+            
+            var authError: NSError?
+            let reasonString = "To Spend From Your Wallet"
+            
+            if localAuthenticationContext.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &authError) {
+                
+                localAuthenticationContext.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reasonString) { success, evaluateError in
+                    
+                    if success {
+                        
+                       sendNow()
+                                
+                        
+                    } else {
+                        //TODO: User did not authenticate successfully, look at error and take appropriate action
+                        guard let error = evaluateError else {
+                            return
+                        }
+                        
+                        displayAlert(viewController: self, title: "Error", message: evaluateAuthenticationPolicyMessageForLA(errorCode: error._code))
+                        
+                        print(evaluateAuthenticationPolicyMessageForLA(errorCode: error._code))
+                        
+                        //TODO: If you have choosen the 'Fallback authentication mechanism selected' (LAError.userFallback). Handle gracefully
+                        
+                    }
+                }
+            } else {
+                
+                guard let error = authError else {
+                    return
+                }
+                //TODO: Show appropriate alert if biometry/TouchID/FaceID is lockout or not enrolled
+                displayAlert(viewController: self, title: "Error", message: evaluateAuthenticationPolicyMessageForLA(errorCode: error._code))
+                print(evaluateAuthenticationPolicyMessageForLA(errorCode: error.code))
+            }
+        }
+        
+        func evaluatePolicyFailErrorMessageForLA(errorCode: Int) -> String {
+            var message = ""
+            if #available(iOS 11.0, macOS 10.13, *) {
+                switch errorCode {
+                case LAError.biometryNotAvailable.rawValue:
+                    message = "Authentication could not start because the device does not support biometric authentication."
+                    
+                case LAError.biometryLockout.rawValue:
+                    message = "Authentication could not continue because the user has been locked out of biometric authentication, due to failing authentication too many times."
+                    
+                case LAError.biometryNotEnrolled.rawValue:
+                    message = "Authentication could not start because the user has not enrolled in biometric authentication."
+                    
+                default:
+                    message = "Did not find error code on LAError object"
+                }
+            } else {
+                switch errorCode {
+                case LAError.touchIDLockout.rawValue:
+                    message = "Too many failed attempts."
+                    
+                case LAError.touchIDNotAvailable.rawValue:
+                    message = "TouchID is not available on the device"
+                    
+                case LAError.touchIDNotEnrolled.rawValue:
+                    message = "TouchID is not enrolled on the device"
+                    
+                default:
+                    message = "Did not find error code on LAError object"
+                }
+            }
+            
+            return message;
+        }
+        
+        func evaluateAuthenticationPolicyMessageForLA(errorCode: Int) -> String {
+            
+            var message = ""
+            
+            switch errorCode {
+                
+            case LAError.authenticationFailed.rawValue:
+                message = "The user failed to provide valid credentials"
+                
+            case LAError.appCancel.rawValue:
+                message = "Authentication was cancelled by application"
+                
+            case LAError.invalidContext.rawValue:
+                message = "The context is invalid"
+                
+            case LAError.notInteractive.rawValue:
+                message = "Not interactive"
+                
+            case LAError.passcodeNotSet.rawValue:
+                message = "Passcode is not set on the device"
+                
+            case LAError.systemCancel.rawValue:
+                message = "Authentication was cancelled by the system"
+                
+            case LAError.userCancel.rawValue:
+                message = "The user did cancel"
+                
+            case LAError.userFallback.rawValue:
+                message = "The user chose to use the fallback"
+                
+            default:
+                message = evaluatePolicyFailErrorMessageForLA(errorCode: errorCode)
+            }
+            
+            return message
+        }
+        
+        
+        if UserDefaults.standard.object(forKey: "bioMetricsEnabled") != nil {
+            
+            authenticationWithTouchID()
+            
+        } else if let _ = KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
+            
+            var password = String()
+            
+            let alert = UIAlertController(title: "Please input your password", message: "Please enter your password to spend from your wallet", preferredStyle: .alert)
+            
+            alert.addTextField { (textField1) in
+                
+                textField1.placeholder = "Enter Password"
+                textField1.isSecureTextEntry = true
+                
+            }
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Spend", comment: ""), style: .destructive, handler: { (action) in
+                
+                password = alert.textFields![0].text!
+                
+                if password == KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
+                    
+                    sendNow()
+                    
+                } else {
+                    
+                    displayAlert(viewController: self, title: "Error", message: "Incorrect password!")
+                }
+                
+            }))
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                
+                
+            }))
+            
+            self.present(alert, animated: true, completion: nil)
             
         } else {
             
-            displayAlert(viewController: self, title: "Oops", message: "You need to turn your wifi back on to actually send the transaction, don't worry we already signed the transaction with your private key and its not saved onto the phone at all, please turn wifi on and try again.")
+            sendNow()
+            
         }
+        
         
         
     }

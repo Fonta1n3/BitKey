@@ -9,6 +9,9 @@
 import UIKit
 import AVFoundation
 import CoreData
+import LocalAuthentication
+import SwiftKeychainWrapper
+import AES256CBC
 
 class AddressBookViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate {
     
@@ -92,7 +95,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 
             }
             
-            
         } else if (segue.identifier == "showHistory") {
             
             let vc = segue.destination as! TransactionHistoryViewController
@@ -100,9 +102,13 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
         } else if (segue.identifier == "goToTransactions") {
             
-            let vc = segue.destination as! TransactionBuilderViewController
-            vc.walletToSpendFrom = self.wallet
-            vc.sendingFromAddress = self.wallet["address"] as! String
+            DispatchQueue.main.async {
+                
+                let vc = segue.destination as! TransactionBuilderViewController
+                vc.walletToSpendFrom = self.wallet
+                vc.sendingFromAddress = self.wallet["address"] as! String
+                
+            }
             
         }
         
@@ -271,14 +277,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         self.backButton.addTarget(self, action: #selector(self.dismissImportView), for: .touchUpInside)
         
         
-        self.qrImageView.frame = CGRect(x: self.importView.center.x - ((self.importView.frame.width - 50)/2), y: self.importView.center.y - ((self.importView.frame.width - 50)/2), width: self.importView.frame.width - 50, height: self.importView.frame.width - 50)
-        self.qrImageView.layer.shadowColor = UIColor.black.cgColor
-        self.qrImageView.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.qrImageView.layer.shadowRadius = 2.5
-        self.qrImageView.layer.shadowOpacity = 0.8
-        
-        
-        self.textInput.frame = CGRect(x: self.importView.frame.minX + 5, y: self.qrImageView.frame.minY - 55, width: self.importView.frame.width - 10, height: 50)
+        self.textInput.frame = CGRect(x: self.view.frame.minX + 25, y: 150, width: self.view.frame.width - 50, height: 50)
         self.textInput.textAlignment = .center
         self.textInput.borderStyle = .roundedRect
         self.textInput.autocorrectionType = .no
@@ -287,12 +286,18 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         self.textInput.returnKeyType = UIReturnKeyType.go
         self.textInput.placeholder = "Scan or type an Address or Private Key"
         
+        self.qrImageView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.textInput.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
+        self.qrImageView.layer.shadowColor = UIColor.black.cgColor
+        self.qrImageView.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        self.qrImageView.layer.shadowRadius = 2.5
+        self.qrImageView.layer.shadowOpacity = 0.8
+        
         DispatchQueue.main.async {
             
             self.view.addSubview(self.importView)
             self.importView.addSubview(self.backButton)
-            self.importView.addSubview(self.qrImageView)
             self.importView.addSubview(self.textInput)
+            self.importView.addSubview(self.qrImageView)
             
         }
         
@@ -1085,153 +1090,268 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         
-        if editingStyle == .delete {
+       if editingStyle == .delete {
             
-            let cell = self.addressBookTable.cellForRow(at: indexPath)!
-            
-            var allowDelete = Bool()
-            
-            for addr in self.addressBook {
+            func deleteCell() {
                 
-                if (addr["address"] as! String).hasPrefix("tb") {
+                let cell = self.addressBookTable.cellForRow(at: indexPath)!
+                
+                var allowDelete = Bool()
+                
+                for addr in self.addressBook {
                     
-                   allowDelete = true
+                    if (addr["address"] as! String).hasPrefix("tb") {
+                        
+                        allowDelete = true
+                        
+                    }
+                }
+                
+                if isInternetAvailable() == false || (cell.textLabel?.text?.contains("-"))! || allowDelete != false {
+                    
+                    if indexPath.section == 0 {
+                        
+                        for (index, wallet) in self.addressBook.enumerated() {
+                            
+                            if self.hotMainnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
+                                
+                                DispatchQueue.main.async {
+                                    
+                                    let alert = UIAlertController(title: "WARNING!", message: "You will lose this wallet FOREVER if you delete it, please ensure you have it backed up first.", preferredStyle: UIAlertControllerStyle.alert)
+                                    
+                                    alert.addAction(UIAlertAction(title: NSLocalizedString("Delete", comment: ""), style: .destructive, handler: { (action) in
+                                        
+                                        self.addressBook.remove(at: index)
+                                        self.removeWallet(address: wallet["address"] as! String)
+                                        self.hotMainnetArray.remove(at: indexPath.row)
+                                        tableView.deleteRows(at: [indexPath], with: .fade)
+                                        
+                                    }))
+                                    
+                                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                        
+                                        
+                                    }))
+                                    
+                                    self.present(alert, animated: true, completion: nil)
+                                }
+                                
+                            }
+                            
+                        }
+                        
+                    } else if indexPath.section == 1 {
+                        
+                        for (index, wallet) in self.addressBook.enumerated() {
+                            
+                            if self.hotTestnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
+                                
+                                DispatchQueue.main.async {
+                                    
+                                    let alert = UIAlertController(title: "WARNING!", message: "You will lose this wallet FOREVER if you delete it, please ensure you have it backed up first.", preferredStyle: UIAlertControllerStyle.alert)
+                                    
+                                    alert.addAction(UIAlertAction(title: NSLocalizedString("Delete", comment: ""), style: .destructive, handler: { (action) in
+                                        
+                                        self.addressBook.remove(at: index)
+                                        self.removeWallet(address: wallet["address"] as! String)
+                                        self.hotTestnetArray.remove(at: indexPath.row)
+                                        tableView.deleteRows(at: [indexPath], with: .fade)
+                                        
+                                    }))
+                                    
+                                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                        
+                                        
+                                    }))
+                                    
+                                    self.present(alert, animated: true, completion: nil)
+                                }
+                                
+                            }
+                            
+                        }
+                        
+                    } else if indexPath.section == 2 {
+                        
+                        for (index, wallet) in self.addressBook.enumerated() {
+                            
+                            if self.coldMainnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
+                                
+                                DispatchQueue.main.async {
+                                    
+                                    let alert = UIAlertController(title: "WARNING!", message: "You will lose this wallet FOREVER if you delete it, please ensure you have it backed up first.", preferredStyle: UIAlertControllerStyle.alert)
+                                    
+                                    alert.addAction(UIAlertAction(title: NSLocalizedString("Delete", comment: ""), style: .destructive, handler: { (action) in
+                                        
+                                        self.addressBook.remove(at: index)
+                                        self.removeWallet(address: wallet["address"] as! String)
+                                        self.coldMainnetArray.remove(at: indexPath.row)
+                                        tableView.deleteRows(at: [indexPath], with: .fade)
+                                        
+                                    }))
+                                    
+                                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                        
+                                        
+                                    }))
+                                    
+                                    self.present(alert, animated: true, completion: nil)
+                                }
+                                
+                            }
+                            
+                        }
+                        
+                    } else if indexPath.section == 3 {
+                        
+                        for (index, wallet) in self.addressBook.enumerated() {
+                            
+                            if self.coldTestnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
+                                
+                                DispatchQueue.main.async {
+                                    
+                                    let alert = UIAlertController(title: "WARNING!", message: "You will lose this wallet FOREVER if you delete it, please ensure you have it backed up first.", preferredStyle: UIAlertControllerStyle.alert)
+                                    
+                                    alert.addAction(UIAlertAction(title: NSLocalizedString("Delete", comment: ""), style: .destructive, handler: { (action) in
+                                        
+                                        self.addressBook.remove(at: index)
+                                        self.removeWallet(address: wallet["address"] as! String)
+                                        self.coldTestnetArray.remove(at: indexPath.row)
+                                        tableView.deleteRows(at: [indexPath], with: .fade)
+                                        
+                                    }))
+                                    
+                                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                                        
+                                        
+                                    }))
+                                    
+                                    self.present(alert, animated: true, completion: nil)
+                                }
+                                
+                            }
+                            
+                        }
+                        
+                    }
                     
                 }
+                
+                
             }
-            
-            if isInternetAvailable() == false || (cell.textLabel?.text?.contains("-"))! || allowDelete != false {
         
-                if indexPath.section == 0 {
+        func authenticateDeleteWithTouchID() {
+            
+            let localAuthenticationContext = LAContext()
+            localAuthenticationContext.localizedFallbackTitle = "Use Passcode"
+            
+            var authError: NSError?
+            let reasonString = "To Delete a Wallet"
+            
+            if localAuthenticationContext.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &authError) {
+                
+                localAuthenticationContext.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reasonString) { success, evaluateError in
                     
-                    for (index, wallet) in self.addressBook.enumerated() {
+                    if success {
                         
-                        if self.hotMainnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
-                            
-                            DispatchQueue.main.async {
-                                
-                                let alert = UIAlertController(title: "WARNING!", message: "You will lose this wallet FOREVER if you delete it, please ensure you have it backed up first.", preferredStyle: UIAlertControllerStyle.alert)
-                                
-                                alert.addAction(UIAlertAction(title: NSLocalizedString("Delete", comment: ""), style: .destructive, handler: { (action) in
-                                    
-                                    self.addressBook.remove(at: index)
-                                    self.removeWallet(address: wallet["address"] as! String)
-                                    self.hotMainnetArray.remove(at: indexPath.row)
-                                    tableView.deleteRows(at: [indexPath], with: .fade)
-                                    
-                                }))
-                                
-                                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                                    
-                                    
-                                }))
-                                
-                                self.present(alert, animated: true, completion: nil)
-                            }
-                            
+                        deleteCell()
+                        
+                    } else {
+                        //TODO: User did not authenticate successfully, look at error and take appropriate action
+                        guard let error = evaluateError else {
+                            return
                         }
                         
-                    }
-                    
-                } else if indexPath.section == 1 {
-                    
-                    for (index, wallet) in self.addressBook.enumerated() {
+                        displayAlert(viewController: self, title: "Error", message: self.evaluateAuthenticationPolicyMessageForLA(errorCode: error._code))
                         
-                        if self.hotTestnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
-                            
-                            DispatchQueue.main.async {
-                                
-                                let alert = UIAlertController(title: "WARNING!", message: "You will lose this wallet FOREVER if you delete it, please ensure you have it backed up first.", preferredStyle: UIAlertControllerStyle.alert)
-                                
-                                alert.addAction(UIAlertAction(title: NSLocalizedString("Delete", comment: ""), style: .destructive, handler: { (action) in
-                                    
-                                    self.addressBook.remove(at: index)
-                                    self.removeWallet(address: wallet["address"] as! String)
-                                    self.hotTestnetArray.remove(at: indexPath.row)
-                                    tableView.deleteRows(at: [indexPath], with: .fade)
-                                    
-                                }))
-                                
-                                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                                    
-                                    
-                                }))
-                                
-                                self.present(alert, animated: true, completion: nil)
-                            }
-                            
-                        }
+                        print(self.evaluateAuthenticationPolicyMessageForLA(errorCode: error._code))
+                        
+                        //TODO: If you have choosen the 'Fallback authentication mechanism selected' (LAError.userFallback). Handle gracefully
                         
                     }
+                }
+            } else {
+                
+                guard let error = authError else {
+                    return
+                }
+                //TODO: Show appropriate alert if biometry/TouchID/FaceID is lockout or not enrolled
+                displayAlert(viewController: self, title: "Error", message: self.evaluateAuthenticationPolicyMessageForLA(errorCode: error._code))
+                print(self.evaluateAuthenticationPolicyMessageForLA(errorCode: error.code))
+            }
+            
+            
+        }
+            
+            if UserDefaults.standard.object(forKey: "bioMetricsEnabled") != nil {
+                
+                authenticateDeleteWithTouchID()
+                
+            } else if let _ = KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
+                
+                var password = String()
+                
+                let alert = UIAlertController(title: "Please input your password", message: "Please enter your password to delete a wallet", preferredStyle: .alert)
+                
+                alert.addTextField { (textField1) in
                     
-                } else if indexPath.section == 2 {
-                    
-                    for (index, wallet) in self.addressBook.enumerated() {
-                        
-                        if self.coldMainnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
-                            
-                            DispatchQueue.main.async {
-                                
-                                let alert = UIAlertController(title: "WARNING!", message: "You will lose this wallet FOREVER if you delete it, please ensure you have it backed up first.", preferredStyle: UIAlertControllerStyle.alert)
-                                
-                                alert.addAction(UIAlertAction(title: NSLocalizedString("Delete", comment: ""), style: .destructive, handler: { (action) in
-                                    
-                                    self.addressBook.remove(at: index)
-                                    self.removeWallet(address: wallet["address"] as! String)
-                                    self.coldMainnetArray.remove(at: indexPath.row)
-                                    tableView.deleteRows(at: [indexPath], with: .fade)
-                                    
-                                }))
-                                
-                                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                                    
-                                    
-                                }))
-                                
-                                self.present(alert, animated: true, completion: nil)
-                            }
-                            
-                        }
-                        
-                    }
-                    
-                } else if indexPath.section == 3 {
-                    
-                    for (index, wallet) in self.addressBook.enumerated() {
-                        
-                        if self.coldTestnetArray[indexPath.row]["address"] as! String == wallet["address"] as! String {
-                            
-                            DispatchQueue.main.async {
-                                
-                                let alert = UIAlertController(title: "WARNING!", message: "You will lose this wallet FOREVER if you delete it, please ensure you have it backed up first.", preferredStyle: UIAlertControllerStyle.alert)
-                                
-                                alert.addAction(UIAlertAction(title: NSLocalizedString("Delete", comment: ""), style: .destructive, handler: { (action) in
-                                    
-                                    self.addressBook.remove(at: index)
-                                    self.removeWallet(address: wallet["address"] as! String)
-                                    self.coldTestnetArray.remove(at: indexPath.row)
-                                    tableView.deleteRows(at: [indexPath], with: .fade)
-                                    
-                                }))
-                                
-                                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                                    
-                                    
-                                }))
-                                
-                                self.present(alert, animated: true, completion: nil)
-                            }
-                            
-                        }
-                        
-                    }
+                    textField1.placeholder = "Enter Password"
+                    textField1.isSecureTextEntry = true
                     
                 }
-            }
                 
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Delete", comment: ""), style: .destructive, handler: { (action) in
+                    
+                    password = alert.textFields![0].text!
+                    
+                    if password == KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
+                        
+                        deleteCell()
+                        
+                    } else {
+                        
+                        displayAlert(viewController: self, title: "Error", message: "Incorrect password!")
+                    }
+                    
+                }))
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                    
+                    
+                }))
+                
+                self.present(alert, animated: true, completion: nil)
+                
+            } else {
+                
+                deleteCell()
+                
+            }
+            
         }
         
      }
+    
+    func processKeyAndSegue() {
+        
+        //check if valid if not decrypt
+        if let _ = BTCPrivateKeyAddressTestnet.init(string: self.privateKeyToExport) {
+            
+            self.performSegue(withIdentifier: "goHome", sender: self)
+            
+        } else if let _ = BTCPrivateKeyAddress.init(string: self.privateKeyToExport) {
+            
+            self.performSegue(withIdentifier: "goHome", sender: self)
+            
+        } else {
+            
+            let password = KeychainWrapper.standard.string(forKey: "AESPassword")!
+            let decrypted = AES256CBC.decryptString(self.privateKeyToExport, password: password)!
+            self.privateKeyToExport = decrypted
+            self.performSegue(withIdentifier: "goHome", sender: self)
+            
+        }
+    }
     
     func showKeyManagementAlert(wallet: [String: Any], cell: UITableViewCell) {
         
@@ -1268,15 +1388,69 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 self.addressToExport = wallet["address"] as! String
                 self.privateKeyToExport = wallet["privateKey"] as! String
                 self.walletNameToExport = wallet["label"] as! String
-                self.performSegue(withIdentifier: "goHome", sender: self)
+                
+                if self.privateKeyToExport != "" {
+                    
+                    if UserDefaults.standard.object(forKey: "bioMetricsEnabled") != nil {
+                        
+                        self.authenticationWithTouchID()
+                        
+                    } else if let _ = KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
+                        
+                        var password = String()
+                        
+                        let alert = UIAlertController(title: "Please input your password", message: "Please enter your password to export your private key", preferredStyle: .alert)
+                        
+                        alert.addTextField { (textField1) in
+                            
+                            textField1.placeholder = "Enter Password"
+                            textField1.isSecureTextEntry = true
+                            
+                        }
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("Export", comment: ""), style: .default, handler: { (action) in
+                            
+                            password = alert.textFields![0].text!
+                            
+                            if password == KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
+                                
+                                self.processKeyAndSegue()
+                                
+                            } else {
+                                
+                                displayAlert(viewController: self, title: "Error", message: "Incorrect password!")
+                            }
+                            
+                        }))
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                            
+                            
+                        }))
+                        
+                        self.present(alert, animated: true, completion: nil)
+                        
+                    } else {
+                        
+                        self.processKeyAndSegue()
+                        
+                    }
+                    
+                } else {
+                   
+                    self.processKeyAndSegue()
+                    
+                }
                 
             }))
             
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Spend from this wallet", comment: ""), style: .default, handler: { (action) in
                 
-                self.wallet = wallet
-                self.performSegue(withIdentifier: "goToTransactions", sender: self)
+                DispatchQueue.main.async {
+                    self.wallet = wallet
+                    self.performSegue(withIdentifier: "goToTransactions", sender: self)
+                }
                 
             }))
             
@@ -1562,7 +1736,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                         self.addressBookTable.reloadData()
                                         self.removeSpinner()
                                         
-                                        
                                     }
                                     
                                 } else {
@@ -1768,6 +1941,124 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             print("Failed")
             
         }
+    }
+    
+    
+    func authenticationWithTouchID() {
+        
+        let localAuthenticationContext = LAContext()
+        localAuthenticationContext.localizedFallbackTitle = "Use Passcode"
+        
+        var authError: NSError?
+        let reasonString = "To Export a Private Key"
+        
+        if localAuthenticationContext.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &authError) {
+            
+            localAuthenticationContext.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reasonString) { success, evaluateError in
+                
+                if success {
+                    
+                    DispatchQueue.main.async {
+                        
+                        self.processKeyAndSegue()
+                        
+                    }
+                    
+                } else {
+                    //TODO: User did not authenticate successfully, look at error and take appropriate action
+                    guard let error = evaluateError else {
+                        return
+                    }
+                    
+                    displayAlert(viewController: self, title: "Error", message: self.evaluateAuthenticationPolicyMessageForLA(errorCode: error._code))
+                    
+                    print(self.evaluateAuthenticationPolicyMessageForLA(errorCode: error._code))
+                    
+                    //TODO: If you have choosen the 'Fallback authentication mechanism selected' (LAError.userFallback). Handle gracefully
+                    
+                }
+            }
+        } else {
+            
+            guard let error = authError else {
+                return
+            }
+            //TODO: Show appropriate alert if biometry/TouchID/FaceID is lockout or not enrolled
+            displayAlert(viewController: self, title: "Error", message: self.evaluateAuthenticationPolicyMessageForLA(errorCode: error._code))
+            print(self.evaluateAuthenticationPolicyMessageForLA(errorCode: error.code))
+        }
+    }
+    
+    func evaluatePolicyFailErrorMessageForLA(errorCode: Int) -> String {
+        var message = ""
+        if #available(iOS 11.0, macOS 10.13, *) {
+            switch errorCode {
+            case LAError.biometryNotAvailable.rawValue:
+                message = "Authentication could not start because the device does not support biometric authentication."
+                
+            case LAError.biometryLockout.rawValue:
+                message = "Authentication could not continue because the user has been locked out of biometric authentication, due to failing authentication too many times."
+                
+            case LAError.biometryNotEnrolled.rawValue:
+                message = "Authentication could not start because the user has not enrolled in biometric authentication."
+                
+            default:
+                message = "Did not find error code on LAError object"
+            }
+        } else {
+            switch errorCode {
+            case LAError.touchIDLockout.rawValue:
+                message = "Too many failed attempts."
+                
+            case LAError.touchIDNotAvailable.rawValue:
+                message = "TouchID is not available on the device"
+                
+            case LAError.touchIDNotEnrolled.rawValue:
+                message = "TouchID is not enrolled on the device"
+                
+            default:
+                message = "Did not find error code on LAError object"
+            }
+        }
+        
+        return message;
+    }
+    
+    func evaluateAuthenticationPolicyMessageForLA(errorCode: Int) -> String {
+        
+        var message = ""
+        
+        switch errorCode {
+            
+        case LAError.authenticationFailed.rawValue:
+            message = "The user failed to provide valid credentials"
+            
+        case LAError.appCancel.rawValue:
+            message = "Authentication was cancelled by application"
+            
+        case LAError.invalidContext.rawValue:
+            message = "The context is invalid"
+            
+        case LAError.notInteractive.rawValue:
+            message = "Not interactive"
+            
+        case LAError.passcodeNotSet.rawValue:
+            message = "Passcode is not set on the device"
+            
+        case LAError.systemCancel.rawValue:
+            message = "Authentication was cancelled by the system"
+            
+        case LAError.userCancel.rawValue:
+            message = "The user did cancel"
+            
+        case LAError.userFallback.rawValue:
+            message = "The user chose to use the fallback"
+            
+        default:
+            message = evaluatePolicyFailErrorMessageForLA(errorCode: errorCode)
+        }
+        
+        return message
     }
 
 }
