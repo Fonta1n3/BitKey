@@ -9,13 +9,10 @@
 import Foundation
 import BigInt
 import SwiftKeychainWrapper
-import AES256CBC
 
 public func createPrivateKey(viewController: UIViewController, userRandomness: BigInt) -> (privateKeyAddress: String, publicKeyAddress: String, recoveryPhrase: String) {
     
     let segwit = SegwitAddrCoder()
-    
-    //var coldMode = Bool()
     var hotMode = Bool()
     var legacyMode = Bool()
     var segwitMode = Bool()
@@ -23,26 +20,23 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
     var mainnetMode = Bool()
     var data = BigUInt(userRandomness).serialize()
     var bitcoinAddress = String()
-    //var privateKey = String()
     var words = ""
     var recoveryPhrase = String()
     
     hotMode = checkSettingsForKey(keyValue: "hotMode")
-    //coldMode = checkSettingsForKey(keyValue: "coldMode")
     legacyMode = checkSettingsForKey(keyValue: "legacyMode")
     segwitMode = checkSettingsForKey(keyValue: "segwitMode")
     mainnetMode = checkSettingsForKey(keyValue: "mainnetMode")
     testnetMode = checkSettingsForKey(keyValue: "testnetMode")
     
-    let aesPassword = KeychainWrapper.standard.string(forKey: "AESPassword")
-    
     let sha256OfData = BTCSHA256(data)
         
     var password = ""
         
-    if let passwordCheck = UserDefaults.standard.object(forKey: "password") as? String {
-            
+    if let passwordCheck = KeychainWrapper.standard.string(forKey: "BIP39Password") {
+        
         password = passwordCheck
+        
     }
         
     if let mnemonic = BTCMnemonic.init(entropy: sha256OfData as Data!, password: password, wordListType: BTCMnemonicWordListType.english) {
@@ -66,7 +60,7 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
             
             
             
-            let encryptedPrivateKey = AES256CBC.encryptString(privateKeyWIF, password: aesPassword!)!
+            
             
             if legacyMode {
                     
@@ -93,7 +87,7 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
                 
             if hotMode {
                     
-                saveWallet(viewController: viewController, address: bitcoinAddress, privateKey: encryptedPrivateKey, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot")
+                saveWallet(viewController: viewController, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot")
                     
             } else {
                     
@@ -123,8 +117,7 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
             //let watchOnlyTestKey = BTCKeychain.init(extendedKey: xpub)
             //let childkeychain = watchOnlyTestKey?.key(at: 2).address
             //print("childkeychain address = \(String(describing: childkeychain))")
-            let encryptedPrivateKey = AES256CBC.encryptString(privateKeyWIF, password: aesPassword!)!
-                
+            
             if legacyMode {
                     
                 bitcoinAddress = addressHD
@@ -150,7 +143,7 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
                 
             if hotMode {
                     
-                saveWallet(viewController: viewController, address: bitcoinAddress, privateKey: encryptedPrivateKey, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot")
+                saveWallet(viewController: viewController, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot")
                     
             } else {
                     

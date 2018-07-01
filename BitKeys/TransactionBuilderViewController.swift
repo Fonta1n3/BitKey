@@ -16,6 +16,7 @@ import SwiftKeychainWrapper
 
 class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate {
     
+    var sweepButton = UIButton()
     var optionsButton = UIButton()
     var walletToSpendFrom = [String:Any]()
     let textView = UILabel()
@@ -31,14 +32,13 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     var imageView:UIView!
     let avCaptureSession = AVCaptureSession()
     var bitcoinAddressQRCode = UIImage()
-    var unspentOutputs = NSMutableArray()
     var json = NSMutableDictionary()
     var transactionToBeSigned = [String]()
     var privateKeyToSign = String()
     var videoPreview = UIView()
     var addressToDisplay = UITextField()
     var amountToSend = UITextField()
-    var minerfeeInput = UITextField()
+    var moreOptionsButton = UIButton()
     var stringURL = String()
     var recievingAddress = String()
     var sendingFromAddress = String()
@@ -52,22 +52,15 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     var currency = String()
     var amountInBTC = Double()
     var satoshiAmount = Int()
-    var connected:Bool!
     var preference = String()
     var transactionID = ""
-    var rawTransaction = String()
     var fees:UInt16! = 0
     var manuallySetFee = Bool()
-    var totalSize = Int()
     var transactionView = UITextView()
     var refreshButton = UIButton()
     var exchangeRate = Double()
-    var rawTransactionView = UITextView()
-    var pushRawTransactionButton = UIButton()
-    var decodeRawTransactionButton = UIButton()
     var xpubkey = String()
     var privateKeytoDebit = ""
-    var isWalletEncrypted = Bool()
     var high = Bool()
     var medium = Bool()
     var low = Bool()
@@ -80,13 +73,10 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        //UserDefaults.standard.removeObject(forKey: "firstTimeHere")
-        
        if UserDefaults.standard.object(forKey: "firstTimeHere") != nil {
             
        } else {
             
-            //users first time, set default settings
             UserDefaults.standard.set(true, forKey: "firstTimeHere")
             
             guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
@@ -107,7 +97,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                     
                 } else {
                     
-                    print("no results so create one")
                     let entity = NSEntityDescription.entity(forEntityName: "TransactionSettings", in: context)
                     let mySettings = NSManagedObject(entity: entity!, insertInto: context)
                     mySettings.setValue(true, forKey: "dollar")
@@ -140,12 +129,8 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             
         }
         
-        
         addressToDisplay.delegate = self
-        rawTransactionView.delegate = self
         amountToSend.delegate = self
-        minerfeeInput.delegate = self
-        
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard (_:)))
         self.view.addGestureRecognizer(tapGesture)
         
@@ -157,9 +142,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     
     override func viewDidAppear(_ animated: Bool) {
         
-        print("self.walletToSpendFrom = \(self.walletToSpendFrom)")
-        
-        isWalletEncrypted = isWalletEncryptedFromCoreData()
         recievingAddress = ""
         getUserDefaults()
         getReceivingAddressMode = true
@@ -233,14 +215,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             }
         }
         
-        if isWalletEncrypted {
-            
-            coldMode = true
-            hotMode = false
-            
-        }
-        
-    }
+   }
     
     func addAddressBookButton() {
         print("addAddressBookButton")
@@ -265,8 +240,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     @objc func openAddressBook() {
         print("openAddressBook")
         
-        if self.isWalletEncrypted == false {
-            
             DispatchQueue.main.async {
                 
                 if self.addressBook.count > 0 {
@@ -345,10 +318,9 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                             
                         }))
                         
-                        alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+                        alert.popoverPresentationController?.sourceView = self.view
                         
                         self.present(alert, animated: true) {
-                            print("option menu presented")
                         }
                         
                     } else if self.getPayerAddressMode {
@@ -481,10 +453,9 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                             
                         }))
                         
-                        alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+                        alert.popoverPresentationController?.sourceView = self.view
                         
                         self.present(alert, animated: true) {
-                            print("option menu presented")
                         }
                         
                     } else {
@@ -496,13 +467,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                 
             }
             
-        } else {
-            
-            displayAlert(viewController: self, title: "Error", message: "Your wallet is locked, you will only be able to use it in cold mode. Please go to the home screen and unlock the wallet for full functionality.")
-        }
-        
-        
-        
     }
    
    func addChooseOptionButton() {
@@ -513,7 +477,32 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         self.optionsButton.setImage(#imageLiteral(resourceName: "settings2.png"), for: .normal)
         self.optionsButton.addTarget(self, action: #selector(self.getAmount), for: .touchUpInside)
         self.view.addSubview(self.optionsButton)
+    
+        self.moreOptionsButton.removeFromSuperview()
+        self.moreOptionsButton = UIButton(frame: CGRect(x: 10, y: self.view.frame.maxY - 320, width: 35, height: 35))
+        self.moreOptionsButton.setImage(#imageLiteral(resourceName: "tool2.png"), for: .normal)
+        self.moreOptionsButton.showsTouchWhenHighlighted = true
+        self.moreOptionsButton.addTarget(self, action: #selector(addRawTransactionView), for: .touchUpInside)
+        self.view.addSubview(self.moreOptionsButton)
+    
+        self.sweepButton.removeFromSuperview()
+        self.sweepButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 45, y: self.view.frame.maxY - 320, width: 35, height: 35))
+        self.sweepButton.setImage(#imageLiteral(resourceName: "sweep.jpeg"), for: .normal)
+        self.sweepButton.showsTouchWhenHighlighted = true
+        self.sweepButton.addTarget(self, action: #selector(sweep), for: .touchUpInside)
+        self.view.addSubview(self.sweepButton)
         
+    }
+    
+    @objc func sweep() {
+        
+        self.amount = "-1"
+        self.amountToSend.removeFromSuperview()
+        self.getReceivingAddressMode = true
+        self.moreOptionsButton.removeFromSuperview()
+        self.sweepButton.removeFromSuperview()
+        self.optionsButton.removeFromSuperview()
+        self.addScanner()
     }
     
     @objc func getAmount() {
@@ -523,52 +512,12 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         
     }
     
-    func addRawTransactionView() {
+    @objc func addRawTransactionView() {
         
         print("addRawTransactionView")
+        self.performSegue(withIdentifier: "goToRawTransaction", sender: self)
         
-        self.rawTransactionView.frame = CGRect(x: (self.view.frame.width / 2) - ((self.view.frame.width - 10) / 2), y: self.view.frame.minY + 100, width: self.view.frame.width - 10, height: 325)
-        self.rawTransactionView.textAlignment = .left
-        self.rawTransactionView.backgroundColor = UIColor.groupTableViewBackground
-        self.rawTransactionView.keyboardDismissMode = .interactive
-        self.rawTransactionView.isEditable = true
-        self.rawTransactionView.font = UIFont.systemFont(ofSize: 22, weight: .regular)
-        self.rawTransactionView.returnKeyType = UIReturnKeyType.done
-        self.view.addSubview(self.rawTransactionView)
         
-        self.pushRawTransactionButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.rawTransactionView.frame.maxY + 10, width: 300, height: 55))
-        self.pushRawTransactionButton.showsTouchWhenHighlighted = true
-        self.pushRawTransactionButton.titleLabel?.textAlignment = .center
-        self.pushRawTransactionButton.layer.cornerRadius = 10
-        self.pushRawTransactionButton.backgroundColor = UIColor.black
-        self.pushRawTransactionButton.layer.shadowColor = UIColor.black.cgColor
-        self.pushRawTransactionButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.pushRawTransactionButton.layer.shadowRadius = 2.5
-        self.pushRawTransactionButton.layer.shadowOpacity = 0.8
-        self.pushRawTransactionButton.setTitle("Push", for: .normal)
-        self.pushRawTransactionButton.addTarget(self, action: #selector(self.pushRawTransaction), for: .touchUpInside)
-        self.view.addSubview(self.pushRawTransactionButton)
-        
-        self.decodeRawTransactionButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.pushRawTransactionButton.frame.maxY + 10, width: 300, height: 55))
-        self.decodeRawTransactionButton.showsTouchWhenHighlighted = true
-        self.decodeRawTransactionButton.titleLabel?.textAlignment = .center
-        self.decodeRawTransactionButton.layer.cornerRadius = 10
-        self.decodeRawTransactionButton.backgroundColor = UIColor.black
-        self.decodeRawTransactionButton.layer.shadowColor = UIColor.black.cgColor
-        self.decodeRawTransactionButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.decodeRawTransactionButton.layer.shadowRadius = 2.5
-        self.decodeRawTransactionButton.layer.shadowOpacity = 0.8
-        self.decodeRawTransactionButton.setTitle("Decode", for: .normal)
-        self.decodeRawTransactionButton.addTarget(self, action: #selector(self.decodeRawTransaction), for: .touchUpInside)
-        self.view.addSubview(self.decodeRawTransactionButton)
-    }
-    
-    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-        if (text as NSString).rangeOfCharacter(from: CharacterSet.newlines).location == NSNotFound {
-            return true
-        }
-        self.rawTransactionView.resignFirstResponder()
-        return false
     }
     
     func addBackButton() {
@@ -595,10 +544,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         print("addQRScannerView")
         
         self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.addressToDisplay.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
-        self.videoPreview.layer.shadowColor = UIColor.black.cgColor
-        self.videoPreview.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.videoPreview.layer.shadowRadius = 2.5
-        self.videoPreview.layer.shadowOpacity = 0.8
+        addShadow(view:self.videoPreview)
         self.view.addSubview(self.videoPreview)
     }
     
@@ -747,8 +693,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                 
                 if addressAlreadySaved != true {
                     
-                    if isWalletEncrypted != true {
-                        
                         DispatchQueue.main.async {
                             
                             let alert = UIAlertController(title: "Save this address?", message: "Would you like to save this address for future payments?", preferredStyle: UIAlertControllerStyle.alert)
@@ -781,8 +725,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                             self.present(alert, animated: true, completion: nil)
                         }
                         
-                    }
-                    
                 } else {
                     
                     self.recievingAddress = key
@@ -807,7 +749,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             } else {
                     
                 displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address")
-                    print("key = \(key)")
             }
                 
         } else if getPayerAddressMode {
@@ -838,36 +779,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             }
             
         } else if getSignatureMode {
-                
-            /*func processPrivateKey() {
-                    
-                DispatchQueue.main.async {
-                        
-                    self.removeSpinner()
-                    self.removeScanner()
-                        
-                    let alert = UIAlertController(title: NSLocalizedString("Please confirm", comment: ""), message: "We will use private key: \(key) to create a signature. You can just check first few and last few characters as if its incorrect the worst that will happen is you'll have to start over.", preferredStyle: UIAlertControllerStyle.actionSheet)
-                        
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Looks Good, please sign", comment: ""), style: .default, handler: { (action) in
-                            
-                        self.getPrivateKeySignature(key: key)
-                            
-                            
-                    }))
-                        
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                            
-                        self.dismiss(animated: true, completion: nil)
-                            
-                    }))
-                        
-                    alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
-                    
-                    self.present(alert, animated: true) {
-                        print("option menu presented")
-                    }
-                }
-            }*/
                 
             if let _ = BTCPrivateKeyAddressTestnet.init(string: key) {
                 
@@ -1043,14 +954,11 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     func addScanner() {
         print("addScanner")
         
-        print("wallet to spend from = \(self.walletToSpendFrom)")
-        
         if self.getPayerAddressMode, let _ = self.walletToSpendFrom["label"] as? String {
             
             if self.hotMode {
                 
              self.privateKeytoDebit = self.walletToSpendFrom["privateKey"] as! String
-                print("self.privateKeytoDebit = \(self.privateKeytoDebit)")
                 
             } else if self.coldMode {
                 
@@ -1147,8 +1055,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         }
     }
     
-    
-    
     func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
         if metadataObjects.count > 0 {
             print("metadataOutput")
@@ -1158,12 +1064,10 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             if machineReadableCode.type == AVMetadataObject.ObjectType.qr {
                 
                 stringURL = machineReadableCode.stringValue!
-                print("stringURL = \(stringURL)")
                 
                 if stringURL.contains("bitcoin:") {
                     
                     stringURL = stringURL.replacingOccurrences(of: "bitcoin:", with: "")
-                    print("stringURL = \(stringURL)")
                     
                     if stringURL.contains("?") {
                         
@@ -1203,7 +1107,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                         } else {
                             
                             displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Key.")
-                            print("key = \(key)")
                         }
                         
                     } else {
@@ -1228,10 +1131,8 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         func signNow(privateKey: String) {
             
             if let privateKey = BTCPrivateKeyAddress(string: privateKey) {
-                print("privateKey = \(String(describing: privateKey))")
                 
                 let key = BTCKey.init(privateKeyAddress: privateKey)
-                print("privateKey = \(String(describing: privateKey))")
                 
                 var receiveAddress = ""
                 var sendAddress = ""
@@ -1286,34 +1187,33 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                         self.json["signatures"] = signatureArray
                         self.json["pubkeys"] = pubkeyArray
                         
-                        self.sendButton.removeFromSuperview()
-                        self.sendButton = UIButton(frame: CGRect(x: 20, y: self.view.frame.maxY - 60, width: self.view.frame.width - 40, height: 50))
-                        self.sendButton.showsTouchWhenHighlighted = true
-                        self.sendButton.layer.cornerRadius = 10
-                        self.sendButton.backgroundColor = UIColor.black
-                        self.sendButton.layer.shadowColor = UIColor.black.cgColor
-                        self.sendButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-                        self.sendButton.layer.shadowRadius = 2.5
-                        self.sendButton.layer.shadowOpacity = 0.8
-                        self.sendButton.addTarget(self, action: #selector(self.postTransaction), for: .touchUpInside)
-                        self.sendButton.setTitle("Send", for: .normal)
-                        self.view.addSubview(self.sendButton)
-                        
-                        self.titleLable.frame = CGRect(x: 10, y: 60, width: self.view.frame.width - 20, height: 60)
-                        self.titleLable.textAlignment = .center
-                        self.titleLable.font = .systemFont(ofSize: 28)
-                        self.titleLable.adjustsFontSizeToFitWidth = true
-                        self.titleLable.numberOfLines = 2
-                        self.titleLable.text = "Confirm before sending"
-                        self.view.addSubview(self.titleLable)
-                        
-                        
-                        self.textView.frame = CGRect(x: 10, y: self.titleLable.frame.maxY + 20, width: self.view.frame.width - 20, height: 350)
-                        self.textView.font = .systemFont(ofSize: 18)
-                        self.textView.adjustsFontSizeToFitWidth = true
-                        self.textView.numberOfLines = 20
-                        self.textView.text = "\(message)"
-                        self.view.addSubview(self.textView)
+                        DispatchQueue.main.async {
+                            self.sendButton.removeFromSuperview()
+                            self.sendButton = UIButton(frame: CGRect(x: 20, y: self.view.frame.maxY - 60, width: self.view.frame.width - 40, height: 50))
+                            self.sendButton.showsTouchWhenHighlighted = true
+                            self.sendButton.layer.cornerRadius = 10
+                            self.sendButton.backgroundColor = UIColor.black
+                            addShadow(view:self.sendButton)
+                            self.sendButton.addTarget(self, action: #selector(self.postTransaction), for: .touchUpInside)
+                            self.sendButton.setTitle("Send", for: .normal)
+                            self.view.addSubview(self.sendButton)
+                            
+                            self.titleLable.frame = CGRect(x: 10, y: 60, width: self.view.frame.width - 20, height: 60)
+                            self.titleLable.textAlignment = .center
+                            self.titleLable.font = .systemFont(ofSize: 28)
+                            self.titleLable.adjustsFontSizeToFitWidth = true
+                            self.titleLable.numberOfLines = 2
+                            self.titleLable.text = "Confirm before sending"
+                            self.view.addSubview(self.titleLable)
+                            
+                            
+                            self.textView.frame = CGRect(x: 10, y: self.titleLable.frame.maxY + 20, width: self.view.frame.width - 20, height: 350)
+                            self.textView.font = .systemFont(ofSize: 18)
+                            self.textView.adjustsFontSizeToFitWidth = true
+                            self.textView.numberOfLines = 20
+                            self.textView.text = "\(message)"
+                            self.view.addSubview(self.textView)
+                        }
                         
                     }
                     
@@ -1394,7 +1294,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             
         }
         
-        //check if valid if not decrypt
         if let _ = BTCPrivateKeyAddressTestnet.init(string: key) {
             
             signNow(privateKey: key)
@@ -1489,13 +1388,9 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                 
                 request.httpBody = "{\"inputs\": [{\"addresses\": [\"\(self.sendingFromAddress)\"]}], \"outputs\": [{\"addresses\": [\"\(self.recievingAddress)\"], \"value\": \(self.satoshiAmount)}],\"fees\": \(self.fees!)}".data(using: .utf8)
                 
-                print("{\"inputs\": [{\"addresses\": [\"\(self.sendingFromAddress)\"]}], \"outputs\": [{\"addresses\": [\"\(self.recievingAddress)\"], \"value\": \(self.satoshiAmount)}],\"fees\": \(self.fees!)}")
-                
             } else {
                 
                 request.httpBody = "{\"inputs\": [{\"addresses\": [\"\(self.sendingFromAddress)\"]}], \"outputs\": [{\"addresses\": [\"\(self.recievingAddress)\"], \"value\": \(self.satoshiAmount)}],\"preference\": \"\(self.preference)\"}".data(using: .utf8)
-                
-                print("{\"inputs\": [{\"addresses\": [\"\(self.sendingFromAddress)\"]}], \"outputs\": [{\"addresses\": [\"\(self.recievingAddress)\"], \"value\": \(self.satoshiAmount)}],\"preference\": \"\(self.preference)\"}")
                 
             }
             
@@ -1556,8 +1451,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                                         
                                         self.json = jsonAddressResult.mutableCopy() as! NSMutableDictionary
                                         self.removeScanner()
-                                        
-                                        print("self.joson = \(self.json)")
                                         
                                         if let sizeCheck = (jsonAddressResult["tx"] as? NSDictionary)?["fees"] as? NSInteger {
                                                 
@@ -1680,9 +1573,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                                     
                                     let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
                                     
-                                    print("jsonAddressResult = \(jsonAddressResult)")
-                                    print("self.json = \(self.json)")
-                                    
                                     if let error = jsonAddressResult["errors"] as? NSArray {
                                         
                                         self.removeSpinner()
@@ -1737,7 +1627,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                                                     alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
                                                     
                                                     self.present(alert, animated: true) {
-                                                        print("option menu presented")
                                                     }
                                                     
                                                 }
@@ -1789,16 +1678,13 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                                 
                         
                     } else {
-                        //TODO: User did not authenticate successfully, look at error and take appropriate action
+                        
                         guard let error = evaluateError else {
                             return
                         }
                         
                         displayAlert(viewController: self, title: "Error", message: evaluateAuthenticationPolicyMessageForLA(errorCode: error._code))
                         
-                        print(evaluateAuthenticationPolicyMessageForLA(errorCode: error._code))
-                        
-                        //TODO: If you have choosen the 'Fallback authentication mechanism selected' (LAError.userFallback). Handle gracefully
                         
                     }
                 }
@@ -1807,9 +1693,8 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                 guard let error = authError else {
                     return
                 }
-                //TODO: Show appropriate alert if biometry/TouchID/FaceID is lockout or not enrolled
+                
                 displayAlert(viewController: self, title: "Error", message: evaluateAuthenticationPolicyMessageForLA(errorCode: error._code))
-                print(evaluateAuthenticationPolicyMessageForLA(errorCode: error.code))
             }
         }
         
@@ -1888,42 +1773,46 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         
         if UserDefaults.standard.object(forKey: "bioMetricsEnabled") != nil {
             
-            authenticationWithTouchID()
+            DispatchQueue.main.async {
+                authenticationWithTouchID()
+            }
+            
             
         } else if let _ = KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
             
             var password = String()
             
-            let alert = UIAlertController(title: "Please input your password", message: "Please enter your password to spend from your wallet", preferredStyle: .alert)
-            
-            alert.addTextField { (textField1) in
+            DispatchQueue.main.async {
+                let alert = UIAlertController(title: "Please input your password", message: "Please enter your password to spend from your wallet", preferredStyle: .alert)
                 
-                textField1.placeholder = "Enter Password"
-                textField1.isSecureTextEntry = true
-                
-            }
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Spend", comment: ""), style: .destructive, handler: { (action) in
-                
-                password = alert.textFields![0].text!
-                
-                if password == KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
+                alert.addTextField { (textField1) in
                     
-                    sendNow()
+                    textField1.placeholder = "Enter Password"
+                    textField1.isSecureTextEntry = true
                     
-                } else {
-                    
-                    displayAlert(viewController: self, title: "Error", message: "Incorrect password!")
                 }
                 
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Spend", comment: ""), style: .destructive, handler: { (action) in
+                    
+                    password = alert.textFields![0].text!
+                    
+                    if password == KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
+                        
+                        sendNow()
+                        
+                    } else {
+                        
+                        displayAlert(viewController: self, title: "Error", message: "Incorrect password!")
+                    }
+                    
+                }))
                 
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                    
+                }))
                 
-            }))
-            
-            self.present(alert, animated: true, completion: nil)
+                self.present(alert, animated: true, completion: nil)
+            }
             
         } else {
             
@@ -1931,405 +1820,9 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             
         }
         
-        
-        
-    }
-    
-    @objc func pushRawTransaction() {
-        
-        self.rawTransaction = self.rawTransactionView.text
-        self.addSpinner()
-        var url:URL!
-        
-        if testnetMode {
-            
-            url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/push?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
-            
-        } else if mainnetMode {
-            
-            url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/push?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
-            
-        }
-        
-        var request = URLRequest(url: url)
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.httpMethod = "POST"
-        request.httpBody = "{\"tx\":\"\(self.rawTransactionView.text!)\"}".data(using: .utf8)
-        
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) -> Void in
-            
-            do {
-                
-                if error != nil {
-                    
-                    self.removeSpinner()
-                    
-                    DispatchQueue.main.async {
-                        
-                        displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
-                        
-                    }
-                    
-                } else {
-                    
-                    if let urlContent = data {
-                        
-                        do {
-                            
-                            let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
-                            
-                            self.removeSpinner()
-                            
-                            if let error = jsonAddressResult["errors"] as? NSArray {
-                                
-                                self.removeSpinner()
-                                
-                                DispatchQueue.main.async {
-                                    
-                                    var errors = [String]()
-                                    
-                                    for e in error {
-                                        
-                                        if let errordescription = (e as? NSDictionary)?["error"] as? String {
-                                            
-                                            errors.append(errordescription)
-                                        }
-                                        
-                                    }
-                                    
-                                    displayAlert(viewController: self, title: "Error", message: "\(errors)")
-                                    
-                                }
-                                
-                            } else if let error = jsonAddressResult["error"] as? String {
-                                
-                                DispatchQueue.main.async {
-                                    
-                                    displayAlert(viewController: self, title: "Error", message: "\(error)")
-                                    
-                                }
-                                
-                            } else {
-                                
-                                if let txCheck = jsonAddressResult["tx"] as? NSDictionary {
-                                    
-                                    if let hashCheck = txCheck["hash"] as? String {
-                                        
-                                        self.transactionID = hashCheck
-                                        
-                                        DispatchQueue.main.async {
-                                            
-                                            self.removeSpinner()
-                                            
-                                            let alert = UIAlertController(title: NSLocalizedString("Transaction Sent", comment: ""), message: "Transaction ID: \(hashCheck)", preferredStyle: UIAlertControllerStyle.actionSheet)
-                                            
-                                            alert.addAction(UIAlertAction(title: NSLocalizedString("Copy to Clipboard", comment: ""), style: .default, handler: { (action) in
-                                                
-                                                UIPasteboard.general.string = hashCheck
-                                                
-                                                self.dismiss(animated: true, completion: nil)
-                                                
-                                            }))
-                                            
-                                            alert.addAction(UIAlertAction(title: NSLocalizedString("See Transaction", comment: ""), style: .default, handler: { (action) in
-                                                self.getTransaction()
-                                            }))
-                                            
-                                            alert.addAction(UIAlertAction(title: NSLocalizedString("Done", comment: ""), style: .cancel, handler: { (action) in
-                                                
-                                                self.dismiss(animated: true, completion: nil)
-                                                
-                                            }))
-                                            
-                                            alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
-                                            
-                                            self.present(alert, animated: true) {
-                                                print("option menu presented")
-                                            }
-                                            
-                                        }
-                                    }
-                                }
-                                
-                            }
-                            
-                        } catch {
-                            
-                            print("JSon processing failed")
-                            self.removeSpinner()
-                        }
-                    }
-                    
-                }
-            }
-        }
-        task.resume()
-    }
-    
-    @objc func decodeRawTransaction() {
-        
-        print("decodeRawTransaction")
-        
-        self.rawTransaction = self.rawTransactionView.text
-        
-        if self.rawTransaction != "" {
-            
-            self.addSpinner()
-            
-            var url:URL!
-            
-            if testnetMode {
-                
-                url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/decode?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
-                
-            } else {
-                
-                url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/decode?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
-                
-            }
-            
-            var request = URLRequest(url: url)
-            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-            request.httpMethod = "POST"
-            request.httpBody = "{\"tx\":\"\(self.rawTransactionView.text!)\"}".data(using: .utf8)
-            
-            let task = URLSession.shared.dataTask(with: request) { (data, response, error) -> Void in
-                
-                do {
-                    
-                    if error != nil {
-                        
-                        self.removeSpinner()
-                        
-                        DispatchQueue.main.async {
-                            
-                            displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
-                            
-                        }
-                        
-                    } else {
-                        
-                        if let urlContent = data {
-                            
-                            do {
-                                
-                                let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
-                                
-                                self.removeSpinner()
-                                
-                                if let error = jsonAddressResult["errors"] as? NSArray {
-                                    
-                                    self.removeSpinner()
-                                    
-                                    DispatchQueue.main.async {
-                                        
-                                        var errors = [String]()
-                                        
-                                        for e in error {
-                                            
-                                            if let errordescription = (e as? NSDictionary)?["error"] as? String {
-                                                
-                                                errors.append(errordescription)
-                                                
-                                            }
-                                            
-                                        }
-                                        
-                                        displayAlert(viewController: self, title: "Error", message: "\(errors)")
-                                        
-                                    }
-                                    
-                                } else if let error = jsonAddressResult["error"] as? String {
-                                    
-                                    DispatchQueue.main.async {
-                                        
-                                        displayAlert(viewController: self, title: "Error", message: "\(error)")
-                                        
-                                    }
-                                    
-                                } else {
-                                    
-                                    displayAlert(viewController: self, title: "Decoded Transaction", message: "\(jsonAddressResult)")
-                                    
-                                }
-                                
-                            } catch {
-                                
-                                print("JSon processing failed")
-                                self.removeSpinner()
-                            }
-                        }
-                    }
-                }
-            }
-            
-            task.resume()
-            
-        } else {
-            
-            DispatchQueue.main.async {
-                
-                displayAlert(viewController: self, title: "Error", message: "You need to paste or type a raw transaction into the text field.")
-                
-            }
-            
-        }
-        
     }
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask { return UIInterfaceOrientationMask.portrait }
-    
-    func getTransaction() {
-        print("getTransaction")
-        
-        self.addSpinner()
-        var url:URL!
-        
-        if testnetMode {
-            
-            url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/\(self.transactionID)")
-            
-        } else {
-            
-            url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/\(self.transactionID)")
-            
-        }
-        
-        let task = URLSession.shared.dataTask(with: url) { (data, response, error) -> Void in
-            
-            do {
-                
-                if error != nil {
-                    
-                    self.removeSpinner()
-                    
-                    DispatchQueue.main.async {
-                        
-                        displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
-                        
-                    }
-                    
-                } else {
-                    
-                    if let urlContent = data {
-                        
-                        do {
-                            
-                            let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
-                            
-                            if let error = jsonAddressResult["errors"] as? NSArray {
-                                
-                                self.removeSpinner()
-                                
-                                DispatchQueue.main.async {
-                                    
-                                    var errors = [String]()
-                                    
-                                    for e in error {
-                                        
-                                        if let errordescription = (e as? NSDictionary)?["error"] as? String {
-                                            
-                                            errors.append(errordescription)
-                                            
-                                        }
-                                        
-                                    }
-                                    
-                                    displayAlert(viewController: self, title: "Error", message: "\(errors)")
-                                    
-                                }
-                                
-                            } else {
-                                
-                                if let txCheck = jsonAddressResult["confirmations"] as? NSInteger {
-                                    
-                                    DispatchQueue.main.async {
-                                        
-                                        self.removeSpinner()
-                                        
-                                        var blockheight = Double()
-                                        var hash = String()
-                                        var fromAddress = NSArray()
-                                        var changeAddress = NSArray()
-                                        var fees = Double()
-                                        
-                                        for (key, value) in jsonAddressResult {
-                                            
-                                            if key as! String == "block_height" {
-                                                
-                                                blockheight = value as! Double
-                                                
-                                            }
-                                            
-                                            if key as! String == "hash" {
-                                                
-                                               hash = value as! String
-                                                
-                                            }
-                                            
-                                            if key as! String == "outputs" {
-                                                
-                                                fromAddress = value as! NSArray
-                                                
-                                            }
-                                            
-                                            if key as! String == "inputs" {
-                                                
-                                                changeAddress = value as! NSArray
-                                                
-                                            }
-                                            
-                                            if key as! String == "fees" {
-                                                
-                                                fees = value as! Double
-                                                
-                                            }
-                                            
-                                        }
-                                        
-                                        self.transactionView = UITextView (frame:CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 80, width: self.view.frame.width - 10, height: self.view.frame.height - 160))
-                                        self.transactionView.text = "\n\nTransaction ID =\n\n\(hash)\n\nConfirmations = \(txCheck)\n\nFees = \(fees)\n\nBlockheight = \(blockheight)\n\nOutput Transaction Info =\n\n\(fromAddress)\n\nChange Transaction Info =\n\n\(changeAddress)"
-                                        self.transactionView.textAlignment = .natural
-                                        self.transactionView.isSelectable = true
-                                        self.transactionView.font = .systemFont(ofSize: 18)
-                                        self.view.addSubview(self.transactionView)
-                                        
-                                        self.refreshButton = UIButton(frame: CGRect(x: self.view.center.x - 150, y: self.view.frame.maxY - 60, width: 300, height: 55))
-                                        self.refreshButton.showsTouchWhenHighlighted = true
-                                        self.refreshButton.layer.cornerRadius = 10
-                                        self.refreshButton.backgroundColor = UIColor.black
-                                        self.refreshButton.layer.shadowColor = UIColor.black.cgColor
-                                        self.refreshButton.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-                                        self.refreshButton.layer.shadowRadius = 2.5
-                                        self.refreshButton.layer.shadowOpacity = 0.8
-                                        self.refreshButton.setTitle("Refresh", for: .normal)
-                                        self.refreshButton.addTarget(self, action: #selector(self.tapRefresh), for: .touchUpInside)
-                                        self.view.addSubview(self.refreshButton)
-                                    }
-                                }
-                            }
-                            
-                        } catch {
-                            
-                            print("JSon processing failed")
-                            self.removeSpinner()
-                            
-                        }
-                    }
-                }
-            }
-        }
-        
-        task.resume()
-    }
-    
-    @objc func tapRefresh() {
-        
-        self.transactionView.removeFromSuperview()
-        self.refreshButton.removeFromSuperview()
-        self.getTransaction()
-    
-    }
     
 }
 

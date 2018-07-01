@@ -9,9 +9,20 @@
 import UIKit
 import SwiftKeychainWrapper
 import LocalAuthentication
+import CoreData
+import AVFoundation
+import AES256CBC
 
-class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-
+class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate {
+    
+    var segwitMode = Bool()
+    var legacyMode = Bool()
+    var segwit = SegwitAddrCoder()
+    var textInput = UITextField()
+    var qrImageView = UIView()
+    var stringURL = String()
+    let avCaptureSession = AVCaptureSession()
+    let importView = UIView()
     @IBOutlet var securitySettingsTable: UITableView!
     var securityArray = [[String:Bool]]()
     var backButton = UIButton()
@@ -19,12 +30,20 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
     var isBIP39PasswordSet = Bool()
     var isEncryptionPasswordSet = Bool()
     var isBiometricsEnabled = Bool()
+    var createBackupBool = Bool()
+    var filenames = [String]()
+    var changeBIP39password = Bool()
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         securitySettingsTable.delegate = self
         addButtons()
+        
+   }
+    
+    @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
+        textInput.resignFirstResponder()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -56,8 +75,11 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
         }
         
         sections = ["BIP39 Password", "Encryption Management", "Secure Backup"]
-        securityArray = [["Set BIP39 Password":isBIP39PasswordSet], ["Enable Biometrics":isBiometricsEnabled, "Set Lock/Unlock Password":isEncryptionPasswordSet], ["Create Backup":Bool()]]
+        securityArray = [["Set BIP39 Password":isBIP39PasswordSet], ["Enable Biometrics":isBiometricsEnabled, "Set Lock/Unlock Password":isEncryptionPasswordSet], ["Create Backup":Bool(), "Restore From Backup":Bool()]]
         securitySettingsTable.reloadData()
+        
+        segwitMode = checkSettingsForKey(keyValue: "segwitMode")
+        legacyMode = checkSettingsForKey(keyValue: "legacyMode")
         
     }
 
@@ -116,6 +138,9 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
             
             return 90
             
+        } else if section == 2 {
+            
+            return 110
         }
         
         return 70
@@ -157,7 +182,15 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
             
         } else if section == 2 {
             
-            explanationLabel.text = "You can either input a custom fee which is denomianted in Satoshis or choose a preference. High preference is designed to get your transaction mined within the next block and is the most expensive, we recommend a low mining fee preference as it usually gets the transaction mined quickly at a reasonable rate and therefore set it as default."
+            footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 110))
+            explanationLabel = UILabel(frame: CGRect(x: 10, y: 0, width: view.frame.size.width - 20, height: 100))
+            explanationLabel.textColor = UIColor.darkGray
+            explanationLabel.numberOfLines = 0
+            explanationLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
+            footerView.backgroundColor = UIColor.white
+            explanationLabel.backgroundColor = UIColor.white
+            
+            explanationLabel.text = "Creating a back up will save your encrpyted private keys as QR Codes in a photo album called \"BitSense\". You will need to write down the encyrption key to restore your back up incase you lose this device or delete and reinstall the app. To restore the back up just tap the restore button here, then input the password if needed and scan each encrypted QR Code, remember if your using the same device and have not deleted the app you will NOT need to input the password."
             footerView.addSubview(explanationLabel)
             
         }
@@ -252,18 +285,26 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
             let dictionary = securityArray[indexPath.section]
             let key = Array(dictionary.keys)[indexPath.row]
             
+            if key == "Create Backup" {
+                
+               self.authorizeBackUpCreation()
+                
+            } else if key == "Restore From Backup" {
+                
+                self.importWallet()
+                
+            }
+            
             if indexPath.section == 0 {
                 
                 if key == "Set BIP39 Password" {
                     
                     if isBIP39PasswordSet {
                         
-                        //reset it
                         self.setBIP39Password()
                         
                     } else {
                         
-                        //set it
                         self.setBIP39Password()
                         
                     }
@@ -321,6 +362,545 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
             
         }
         
+    }
+    
+    func authorizeBackUpCreation() {
+        
+        print("authorizeBackUpCreation")
+        
+        if UserDefaults.standard.object(forKey: "bioMetricsEnabled") != nil {
+            
+            createBackupBool = true
+            self.authenticationWithTouchID()
+        
+        } else if KeychainWrapper.standard.string(forKey: "unlockAESPassword") != nil {
+            
+            var password = String()
+            
+            let alert = UIAlertController(title: "Please input your password", message: "Please enter your password to create a backup", preferredStyle: .alert)
+            
+            alert.addTextField { (textField1) in
+                
+                textField1.placeholder = "Enter Password"
+                textField1.isSecureTextEntry = true
+                
+            }
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Continue", comment: ""), style: .default, handler: { (action) in
+                
+                password = alert.textFields![0].text!
+                
+                if password == KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
+                    
+                    self.giveUserEncryptionPassword()
+                    
+                } else {
+                    
+                    displayAlert(viewController: self, title: "Error", message: "Incorrect password!")
+                }
+                
+            }))
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                
+                
+            }))
+            
+            self.present(alert, animated: true, completion: nil)
+            
+        } else {
+            
+            self.authorizeBackUpCreation()
+            
+        }
+    }
+    
+    func addAlertForShare(keysToBackUp: [String]) {
+        
+        
+        var qrCodeImages = [UIImage]()
+        //var filenames = [String]()
+        
+        var overFirstSave = false
+        
+        for (index, key) in keysToBackUp.enumerated() {
+            
+            let ciContext = CIContext()
+            let data = key.data(using: String.Encoding.ascii)
+            var qrCodeImage = UIImage()
+            
+            if let filter = CIFilter(name: "CIQRCodeGenerator") {
+                
+                filter.setValue(data, forKey: "inputMessage")
+                let transform = CGAffineTransform(scaleX: 10, y: 10)
+                let upScaledImage = filter.outputImage?.transformed(by: transform)
+                let cgImage = ciContext.createCGImage(upScaledImage!, from: upScaledImage!.extent)
+                qrCodeImage = UIImage(cgImage: cgImage!)
+                qrCodeImages.append(qrCodeImage)
+                //filenames.append("\(self.filenames[index])")
+                
+                if let data = UIImagePNGRepresentation(qrCodeImage) {
+                    
+                    let fileName = getDocumentsDirectory().appendingPathComponent("\(self.filenames[index])" + ".png")
+                    
+                    try? data.write(to: fileName)
+                    
+                    do {
+                        
+                        if !overFirstSave {
+                            
+                            CustomPhotoAlbum.shared.save(image: UIImage(contentsOfFile: fileName.path)!)
+                            overFirstSave = true
+                            
+                        } else {
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
+                                
+                                CustomPhotoAlbum.shared.save(image: UIImage(contentsOfFile: fileName.path)!)
+                                
+                            })
+                            
+                        }
+                        
+                    } catch {
+                        
+                        print(error)
+                        
+                    }
+                    
+                }
+                
+            }
+            
+        }
+
+        
+            DispatchQueue.main.async {
+                
+                let alert = UIAlertController(title: "Back Up Created", message: "Please check your photo albums and you will see a new album called \"BitSense\".\n\nThese QR codes are your encrypted back up, each QR Code is an encrypted Private Key from your wallet.\n\nIn order to restore them you will need to tap the \"Restore From Back Up\" button in your security settings and then scan each QR Code and input the \"Back Up Password\" we just gave you.\n\nIf you are Restoring a back up from the same device and have not deleted the app since you created the back up, you will not be forced to input the password.\n\nIf you have any questions please contact us at f0nta1n3@protonmail.com", preferredStyle: UIAlertControllerStyle.alert)
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
+                    
+                    
+                }))
+                
+                
+                self.present(alert, animated: true, completion: nil)
+                
+            }
+            
+    }
+    
+    func getKeys() -> [String] {
+        
+        var keyArray = [String]()
+        var appDelegate = AppDelegate()
+        
+        if let appDelegateCheck = UIApplication.shared.delegate as? AppDelegate {
+            
+            appDelegate = appDelegateCheck
+            
+        } else {
+            
+            displayAlert(viewController: self, title: "Error", message: "Something strange has happened and we do not have access to app delegate, please try again.")
+            
+        }
+        
+        let context = appDelegate.persistentContainer.viewContext
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "AddressBook")
+        fetchRequest.returnsObjectsAsFaults = false
+        
+        do {
+            
+            let results = try context.fetch(fetchRequest) as [NSManagedObject]
+            
+            if results.count > 0 {
+                
+                for data in results {
+                    
+                    if let privateKeyCheck = data.value(forKey: "privateKey") as? String {
+                        
+                        if privateKeyCheck != "" {
+                            
+                           keyArray.append(privateKeyCheck)
+                            
+                            if data.value(forKey: "label") as? String != "" {
+                                
+                                self.filenames.append(data.value(forKey: "label") as! String)
+                                
+                            } else {
+                                
+                                self.filenames.append(data.value(forKey: "address") as! String)
+                            }
+                            
+                        }
+                        
+                   }
+                    
+                    
+                    
+                }
+                
+            } else {
+                
+                print("no results")
+                
+            }
+            
+        } catch {
+            
+            print("Failed")
+            
+        }
+        
+        return keyArray
+        
+    }
+    
+    func giveUserEncryptionPassword() {
+        
+        let encryptionPassword = KeychainWrapper.standard.string(forKey: "AESPassword")!
+        
+        print("encryptionPassword = \(encryptionPassword)")
+        
+        let alert = UIAlertController(title: "Write this Back Up password down you will need it!\n\n\(String(describing: encryptionPassword))\n\n(all letters are lower case)", message: "Keep this Back Up password safe as your back up will be totally useless without it if you were to lose your device or delete the app.", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Continue", comment: ""), style: .default, handler: { (action) in
+            
+            self.confirmEncryptionKeyForBackUp()
+            
+        }))
+        
+        self.present(alert, animated: true, completion: nil)
+        
+    }
+    
+    func confirmEncryptionKeyForBackUp() {
+        
+        UIPasteboard.general.string = ""
+        let encryptionPassword = KeychainWrapper.standard.string(forKey: "AESPassword")!
+        var secondPassword = String()
+        
+        let alert = UIAlertController(title: "Input Back Up password to Proceed", message: "Please input the password we just gave you to proceed, you should have written it down, if you didn't you will need to start over.", preferredStyle: .alert)
+        
+        alert.addTextField { (textField1) in
+            
+            textField1.placeholder = "Back Up Password"
+            textField1.isSecureTextEntry = true
+            
+        }
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Confirm", comment: ""), style: .default, handler: { (action) in
+            
+            secondPassword = alert.textFields![0].text!
+            print("secondpassword = \(secondPassword)")
+            
+            if encryptionPassword == secondPassword {
+                
+                self.createBackup()
+                
+            } else {
+                
+                displayAlert(viewController: self, title: "Error", message: "Passwords did not match please start over.")
+                
+            }
+            
+        }))
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+            
+        }))
+        
+        self.present(alert, animated: true, completion: nil)
+        
+    }
+    
+    func createBackup() {
+        
+        print("createBackup")
+        
+        if let keyArray = self.getKeys() as? [String] {
+            
+            self.addAlertForShare(keysToBackUp: keyArray)
+            print("keyArray = \(keyArray)")
+            
+        } else {
+            
+            displayAlert(viewController: self, title: "Oops", message: "Looks like you don't have any private keys saved to the device. Put the wallet in \"Hot Mode\" then either import a private key or create a new one by moving the Bitcoin around.")
+        }
+        
+    }
+    
+    @objc func dismissImportView() {
+        
+        DispatchQueue.main.async {
+            
+            self.qrImageView.removeFromSuperview()
+            self.avCaptureSession.stopRunning()
+            self.textInput.removeFromSuperview()
+            self.avCaptureSession.stopRunning()
+            self.qrImageView.removeFromSuperview()
+            self.importView.removeFromSuperview()
+            
+        }
+        
+    }
+    
+    func importWallet() {
+        
+        print("importWallet")
+        importView.frame = view.frame
+        importView.backgroundColor = UIColor.white
+        
+        self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
+        self.backButton.showsTouchWhenHighlighted = true
+        self.backButton.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
+        self.backButton.addTarget(self, action: #selector(self.dismissImportView), for: .touchUpInside)
+        
+        self.textInput.frame = CGRect(x: self.view.frame.minX + 25, y: 150, width: self.view.frame.width - 50, height: 50)
+        self.textInput.textAlignment = .center
+        self.textInput.borderStyle = .roundedRect
+        self.textInput.autocorrectionType = .no
+        self.textInput.autocapitalizationType = .none
+        self.textInput.backgroundColor = UIColor.groupTableViewBackground
+        self.textInput.isSecureTextEntry = true
+        self.textInput.placeholder = "Back Up Password"
+        
+        self.qrImageView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.textInput.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
+        addShadow(view:self.qrImageView)
+        
+        DispatchQueue.main.async {
+            
+            self.view.addSubview(self.importView)
+            self.importView.addSubview(self.backButton)
+            self.importView.addSubview(self.textInput)
+            self.importView.addSubview(self.qrImageView)
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard (_:)))
+            self.importView.addGestureRecognizer(tapGesture)
+            
+            displayAlert(viewController: self, title: "Alert", message: "If you are restoring a back up that was made on a different device, or you deleted the app, you will need to type in the \"Back Up Password\" that was given to you. If its the same device and you have not deleted the app you can just scan your encrypted QR Codes.")
+            
+        }
+        
+        
+        func scanQRCode() {
+            
+            do {
+                
+                try scanQRNow()
+                print("scanQRNow")
+                
+            } catch {
+                
+                print("Failed to scan QR Code")
+            }
+            
+        }
+        
+        scanQRCode()
+        
+    }
+    
+    enum error: Error {
+        
+        case noCameraAvailable
+        case videoInputInitFail
+        
+    }
+    
+    func scanQRNow() throws {
+        
+        guard let avCaptureDevice = AVCaptureDevice.default(for: AVMediaType.video) else {
+            
+            print("no camera")
+            throw error.noCameraAvailable
+            
+        }
+        
+        guard let avCaptureInput = try? AVCaptureDeviceInput(device: avCaptureDevice) else {
+            
+            print("failed to int camera")
+            throw error.videoInputInitFail
+        }
+        
+        
+        let avCaptureMetadataOutput = AVCaptureMetadataOutput()
+        avCaptureMetadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
+        
+        if let inputs = self.avCaptureSession.inputs as? [AVCaptureDeviceInput] {
+            for input in inputs {
+                self.avCaptureSession.removeInput(input)
+            }
+        }
+        
+        if let outputs = self.avCaptureSession.outputs as? [AVCaptureMetadataOutput] {
+            for output in outputs {
+                self.avCaptureSession.removeOutput(output)
+            }
+        }
+        
+        self.avCaptureSession.addInput(avCaptureInput)
+        self.avCaptureSession.addOutput(avCaptureMetadataOutput)
+        
+        avCaptureMetadataOutput.metadataObjectTypes = [AVMetadataObject.ObjectType.qr]
+        
+        let avCaptureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: avCaptureSession)
+        avCaptureVideoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
+        avCaptureVideoPreviewLayer.frame = self.qrImageView.bounds
+        self.qrImageView.layer.addSublayer(avCaptureVideoPreviewLayer)
+        
+        self.avCaptureSession.startRunning()
+        
+    }
+    
+    func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+        if metadataObjects.count > 0 {
+            print("metadataOutput")
+            
+            let machineReadableCode = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
+            
+            if machineReadableCode.type == AVMetadataObject.ObjectType.qr {
+                
+                stringURL = machineReadableCode.stringValue!
+                print("stringURL = \(stringURL)")
+                
+                
+                if self.textInput.text == "" {
+                    
+                    let password = KeychainWrapper.standard.string(forKey: "AESPassword")!
+                    print("password = \(password)")
+                    
+                    if let decrypted = AES256CBC.decryptString(self.stringURL, password: password) as? String {
+                        
+                        print("decrypted = \(decrypted)")
+                        self.processKey(decryptedKey: decrypted)
+                        self.avCaptureSession.stopRunning()
+                        
+                    } else {
+                        
+                        displayAlert(viewController: self, title: "Error", message: "Password incorrect, take a deep breath, relax and try again. Remember all the letters are lower case, if you see an \"l\" it is a lower case \"L\" not an upper case \"I")
+                    }
+                    
+                    
+                } else {
+                    
+                    let password = self.textInput.text!
+                    print("password = \(password)")
+                    
+                    if let decrypted = AES256CBC.decryptString(self.stringURL, password: password) as? String {
+                        
+                        print("decrypted = \(decrypted)")
+                        self.processKey(decryptedKey: decrypted)
+                        self.avCaptureSession.stopRunning()
+                        
+                        
+                    } else {
+                        
+                        displayAlert(viewController: self, title: "Error", message: "Password incorrect, take a deep breath, relax and try again. Remember all the letters are lower case, if you see an \"l\" it is a lower case \"L\" not an upper case \"I")
+                    }
+                    
+                    
+                }
+                
+            }
+        }
+    }
+    
+    func processKey(decryptedKey: String) {
+        
+        if decryptedKey.hasPrefix("9") || decryptedKey.hasPrefix("c") {
+            print("testnetMode")
+            
+            if let privateKey = BTCPrivateKeyAddressTestnet(string: decryptedKey) {
+                
+                if let key = BTCKey.init(privateKeyAddress: privateKey) {
+                    
+                    var bitcoinAddress = String()
+                    let privateKeyWIF = key.privateKeyAddressTestnet.string
+                    let addressHD = key.addressTestnet.string
+                    let publicKey = key.compressedPublicKey.hex()!
+                    print("publicKey = \(publicKey)")
+                    
+                    if self.legacyMode {
+                        
+                        bitcoinAddress = addressHD
+                        
+                    }
+                    
+                    if segwitMode {
+                        
+                        let compressedPKData = BTCRIPEMD160(BTCSHA256(key.compressedPublicKey as Data!) as Data!) as Data!
+                        
+                        do {
+                            
+                            bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
+                            
+                        } catch {
+                            
+                            displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                            
+                        }
+                        
+                    }
+                    
+                    DispatchQueue.main.async {
+                        self.avCaptureSession.startRunning()
+                    }
+                    
+                    saveWallet(viewController: self, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot")
+                    
+                }
+                
+            }
+            
+        } else if decryptedKey.hasPrefix("5") || decryptedKey.hasPrefix("K") || decryptedKey.hasPrefix("L") {
+            print("mainnetMode")
+            
+            if let privateKey = BTCPrivateKeyAddress(string: decryptedKey) {
+                
+                if let key = BTCKey.init(privateKeyAddress: privateKey) {
+                    
+                    print("privateKey = \(key.privateKeyAddress)")
+                    var bitcoinAddress = String()
+                    
+                    let privateKeyWIF = key.privateKeyAddress.string
+                    let addressHD = key.address.string
+                    let publicKey = key.compressedPublicKey.hex()!
+                    print("publicKey = \(publicKey)")
+                    
+                    if self.legacyMode {
+                        
+                        bitcoinAddress = addressHD
+                        
+                    }
+                    
+                    if segwitMode {
+                        
+                        let compressedPKData = BTCRIPEMD160(BTCSHA256(key.compressedPublicKey as Data!) as Data!) as Data!
+                        
+                        do {
+                            
+                            bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                            
+                        } catch {
+                            
+                            displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                            
+                        }
+                        
+                    }
+                    
+                    DispatchQueue.main.async {
+                        self.avCaptureSession.startRunning()
+                    }
+                    
+                    saveWallet(viewController: self, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot")
+                    
+                }
+                
+            }
+            
+        }
     }
     
     func setLockUnlockPassword() {
@@ -447,8 +1027,7 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
         
     }
     
-    
-    func setBIP39Password() {
+    func setBIP39Now() {
         
         DispatchQueue.main.async {
             var firstPassword = String()
@@ -528,6 +1107,68 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
         }
         
     }
+
+    
+    
+    func setBIP39Password() {
+        
+        if isBIP39PasswordSet {
+            
+            if UserDefaults.standard.object(forKey: "bioMetricsEnabled") != nil {
+                
+                self.changeBIP39password = true
+                self.authenticationWithTouchID()
+                
+            } else if KeychainWrapper.standard.string(forKey: "unlockAESPassword") != nil {
+                
+                
+                var password = String()
+                
+                let alert = UIAlertController(title: "Please input your password", message: "Please enter your password to reset your BIP39 password", preferredStyle: .alert)
+                
+                alert.addTextField { (textField1) in
+                    
+                    textField1.placeholder = "Enter Password"
+                    textField1.isSecureTextEntry = true
+                    
+                }
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Continue", comment: ""), style: .default, handler: { (action) in
+                    
+                    password = alert.textFields![0].text!
+                    
+                    if password == KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
+                        
+                        self.setBIP39Now()
+                        
+                    } else {
+                        
+                        displayAlert(viewController: self, title: "Error", message: "Incorrect password!")
+                    }
+                    
+                }))
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                    
+                    
+                }))
+                
+                self.present(alert, animated: true, completion: nil)
+                
+                
+            } else {
+                
+                setBIP39Now()
+                
+            }
+            
+        } else {
+            
+            setBIP39Now()
+            
+        }
+        
+    }
     
     func savePasswordtoKeychain(password: String, forKey: String) {
         
@@ -560,7 +1201,17 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
         localAuthenticationContext.localizedFallbackTitle = "Use Passcode"
         
         var authError: NSError?
-        let reasonString = "To Lock and Unlock the Wallet"
+        var reasonString = "To Lock and Unlock the Wallet"
+        
+        if createBackupBool {
+            
+            reasonString = "To create a backup"
+            
+        } else if self.changeBIP39password {
+            
+            reasonString = "To reset BIP39 password"
+            
+        }
         
         if localAuthenticationContext.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &authError) {
             
@@ -568,9 +1219,25 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                 
                 if success {
                     
-                    //TODO: User authenticated successfully, take appropriate action
-                    
                     if UserDefaults.standard.object(forKey: "bioMetricsEnabled") != nil {
+                        
+                        if self.createBackupBool {
+                            
+                            DispatchQueue.main.async {
+                                
+                                self.giveUserEncryptionPassword()
+                                
+                            }
+                            
+                        } else if self.changeBIP39password {
+                            
+                            DispatchQueue.main.async {
+                                
+                                self.setBIP39Now()
+                                
+                            }
+                            
+                        }
                         
                     } else {
                         

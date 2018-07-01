@@ -11,32 +11,6 @@ import SystemConfiguration
 import CoreData
 import LocalAuthentication
 
-public func isWalletEncryptedFromCoreData() -> Bool {
-    
-    var bool = Bool()
-    let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    let context = appDelegate.persistentContainer.viewContext
-    let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Wallet")
-    //request.predicate = NSPredicate(format: "age = %@", "12")
-    request.returnsObjectsAsFaults = false
-    do {
-        
-        let result = try context.fetch(request)
-        
-        for data in result as! [NSManagedObject] {
-            
-            bool = data.value(forKey: "isEncrypted") as! Bool
-        }
-        
-    } catch {
-        
-        print("Failed")
-        
-    }
-    
-    return bool
-}
-
 public func checkAddressBook() -> [[String:Any]] {
     
     print("checkAddressBook")
@@ -352,6 +326,14 @@ public extension Double {
         return numberFormatter.string(from: NSNumber(value:self))!
     }
     
+}
+
+public func addShadow(view: UIView) {
+        
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
+        view.layer.shadowRadius = 2.5
+        view.layer.shadowOpacity = 0.8
 }
 
 public extension UITextField {

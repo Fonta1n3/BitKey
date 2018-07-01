@@ -31,7 +31,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     var addressLabel = UILabel()
     var addressBook: [[String: Any]] = []
     var addresses = String()
-    var isWalletEncrypted = Bool()
 
     
     @IBAction func addressText(_ sender: Any) {
@@ -42,7 +41,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     
     override func viewDidAppear(_ animated: Bool) {
         
-        isWalletEncrypted = isWalletEncryptedFromCoreData()
         addHomeButton()
         addAddressBookButton()
         scanQRCode()
@@ -107,10 +105,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         print("addQRScannerView")
         
         self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.addressToDisplay.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
-        self.videoPreview.layer.shadowColor = UIColor.black.cgColor
-        self.videoPreview.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.videoPreview.layer.shadowRadius = 2.5
-        self.videoPreview.layer.shadowOpacity = 0.8
+        addShadow(view:self.videoPreview)
         self.view.addSubview(self.videoPreview)
     }
     
@@ -528,8 +523,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     @objc func openAddressBook() {
         print("openAddressBook")
         
-        if self.isWalletEncrypted == false {
-        
         DispatchQueue.main.async {
             
             if self.addressBook.count > 1 {
@@ -607,11 +600,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 }
             
             }
-            
-        } else {
-                
-            displayAlert(viewController: self, title: "Error", message: "Your wallet is locked. Please go to the home screen and unlock the wallet for full functionality.")
-        }
 
     }
     

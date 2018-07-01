@@ -31,6 +31,23 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         refresher.addTarget(self, action: #selector(self.getLatestBlock), for: UIControlEvents.valueChanged)
         transactionHistoryTable.addSubview(refresher)
         
+        let title = UILabel(frame: CGRect(x: 70, y: 25, width: self.view.frame.width - 140, height: 50))
+        
+        if self.wallet["label"] as! String != "" {
+            
+         title.text = "\"\(self.wallet["label"] as! String)\""
+            
+        } else {
+            
+            title.text = self.wallet["address"] as! String
+            
+        }
+        
+        title.adjustsFontSizeToFitWidth = true
+        title.font = UIFont.init(name: "HelveticaNeue-Light", size: 32)
+        title.textColor = UIColor.black
+        title.textAlignment = .center
+        self.view.addSubview(title)
         
     }
 
@@ -194,10 +211,10 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         
     }
     
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    /*func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         
         return "Transaction History for \"\(self.wallet["label"] as! String)\""
-    }
+    }*/
     
     @objc func getLatestBlock() {
         print("getLatestBlock")
@@ -282,7 +299,260 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         
         if address.hasPrefix("1") || address.hasPrefix("3") {
             
-            url = NSURL(string: "https://blockchain.info/rawaddr/\(address)")
+            //url = NSURL(string: "https://testnet.blockchain.info/rawaddr/\(address)")
+            url = NSURL(string: "https://api.blockcypher.com/v1/btc/main/addrs/\(address)/full")
+            
+            let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
+                
+                do {
+                    
+                    if error != nil {
+                        
+                        print(error as Any)
+                        self.removeSpinner()
+                        DispatchQueue.main.async {
+                            displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
+                        }
+                        
+                    } else {
+                        
+                        if let urlContent = data {
+                            
+                            do {
+                                
+                                let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
+                                
+                                print("jsonAddressResult = \(jsonAddressResult)")
+                                
+                                if let historyCheck = jsonAddressResult["txs"] as? NSArray {
+                                    
+                                    self.transactionArray.removeAll()
+                                    
+                                    for txDictionary in historyCheck {
+                                        
+                                        if let transaction = txDictionary as? NSDictionary {
+                                            
+                                            if let hashCheck = transaction["hash"] as? String {
+                                                
+                                                //var blockheight = Int()
+                                                var fromAddresses = [String]()
+                                                var toAddresses = [String]()
+                                                //var amountSpent = Int()
+                                                var amountReceived = [Int]()
+                                                var amountSent = [Int]()
+                                                var confirmations = Int()
+                                                //var secondsSince = Double()
+                                                //let currentDate = Date()
+                                                var dateString = ""
+                                                var hash = ""
+                                                
+                                                var dictionary = [String:Any]()
+                                                
+                                                hash = hashCheck
+                                                print("hashCheck = \(hashCheck)")
+                                                
+                                                if let confirmationsCheck = transaction["confirmations"] as? Int {
+                                                    
+                                                    confirmations = confirmationsCheck
+                                                    
+                                                }
+                                                
+                                                if let timeCheck = transaction["received"] as? String {
+                                                    
+                                                    var periodExists = Bool()
+                                                    var formattedDateString = String()
+                                                    
+                                                    for character in timeCheck {
+                                                        
+                                                        if character == "." {
+                                                            
+                                                            periodExists = true
+                                                        }
+                                                    }
+                                                    
+                                                    if periodExists {
+                                                        
+                                                        let dateArray = timeCheck.split(separator: ".")
+                                                        formattedDateString = String(dateArray[0])
+                                                        
+                                                    } else {
+                                                        
+                                                        formattedDateString = timeCheck.replacingOccurrences(of: "Z", with: "")
+                                                        
+                                                    }
+                                                    
+                                                    let dateFormatter = DateFormatter()
+                                                    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+                                                    dateFormatter.timeZone = TimeZone.current
+                                                    dateFormatter.locale = Locale.current
+                                                    let date = dateFormatter.date(from: formattedDateString)
+                                                    
+                                                    let convertDateFormatter = DateFormatter()
+                                                    convertDateFormatter.dateFormat = "MMMM-dd-yyyy HH:mm"
+                                                    convertDateFormatter.timeZone = TimeZone.current
+                                                    convertDateFormatter.locale = Locale.current
+                                                    dateString = convertDateFormatter.string(from: date!)
+                                                    print("dateString = \(dateString)")
+                                                    
+                                                }
+                                                
+                                                if let inputsCheck = transaction["inputs"] as? NSArray {
+                                                    
+                                                    for input in inputsCheck {
+                                                        
+                                                        if let inputDict = input as? NSDictionary {
+                                                            
+                                                            amountSent.append(inputDict["output_value"] as! Int)
+                                                            
+                                                            if let addresses = inputDict["addresses"] as? NSArray {
+                                                                
+                                                                for address in addresses {
+                                                                    
+                                                                    fromAddresses.append(address as! String)
+                                                                }
+                                                            }
+                                                            
+                                                        }
+                                                        
+                                                    }
+                                                    
+                                                }
+                                                
+                                                if let outPutsCheck = transaction["outputs"] as? NSArray {
+                                                    
+                                                    for output in outPutsCheck {
+                                                        
+                                                        if let outPutDict = output as? NSDictionary {
+                                                            
+                                                            amountReceived.append(outPutDict["value"] as! Int)
+                                                            
+                                                            if let addresses = outPutDict["addresses"] as? NSArray {
+                                                                
+                                                                for address in addresses {
+                                                                    
+                                                                    toAddresses.append(address as! String)
+                                                                }
+                                                            }
+                                                            
+                                                        }
+                                                        
+                                                    }
+                                                    
+                                                }
+                                                
+                                                var type = String()
+                                                var primaryAmountIReceived = Double()
+                                                var primaryRecipient = String()
+                                                var primaryAmountRecipientReceived = Double()
+                                                
+                                                for inputAddr in fromAddresses {
+                                                    
+                                                    if fromAddresses.count > 1 {
+                                                        
+                                                        //this transaction received bitcoin from multiple addresses
+                                                        //print("this transaction received bitcoin from multiple addresses")
+                                                    }
+                                                    
+                                                    //print("\(inputAddr) sent \(amountSent[index])")
+                                                    
+                                                    if self.address != inputAddr {
+                                                        
+                                                        type = "receiving"
+                                                        
+                                                    } else if self.address == inputAddr {
+                                                        
+                                                        type = "sending"
+                                                        //print("type == sending")
+                                                        
+                                                    }
+                                                    
+                                                }
+                                                
+                                                for (index, outputAddr) in toAddresses.enumerated() {
+                                                    
+                                                    if type == "sending" && outputAddr == self.address {
+                                                        
+                                                        //this is me sending myself change
+                                                        //print("\(outputAddr) received change of \(amountReceived[index])")
+                                                        
+                                                    } else if type == "receiving" && outputAddr != self.address {
+                                                        
+                                                        //change address receiving change (not me)
+                                                        //print("\(outputAddr) received change of \(amountReceived[index])")
+                                                        
+                                                    } else if type == "receiving" && outputAddr == self.address {
+                                                        
+                                                        //print("\(outputAddr) my address is the primary recipient and received \(amountReceived[index])")
+                                                        primaryAmountIReceived = Double(amountReceived[index])
+                                                        
+                                                    } else if type == "sending" && outputAddr != self.address {
+                                                        
+                                                        primaryRecipient = outputAddr
+                                                        primaryAmountRecipientReceived = Double(amountReceived[index])
+                                                    }
+                                                    
+                                                }
+                                                
+                                                let totalSent = amountSent.reduce(0, +)
+                                                let totalReceived = amountReceived.reduce(0, +)
+                                                let fees = Double(totalSent - totalReceived)
+                                                
+                                                if type == "receiving" {
+                                                    
+                                                    dictionary = ["confirmations":confirmations, "fromAddress":fromAddresses, "amountReceived":primaryAmountIReceived, "date":dateString, "type":type, "hash":hash, "fees":fees]
+                                                    
+                                                } else if type == "sending" {
+                                                    
+                                                    dictionary = ["confirmations":confirmations, "toAddress":primaryRecipient, "amountSent":primaryAmountRecipientReceived, "date":dateString, "type":type, "hash":hash, "fees":fees]
+                                                    
+                                                }
+                                                
+                                                
+                                                self.transactionArray.append(dictionary)
+                                                fromAddresses.removeAll()
+                                                toAddresses.removeAll()
+                                                amountReceived.removeAll()
+                                                amountSent.removeAll()
+                                            }
+                                            
+                                        }
+                                        
+                                        //print("historyCheck count = \(historyCheck.count)")
+                                        
+                                    }
+                                    
+                                    DispatchQueue.main.async {
+                                        //self.transactionArray = self.transactionArray.sorted{ ($0["date"] as? String)! > ($1["date"] as? String)! }
+                                        self.transactionHistoryTable.reloadData()
+                                    }
+                                    
+                                    self.removeSpinner()
+                                    
+                                    
+                                } else {
+                                    
+                                    DispatchQueue.main.async {
+                                        self.removeSpinner()
+                                        displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                                    }
+                                }
+                                
+                            } catch {
+                                
+                                print("JSon processing failed")
+                                DispatchQueue.main.async {
+                                    self.removeSpinner()
+                                    displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            task.resume()
+            
+            /*url = NSURL(string: "https://blockchain.info/rawaddr/\(address)")
             
             let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
                 
@@ -317,19 +587,16 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                                 var blockheight = Int()
                                                 var fromAddresses = [String]()
                                                 var toAddresses = [String]()
-                                                //var amountSpent = Int()
                                                 var amountReceived = [Int]()
                                                 var amountSent = [Int]()
                                                 var confirmations = Int()
                                                 var secondsSince = Double()
-                                                //let currentDate = Date()
                                                 var dateString = ""
                                                 var hash = ""
                                                 
                                                 var dictionary = [String:Any]()
                                                 
                                                 hash = hashCheck
-                                                print("hashCheck = \(hashCheck)")
                                                 
                                                 if let blockCheck = transaction["block_height"] as? Int {
                                                     
@@ -492,7 +759,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                 }
             }
             
-            task.resume()
+            task.resume()*/
             
         } else if address.hasPrefix("m") || address.hasPrefix("2") || address.hasPrefix("n") {
             
@@ -762,7 +1029,8 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
             let bitcoinImage = UIImage(named: "Bitsense image.png")
             self.imageView = UIImageView(image: bitcoinImage!)
             self.imageView.center = self.view.center
-            self.imageView.frame = CGRect(x: self.view.center.x - 25, y: 20, width: 50, height: 50)
+            //self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
+            self.imageView.frame = CGRect(x: self.view.frame.maxX - 55, y: 20, width: 50, height: 50)
             rotateAnimation(imageView: self.imageView as! UIImageView)
             self.view.addSubview(self.imageView)
             

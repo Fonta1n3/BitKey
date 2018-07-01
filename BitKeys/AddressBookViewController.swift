@@ -38,7 +38,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     var keyArray = [[String: Any]]()
     var ableToDelete = Bool()
     var wallet = [String:Any]()
-    var isWalletEncrypted = Bool()
     var segwitMode = Bool()
     var legacyMode = Bool()
     var segwit = SegwitAddrCoder()
@@ -60,16 +59,8 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     override func viewDidAppear(_ animated: Bool) {
         
         ableToDelete = false
-        isWalletEncrypted = isWalletEncryptedFromCoreData()
         legacyMode = checkSettingsForKey(keyValue: "legacyMode")
         segwitMode = checkSettingsForKey(keyValue: "segwitMode")
-        
-        if isWalletEncrypted {
-         
-            displayAlert(viewController: self, title: "Wallet is Locked!", message: "Please go back and unlock it to gain full functionality.")
-            
-        }
-        
         getArrays()
         
     }
@@ -287,10 +278,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         self.textInput.placeholder = "Scan or type an Address or Private Key"
         
         self.qrImageView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.textInput.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
-        self.qrImageView.layer.shadowColor = UIColor.black.cgColor
-        self.qrImageView.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.qrImageView.layer.shadowRadius = 2.5
-        self.qrImageView.layer.shadowOpacity = 0.8
+        addShadow(view:self.qrImageView)
         
         DispatchQueue.main.async {
             
@@ -539,17 +527,20 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
         func deselectRows() {
             
-            let rowsToDeselect  = self.addressBookTable.indexPathsForSelectedRows!
-            
-            for row in rowsToDeselect {
+            if let rowsToDeselect  = self.addressBookTable.indexPathsForSelectedRows {
                 
-                self.addressBookTable.deselectRow(at: row, animated: false)
-                let cell = self.addressBookTable.cellForRow(at: row)!
-                cell.accessoryType = UITableViewCellAccessoryType.none
+                for row in rowsToDeselect {
+                    
+                    self.addressBookTable.deselectRow(at: row, animated: false)
+                    let cell = self.addressBookTable.cellForRow(at: row)!
+                    cell.accessoryType = UITableViewCellAccessoryType.none
+                    
+                }
+                
+                self.multiSigMode = false
                 
             }
             
-            self.multiSigMode = false
         }
         
         for wallet in wallets {
@@ -1345,10 +1336,20 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
         } else {
             
-            let password = KeychainWrapper.standard.string(forKey: "AESPassword")!
-            let decrypted = AES256CBC.decryptString(self.privateKeyToExport, password: password)!
-            self.privateKeyToExport = decrypted
-            self.performSegue(withIdentifier: "goHome", sender: self)
+            if self.privateKeyToExport != "" {
+                
+                let password = KeychainWrapper.standard.string(forKey: "AESPassword")!
+                let decrypted = AES256CBC.decryptString(self.privateKeyToExport, password: password)!
+                self.privateKeyToExport = decrypted
+                self.performSegue(withIdentifier: "goHome", sender: self)
+                
+            } else {
+                
+                self.performSegue(withIdentifier: "goHome", sender: self)
+                
+            }
+            
+            
             
         }
     }
@@ -1364,6 +1365,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Create Multi-Sig", comment: ""), style: .default, handler: { (action) in
                     
                     self.multiSigMode = true
+                    //cell.isSelected = true
                     cell.accessoryType = UITableViewCellAccessoryType.checkmark
                     self.keyArray.append(wallet)
                     
@@ -1378,6 +1380,14 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     self.addressToExport = wallet["redemptionScript"] as! String
                     self.walletNameToExport = wallet["label"] as! String
                     self.performSegue(withIdentifier: "goHome", sender: self)
+                    
+                }))
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Delete Redemption Script", comment: ""), style: .default, handler: { (action) in
+                    
+                    let address = wallet["address"] as! String
+                    let redemptionScript = wallet["redemptionScript"] as! String
+                    self.editWallet(address: address, newValue: "", oldValue: redemptionScript, keyToEdit: "redemptionScript")
                     
                 }))
                 

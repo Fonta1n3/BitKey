@@ -32,22 +32,6 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
         
         settingsTable.delegate = self
         
-        
-        
-        /*let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        let context = appDelegate.persistentContainer.viewContext
-        let fetch = NSFetchRequest<NSFetchRequestResult>(entityName: "Settings")
-        let request = NSBatchDeleteRequest(fetchRequest: fetch)
-        
-        
-        do {
-           
-           let result = try context.execute(request)
-            
-        } catch {
-            
-           print("error")
-        }*/
    }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -147,17 +131,19 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
     
     func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
         
-        var footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 60))
-        var explanationLabel = UILabel(frame: CGRect(x: 10, y: 0, width: view.frame.size.width - 20, height: 60))
-        explanationLabel.textColor = UIColor.darkGray
-        explanationLabel.numberOfLines = 0
-        explanationLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
-        explanationLabel.backgroundColor = UIColor.white
-        footerView.backgroundColor = UIColor.white
+        var footerView = UIView()
+        var explanationLabel = UILabel()
         
         if section == 0 {
             
-            explanationLabel.text = "When Hot Mode is enabled all the private keys you create will be saved to your address book enabling effortless spending. In Cold Mode we never save your private key on the device, you will have to scan or type in the private key manually to create the signature for the transaction."
+            footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 120))
+            explanationLabel = UILabel(frame: CGRect(x: 10, y: 0, width: view.frame.size.width - 20, height: 110))
+            explanationLabel.textColor = UIColor.darkGray
+            explanationLabel.numberOfLines = 0
+            explanationLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
+            explanationLabel.backgroundColor = UIColor.white
+            footerView.backgroundColor = UIColor.white
+            explanationLabel.text = "When Hot Mode is enabled all the private keys you create will be encrypted to AES256CBC and only then saved to your address book enabling effortless spending, if you have created a password or enabled biometrics then whenever we decrypt the private key you will be prompted for password or biometric scan, the passwords and encryption keys are always stored securely in your devices keychain. In Cold Mode we never save your private key on the device, you will have to scan or type in the private key manually to create the signature for the transaction which can always be done with no internet connection."
             footerView.addSubview(explanationLabel)
             
             
@@ -191,6 +177,11 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
     }
     
     func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        
+        if section == 0 {
+            
+            return 120
+        }
         
         if section == 2 {
             

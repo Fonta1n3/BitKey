@@ -582,10 +582,7 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
         print("addQRScannerView")
         
         self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.textFieldInput.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
-        self.videoPreview.layer.shadowColor = UIColor.black.cgColor
-        self.videoPreview.layer.shadowOffset = CGSize(width: 2.5, height: 2.5)
-        self.videoPreview.layer.shadowRadius = 2.5
-        self.videoPreview.layer.shadowOpacity = 0.8
+        addShadow(view:self.videoPreview)
         self.view.addSubview(self.videoPreview)
     }
     

@@ -8,10 +8,14 @@
 
 import Foundation
 import CoreData
+import SwiftKeychainWrapper
+import AES256CBC
 
 public func saveWallet(viewController: UIViewController, address: String, privateKey: String, publicKey: String, redemptionScript: String, network: String, type: String) {
     
     print("saveWallet")
+    
+    let aesPassword = KeychainWrapper.standard.string(forKey: "AESPassword")
     
     var addressAlreadySaved = Bool()
     
@@ -49,7 +53,16 @@ public func saveWallet(viewController: UIViewController, address: String, privat
     func saveToCoreData(label: String) {
         
         let keys = ["address", "balance", "label", "network", "privateKey", "publicKey", "recoveryPhrase", "redemptionScript", "type", "xpriv", "xpub"]
-        let values = [address, "", label, network, privateKey, publicKey, "", redemptionScript, type, "", ""]
+        
+        var pk = privateKey
+        
+        if pk != "" {
+            
+            pk = AES256CBC.encryptString(pk, password: aesPassword!)!
+            
+        }
+        
+        let values = [address, "", label, network, pk, publicKey, "", redemptionScript, type, "", ""]
         var alreadySaved = Bool()
         var success = Bool()
         
