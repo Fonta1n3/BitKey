@@ -73,6 +73,8 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        print("wallettospendfrom = \(walletToSpendFrom)")
+        
        if UserDefaults.standard.object(forKey: "firstTimeHere") != nil {
             
        } else {
@@ -589,8 +591,9 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         
         if self.amountToSend.text != "" {
             
+            self.moreOptionsButton.removeFromSuperview()
+            self.sweepButton.removeFromSuperview()
             self.optionsButton.removeFromSuperview()
-            
             self.amount = self.amountToSend.text!
             self.amountToSend.text = ""
             self.amountToSend.resignFirstResponder()

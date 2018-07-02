@@ -15,6 +15,9 @@ import AES256CBC
 
 class AddressBookViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate {
     
+    var tappedCell = UITableViewCell()
+    var buttonViewVisible = Bool()
+    var buttonView = UIView()
     var textInput = UITextField()
     var qrImageView = UIView()
     @IBOutlet var addressBookTable: UITableView!
@@ -62,6 +65,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         legacyMode = checkSettingsForKey(keyValue: "legacyMode")
         segwitMode = checkSettingsForKey(keyValue: "segwitMode")
         getArrays()
+        addButtonView()
         
     }
     
@@ -100,6 +104,255 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 vc.sendingFromAddress = self.wallet["address"] as! String
                 
             }
+            
+        }
+        
+    }
+    
+    func addButtonView() {
+        
+        buttonView = UIView(frame: CGRect(x: 0, y: view.frame.maxY + 6, width: view.frame.width, height: 65))
+        buttonView.backgroundColor = UIColor.white
+        buttonView.layer.shadowColor = UIColor.black.cgColor
+        buttonView.layer.shadowOffset = CGSize(width: -2.5, height: -2.5)
+        buttonView.layer.shadowRadius = 2.5
+        buttonView.layer.shadowOpacity = 0.5
+        buttonViewVisible = false
+        view.addSubview(buttonView)
+        
+        let createInvoiceButton =  UIButton(frame: CGRect(x: 5, y: 15, width: 35, height: 35))
+         createInvoiceButton.showsTouchWhenHighlighted = true
+         createInvoiceButton.setImage(#imageLiteral(resourceName: "bill.png"), for: .normal)
+         createInvoiceButton.addTarget(self, action: #selector(createWalletInvoice), for: .touchUpInside)
+         buttonView.addSubview(createInvoiceButton)
+        
+        let spendButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) - (self.view.frame.width / 3.25 - (35/2)) - 5, y: 15, width: 35, height: 35))
+        spendButton.showsTouchWhenHighlighted = true
+        spendButton.setImage(#imageLiteral(resourceName: "pay.png"), for: .normal)
+        spendButton.addTarget(self, action: #selector(spendFromWallet), for: .touchUpInside)
+        buttonView.addSubview(spendButton)
+        
+        let historyButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) - (self.view.frame.width / 7.5 - (35/2)) - 5, y: 15, width: 35, height: 35))
+        historyButton.showsTouchWhenHighlighted = true
+        historyButton.setImage(#imageLiteral(resourceName: "history.png"), for: .normal)
+        historyButton.addTarget(self, action: #selector(getHistoryWallet), for: .touchUpInside)
+        buttonView.addSubview(historyButton)
+        
+        let addMultiSigButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 7.5 - (35/2)) - 5, y: 15, width: 35, height: 35))
+        addMultiSigButton.showsTouchWhenHighlighted = true
+        addMultiSigButton.setImage(#imageLiteral(resourceName: "add.png"), for: .normal)
+        addMultiSigButton.addTarget(self, action: #selector(addToMultiSigWallet), for: .touchUpInside)
+        buttonView.addSubview(addMultiSigButton)
+        
+        let editButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 3.25 - (35/2)) - 5, y: 15, width: 35, height: 35))
+        editButton.showsTouchWhenHighlighted = true
+        editButton.setImage(#imageLiteral(resourceName: "edit.jpg"), for: .normal)
+        editButton.addTarget(self, action: #selector(editWalletButton), for: .touchUpInside)
+        buttonView.addSubview(editButton)
+        
+        let exportButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 40, y: 15, width: 35, height: 35))
+        exportButton.showsTouchWhenHighlighted = true
+        exportButton.setImage(#imageLiteral(resourceName: "qr.png"), for: .normal)
+        exportButton.addTarget(self, action: #selector(exportWallet), for: .touchUpInside)
+        buttonView.addSubview(exportButton)
+        
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        self.buttonView.removeFromSuperview()
+        buttonViewVisible = false
+    }
+    
+    @objc func editWalletButton() {
+        
+        print("editWalletButton")
+        
+        showButtonView()
+        
+        DispatchQueue.main.async {
+            
+            let alert = UIAlertController(title: nil, message: "Please select an option", preferredStyle: UIAlertControllerStyle.actionSheet)
+        
+        if self.wallet["redemptionScript"] as! String != "" && self.wallet["publicKey"] != nil {
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Delete Redemption Script", comment: ""), style: .default, handler: { (action) in
+                
+                let address = self.wallet["address"] as! String
+                let redemptionScript = self.wallet["redemptionScript"] as! String
+                self.editWallet(address: address, newValue: "", oldValue: redemptionScript, keyToEdit: "redemptionScript")
+                
+            }))
+            
+        }
+        
+        if self.wallet["privateKey"] as! String != "" {
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Make Wallet Cold", comment: ""), style: .default, handler: { (action) in
+                
+                DispatchQueue.main.async {
+                    
+                    let alert = UIAlertController(title: "WARNING!", message: "This will delete the private key and your ability to spend from this wallet in the app, please ensure you have the private key and recovery phrase backed up first.", preferredStyle: UIAlertControllerStyle.alert)
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Make it Cold", comment: ""), style: .destructive, handler: { (action) in
+                        
+                        for (index, wallets) in self.addressBook.enumerated() {
+                            
+                            if wallets["address"] as! String == self.wallet["address"] as! String {
+                                
+                                self.addressBook[index]["privateKey"] = ""
+                                self.addressBook[index]["type"] = "cold"
+                                self.editWallet(address: wallets["address"] as! String, newValue: "", oldValue: "", keyToEdit: "privateKey")
+                                
+                            }
+                            
+                        }
+                        
+                    }))
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                        
+                        
+                    }))
+                    
+                    self.present(alert, animated: true, completion: nil)
+                }
+                
+            }))
+        }
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Edit Wallet Name", comment: ""), style: .default, handler: { (action) in
+            
+            for (index, address) in self.addressBook.enumerated() {
+                
+                if self.wallet["address"] as! String == address["address"] as! String {
+                    
+                    let oldName = self.addressBook[index]["label"] as! String
+                    
+                    let alert = UIAlertController(title: "Give \"\(oldName)\" a new name", message: "", preferredStyle: .alert)
+                    
+                    alert.addTextField { (textField1) in
+                        
+                        textField1.placeholder = "Optional"
+                        
+                    }
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Update", comment: ""), style: .default, handler: { (action) in
+                        
+                        let label = alert.textFields![0].text!
+                        self.addressBook[index]["label"] = label
+                        self.editWallet(address: address["address"] as! String, newValue: label, oldValue: oldName, keyToEdit: "label")
+                        
+                    }))
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                        
+                    }))
+                    
+                    self.present(alert, animated: true, completion: nil)
+                    
+                }
+                
+            }
+            
+        }))
+        
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+            
+        }))
+        
+        alert.popoverPresentationController?.sourceView = self.view
+        
+        self.present(alert, animated: true) {
+            print("option menu presented")
+        }
+            
+        }
+        
+    }
+    
+    @objc func spendFromWallet() {
+        
+      self.performSegue(withIdentifier: "goToTransactions", sender: self)
+        
+    }
+    
+    @objc func getHistoryWallet() {
+        
+        self.performSegue(withIdentifier: "showHistory", sender: self)
+    }
+    
+    @objc func createWalletInvoice() {
+        
+        showButtonView()
+        
+    }
+    
+    @objc func addToMultiSigWallet() {
+        
+        showButtonView()
+        self.multiSigMode = true
+        self.tappedCell.accessoryType = UITableViewCellAccessoryType.checkmark
+        self.keyArray.append(self.wallet)
+    }
+    
+    @objc func exportWallet() {
+        
+        showButtonView()
+        self.addressToExport = self.wallet["address"] as! String
+        self.privateKeyToExport = self.wallet["privateKey"] as! String
+        self.walletNameToExport = self.wallet["label"] as! String
+        
+        if self.privateKeyToExport != "" {
+            
+            if UserDefaults.standard.object(forKey: "bioMetricsEnabled") != nil {
+                
+                self.authenticationWithTouchID()
+                
+            } else if let _ = KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
+                
+                var password = String()
+                
+                let alert = UIAlertController(title: "Please input your password", message: "Please enter your password to export your private key", preferredStyle: .alert)
+                
+                alert.addTextField { (textField1) in
+                    
+                    textField1.placeholder = "Enter Password"
+                    textField1.isSecureTextEntry = true
+                    
+                }
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Export", comment: ""), style: .default, handler: { (action) in
+                    
+                    password = alert.textFields![0].text!
+                    
+                    if password == KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
+                        
+                        self.processKeyAndSegue()
+                        
+                    } else {
+                        
+                        displayAlert(viewController: self, title: "Error", message: "Incorrect password!")
+                    }
+                    
+                }))
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                    
+                    
+                }))
+                
+                self.present(alert, animated: true, completion: nil)
+                
+            } else {
+                
+                self.processKeyAndSegue()
+                
+            }
+            
+        } else {
+            
+            self.processKeyAndSegue()
             
         }
         
@@ -177,6 +430,40 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
     }
     
+    
+    
+    func showButtonView() {
+        print("buttonView")
+        
+        if buttonViewVisible == false {
+            
+            self.buttonViewVisible = true
+            DispatchQueue.main.async {
+                
+                UIView.animate(withDuration: 0.3, animations: {
+                    
+                    self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY - 65, width: self.view.frame.width, height: 65)
+                    
+                }, completion: { _ in
+                    
+                })
+                
+            }
+            
+        } else {
+            
+            self.buttonViewVisible = false
+            DispatchQueue.main.async {
+                UIView.animate(withDuration: 0.3) {
+                    self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY + 6, width: self.view.frame.width, height: 65)
+                }
+            }
+            
+        }
+        
+        
+    }
+    
     func addBackButton() {
         print("addBackButton")
         
@@ -213,6 +500,24 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
         print("add")
         
+        func deselectRows() {
+            
+            if let rowsToDeselect  = self.addressBookTable.indexPathsForSelectedRows {
+                
+                for row in rowsToDeselect {
+                    
+                    self.addressBookTable.deselectRow(at: row, animated: false)
+                    let cell = self.addressBookTable.cellForRow(at: row)!
+                    cell.accessoryType = UITableViewCellAccessoryType.none
+                    
+                }
+                
+                self.multiSigMode = false
+                
+            }
+            
+        }
+        
         var signaturesRequired = UInt()
         
         if self.keyArray.count > 0 {
@@ -241,13 +546,14 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
                 
+                deselectRows()
+                
             }))
             
             self.present(alert, animated: true, completion: nil)
             
         } else {
             
-            //displayAlert(viewController: self, title: "Oops", message: "You need to select multiple wallets to create a multi sig.")
             self.importWallet()
             
         }
@@ -437,9 +743,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     
                     if let key = BTCKey.init(privateKeyAddress: privateKey) {
                         
-                        print("privateKey = \(key.privateKeyAddress)")
-                        //var privateKeyHD = String()
-                        //var addressHD = String()
                         var bitcoinAddress = String()
                         
                         let privateKeyWIF = key.privateKeyAddress.string
@@ -652,6 +955,63 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
     }
     
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        
+        (view as! UITableViewHeaderFooterView).backgroundView?.backgroundColor = UIColor.white
+        (view as! UITableViewHeaderFooterView).textLabel?.textAlignment = .center
+        (view as! UITableViewHeaderFooterView).textLabel?.font = UIFont.init(name: "HelveticaNeue", size: 15)
+        (view as! UITableViewHeaderFooterView).textLabel?.textColor = UIColor.darkGray
+        
+    }
+    
+    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        
+        return 70
+        
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 30
+    }
+    
+    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        
+        let footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 60))
+        let explanationLabel = UILabel(frame: CGRect(x: 10, y: 0, width: view.frame.size.width - 20, height: 50))
+        explanationLabel.textColor = UIColor.darkGray
+        footerView.backgroundColor = UIColor.white
+        explanationLabel.backgroundColor = UIColor.white
+        explanationLabel.numberOfLines = 0
+        explanationLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
+        
+        if section == 0 && self.hotMainnetArray.count > 0 {
+            
+            explanationLabel.text = "These are your Hot Wallets on the main Bitcoin network. The app stores your encrypted private keys which allows you to spend from them effortlessly. You should only keep spending money in these wallets. Balance only shows transactions that have at least one confirmation."
+            footerView.addSubview(explanationLabel)
+            return footerView
+            
+        } else if section == 1 && self.hotTestnetArray.count > 0 {
+            
+            explanationLabel.text = "These are your Hot Wallets on the test Bitcoin network. The app stores your encrypted private keys which allows you to spend from them effortlessly. This is NOT real money and is only for testing purposes. Balance only shows transactions that have at least one confirmation."
+            footerView.addSubview(explanationLabel)
+            return footerView
+            
+        } else if section == 2 && self.coldMainnetArray.count > 0 {
+            
+            explanationLabel.text = "These are your cold wallets on the main Bitcoin network. We do NOT store the private keys for these wallets, you can only check the balances, if you put the app in cold mode then you can scan the private key whilst making a transaction to spend from these wallets. Balance only shows transactions that have at least one confirmation."
+            footerView.addSubview(explanationLabel)
+            return footerView
+            
+        } else if section == 3 && self.coldTestnetArray.count > 0 {
+            
+            explanationLabel.text = "These are your cold wallets on the test network. We do NOT store the private keys for these wallets. This is NOT real money and is only for testing purposes. Balance only shows transactions that have at least one confirmation."
+            footerView.addSubview(explanationLabel)
+            return footerView
+        }
+        
+        return nil
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
         if tableView == self.addressBookTable {
@@ -684,6 +1044,10 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "LabelCell", for: indexPath)
         
+        cell.textLabel?.font = UIFont.init(name: "HelveticaNeue-Light", size: 15)
+        
+        let balanceLabel = cell.viewWithTag(1) as! UILabel
+        
         if indexPath.section == 0 {
             
             let label = self.hotMainnetArray[indexPath.row]["label"] as! String
@@ -692,13 +1056,15 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             if label != "" {
                 
-                cell.textLabel?.text = "\(label) \(balance)"
+                cell.textLabel?.text = "\(label)"
                     
             } else {
                 
-                cell.textLabel?.text = "\(address) \(balance)"
+                cell.textLabel?.text = "\(address)"
                 
             }
+            
+            balanceLabel.text = "\(balance)"
             
         } else if indexPath.section == 1 {
             
@@ -708,13 +1074,15 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             if label != "" {
                 
-                cell.textLabel?.text = "\(label) \(balance)"
+                cell.textLabel?.text = "\(label)"
                 
             } else {
                 
-                cell.textLabel?.text = "\(address) \(balance)"
+                cell.textLabel?.text = "\(address)"
                 
             }
+            
+            balanceLabel.text = "\(balance)"
             
         } else if indexPath.section == 2 {
             
@@ -724,13 +1092,15 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             if label != "" {
                 
-                cell.textLabel?.text = "\(label) \(balance)"
+                cell.textLabel?.text = "\(label)"
                 
             } else {
                 
-                cell.textLabel?.text = "\(address) \(balance)"
+                cell.textLabel?.text = "\(address)"
                 
             }
+            
+            balanceLabel.text = "\(balance)"
             
         } else if indexPath.section == 3 {
             
@@ -740,13 +1110,15 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             if label != "" {
                 
-                cell.textLabel?.text = "\(label) \(balance)"
+                cell.textLabel?.text = "\(label)"
                 
             } else {
                 
-                cell.textLabel?.text = "\(address) \(balance)"
+                cell.textLabel?.text = "\(address)"
                 
             }
+            
+            balanceLabel.text = "\(balance)"
             
         }
         
@@ -1356,203 +1728,14 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     
     func showKeyManagementAlert(wallet: [String: Any], cell: UITableViewCell) {
         
-        DispatchQueue.main.async {
+        if self.multiSigMode != true {
             
-            let alert = UIAlertController(title: nil, message: "Please select an option", preferredStyle: UIAlertControllerStyle.actionSheet)
+            self.wallet = wallet
+            self.tappedCell = cell
+            showButtonView()
             
-            if wallet["redemptionScript"] as! String == "" {
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Create Multi-Sig", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.multiSigMode = true
-                    //cell.isSelected = true
-                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                    self.keyArray.append(wallet)
-                    
-                }))
-                
-            }
-            
-            if wallet["redemptionScript"] as! String != "" && wallet["publicKey"] != nil {
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Export Redemption Script", comment: ""), style: .default, handler: { (action) in
-                    
-                    self.addressToExport = wallet["redemptionScript"] as! String
-                    self.walletNameToExport = wallet["label"] as! String
-                    self.performSegue(withIdentifier: "goHome", sender: self)
-                    
-                }))
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Delete Redemption Script", comment: ""), style: .default, handler: { (action) in
-                    
-                    let address = wallet["address"] as! String
-                    let redemptionScript = wallet["redemptionScript"] as! String
-                    self.editWallet(address: address, newValue: "", oldValue: redemptionScript, keyToEdit: "redemptionScript")
-                    
-                }))
-                
-            }
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Export Keys", comment: ""), style: .default, handler: { (action) in
-                
-                self.addressToExport = wallet["address"] as! String
-                self.privateKeyToExport = wallet["privateKey"] as! String
-                self.walletNameToExport = wallet["label"] as! String
-                
-                if self.privateKeyToExport != "" {
-                    
-                    if UserDefaults.standard.object(forKey: "bioMetricsEnabled") != nil {
-                        
-                        self.authenticationWithTouchID()
-                        
-                    } else if let _ = KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
-                        
-                        var password = String()
-                        
-                        let alert = UIAlertController(title: "Please input your password", message: "Please enter your password to export your private key", preferredStyle: .alert)
-                        
-                        alert.addTextField { (textField1) in
-                            
-                            textField1.placeholder = "Enter Password"
-                            textField1.isSecureTextEntry = true
-                            
-                        }
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("Export", comment: ""), style: .default, handler: { (action) in
-                            
-                            password = alert.textFields![0].text!
-                            
-                            if password == KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
-                                
-                                self.processKeyAndSegue()
-                                
-                            } else {
-                                
-                                displayAlert(viewController: self, title: "Error", message: "Incorrect password!")
-                            }
-                            
-                        }))
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
-                            
-                            
-                        }))
-                        
-                        self.present(alert, animated: true, completion: nil)
-                        
-                    } else {
-                        
-                        self.processKeyAndSegue()
-                        
-                    }
-                    
-                } else {
-                   
-                    self.processKeyAndSegue()
-                    
-                }
-                
-            }))
-            
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Spend from this wallet", comment: ""), style: .default, handler: { (action) in
-                
-                DispatchQueue.main.async {
-                    self.wallet = wallet
-                    self.performSegue(withIdentifier: "goToTransactions", sender: self)
-                }
-                
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("See History", comment: ""), style: .default, handler: { (action) in
-                
-                self.wallet = wallet
-                self.performSegue(withIdentifier: "showHistory", sender: self)
-                
-            }))
-            
-            if wallet["privateKey"] as! String != "" {
-                
-                alert.addAction(UIAlertAction(title: NSLocalizedString("Make Wallet Cold", comment: ""), style: .default, handler: { (action) in
-                    
-                    DispatchQueue.main.async {
-                        
-                        let alert = UIAlertController(title: "WARNING!", message: "This will delete the private key and your ability to spend from this wallet in the app, please ensure you have the private key and recovery phrase backed up first.", preferredStyle: UIAlertControllerStyle.alert)
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("Make it Cold", comment: ""), style: .destructive, handler: { (action) in
-                            
-                            for (index, wallets) in self.addressBook.enumerated() {
-                                
-                                if wallets["address"] as! String == wallet["address"] as! String {
-                                    
-                                    self.addressBook[index]["privateKey"] = ""
-                                    self.addressBook[index]["type"] = "cold"
-                                    self.editWallet(address: wallets["address"] as! String, newValue: "", oldValue: "", keyToEdit: "privateKey")
-                                    
-                                }
-                                
-                            }
-                            
-                        }))
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                            
-                            
-                        }))
-                        
-                        self.present(alert, animated: true, completion: nil)
-                    }
-                    
-                }))
-            }
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Edit Wallet Name", comment: ""), style: .default, handler: { (action) in
-                
-                for (index, address) in self.addressBook.enumerated() {
-                    
-                    if wallet["address"] as! String == address["address"] as! String {
-                        
-                        let oldName = self.addressBook[index]["label"] as! String
-                        
-                        let alert = UIAlertController(title: "Give \"\(oldName)\" a new name", message: "", preferredStyle: .alert)
-                        
-                        alert.addTextField { (textField1) in
-                            
-                            textField1.placeholder = "Optional"
-                            
-                        }
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("Update", comment: ""), style: .default, handler: { (action) in
-                            
-                            let label = alert.textFields![0].text!
-                            self.addressBook[index]["label"] = label
-                            self.editWallet(address: address["address"] as! String, newValue: label, oldValue: oldName, keyToEdit: "label")
-                            
-                        }))
-                        
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                            
-                        }))
-                        
-                        self.present(alert, animated: true, completion: nil)
-                        
-                    }
-                    
-                }
-                
-            }))
-                
- 
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                
-            }))
-            
-            alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
-            
-            self.present(alert, animated: true) {
-                print("option menu presented")
-            }
         }
+        
     }
     
     func checkBalance(address: String, index: Int, network: String, type: String) {
@@ -1588,19 +1771,19 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                     
                                     if network == "mainnet" && type == "hot" {
                                         
-                                        self.hotMainnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        self.hotMainnetArray[index]["balance"] = btcAmount + " BTC"
                                         
                                     } else if network == "testnet" && type == "hot" {
                                         
-                                        self.hotTestnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        self.hotTestnetArray[index]["balance"] = btcAmount + " BTC"
                                         
                                     } else if network == "mainnet" && type == "cold" {
                                         
-                                        self.coldMainnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        self.coldMainnetArray[index]["balance"] = btcAmount + " BTC"
                                         
                                     } else if network == "testnet" && type == "cold" {
                                         
-                                        self.coldTestnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        self.coldTestnetArray[index]["balance"] = btcAmount + " BTC"
                                         
                                     }
                                     
@@ -1656,19 +1839,19 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                     
                                     if network == "mainnet" && type == "hot" {
                                         
-                                        self.hotMainnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        self.hotMainnetArray[index]["balance"] = btcAmount + " BTC"
                                         
                                     } else if network == "testnet" && type == "hot" {
                                         
-                                        self.hotTestnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        self.hotTestnetArray[index]["balance"] = btcAmount + " BTC"
                                         
                                     } else if network == "mainnet" && type == "cold" {
                                         
-                                        self.coldMainnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        self.coldMainnetArray[index]["balance"] = btcAmount + " BTC"
                                         
                                     } else if network == "testnet" && type == "cold" {
                                         
-                                        self.coldTestnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        self.coldTestnetArray[index]["balance"] = btcAmount + " BTC"
                                         
                                     }
                                     
@@ -1725,19 +1908,19 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                     
                                     if network == "mainnet" && type == "hot" {
                                         
-                                        self.hotMainnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        self.hotMainnetArray[index]["balance"] = btcAmount + " BTC"
                                         
                                     } else if network == "testnet" && type == "hot" {
                                         
-                                        self.hotTestnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        self.hotTestnetArray[index]["balance"] = btcAmount + " BTC"
                                         
                                     } else if network == "mainnet" && type == "cold" {
                                         
-                                        self.coldMainnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        self.coldMainnetArray[index]["balance"] = btcAmount + " BTC"
                                         
                                     } else if network == "testnet" && type == "cold" {
                                         
-                                        self.coldTestnetArray[index]["balance"] = " - " + btcAmount + " BTC"
+                                        self.coldTestnetArray[index]["balance"] = btcAmount + " BTC"
                                         
                                     }
                                     

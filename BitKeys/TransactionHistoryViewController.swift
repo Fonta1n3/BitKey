@@ -299,8 +299,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         
         if address.hasPrefix("1") || address.hasPrefix("3") {
             
-            //url = NSURL(string: "https://testnet.blockchain.info/rawaddr/\(address)")
-            url = NSURL(string: "https://api.blockcypher.com/v1/btc/main/addrs/\(address)/full")
+            url = NSURL(string: "https://blockchain.info/rawaddr/\(address)")
             
             let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
                 
@@ -322,8 +321,6 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                 
                                 let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
                                 
-                                print("jsonAddressResult = \(jsonAddressResult)")
-                                
                                 if let historyCheck = jsonAddressResult["txs"] as? NSArray {
                                     
                                     self.transactionArray.removeAll()
@@ -334,65 +331,34 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                             
                                             if let hashCheck = transaction["hash"] as? String {
                                                 
-                                                //var blockheight = Int()
+                                                var blockheight = Int()
                                                 var fromAddresses = [String]()
                                                 var toAddresses = [String]()
-                                                //var amountSpent = Int()
                                                 var amountReceived = [Int]()
                                                 var amountSent = [Int]()
                                                 var confirmations = Int()
-                                                //var secondsSince = Double()
-                                                //let currentDate = Date()
+                                                var secondsSince = Double()
                                                 var dateString = ""
                                                 var hash = ""
                                                 
                                                 var dictionary = [String:Any]()
                                                 
                                                 hash = hashCheck
-                                                print("hashCheck = \(hashCheck)")
                                                 
-                                                if let confirmationsCheck = transaction["confirmations"] as? Int {
+                                                if let blockCheck = transaction["block_height"] as? Int {
                                                     
-                                                    confirmations = confirmationsCheck
+                                                    blockheight = blockCheck
+                                                    confirmations = self.latestBlockHeight - blockheight
                                                     
                                                 }
                                                 
-                                                if let timeCheck = transaction["received"] as? String {
+                                                if let timeCheck = transaction["time"] as? Double {
                                                     
-                                                    var periodExists = Bool()
-                                                    var formattedDateString = String()
-                                                    
-                                                    for character in timeCheck {
-                                                        
-                                                        if character == "." {
-                                                            
-                                                            periodExists = true
-                                                        }
-                                                    }
-                                                    
-                                                    if periodExists {
-                                                        
-                                                        let dateArray = timeCheck.split(separator: ".")
-                                                        formattedDateString = String(dateArray[0])
-                                                        
-                                                    } else {
-                                                        
-                                                        formattedDateString = timeCheck.replacingOccurrences(of: "Z", with: "")
-                                                        
-                                                    }
-                                                    
+                                                    secondsSince = timeCheck
+                                                    let date = Date(timeIntervalSince1970: secondsSince)
                                                     let dateFormatter = DateFormatter()
-                                                    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-                                                    dateFormatter.timeZone = TimeZone.current
-                                                    dateFormatter.locale = Locale.current
-                                                    let date = dateFormatter.date(from: formattedDateString)
-                                                    
-                                                    let convertDateFormatter = DateFormatter()
-                                                    convertDateFormatter.dateFormat = "MMMM-dd-yyyy HH:mm"
-                                                    convertDateFormatter.timeZone = TimeZone.current
-                                                    convertDateFormatter.locale = Locale.current
-                                                    dateString = convertDateFormatter.string(from: date!)
-                                                    print("dateString = \(dateString)")
+                                                    dateFormatter.dateFormat = "MMMM-dd-yyyy HH:mm"
+                                                    dateString = dateFormatter.string(from: date)
                                                     
                                                 }
                                                 
@@ -402,14 +368,11 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                                         
                                                         if let inputDict = input as? NSDictionary {
                                                             
-                                                            amountSent.append(inputDict["output_value"] as! Int)
-                                                            
-                                                            if let addresses = inputDict["addresses"] as? NSArray {
+                                                            if let prevOutCheck = inputDict["prev_out"] as? NSDictionary {
                                                                 
-                                                                for address in addresses {
-                                                                    
-                                                                    fromAddresses.append(address as! String)
-                                                                }
+                                                                amountSent.append(prevOutCheck["value"] as! Int)
+                                                                fromAddresses.append(prevOutCheck["addr"] as! String)
+                                                                
                                                             }
                                                             
                                                         }
@@ -418,21 +381,14 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                                     
                                                 }
                                                 
-                                                if let outPutsCheck = transaction["outputs"] as? NSArray {
+                                                if let outPutsCheck = transaction["out"] as? NSArray {
                                                     
                                                     for output in outPutsCheck {
                                                         
                                                         if let outPutDict = output as? NSDictionary {
                                                             
+                                                            toAddresses.append(outPutDict["addr"] as! String)
                                                             amountReceived.append(outPutDict["value"] as! Int)
-                                                            
-                                                            if let addresses = outPutDict["addresses"] as? NSArray {
-                                                                
-                                                                for address in addresses {
-                                                                    
-                                                                    toAddresses.append(address as! String)
-                                                                }
-                                                            }
                                                             
                                                         }
                                                         
@@ -517,11 +473,11 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                             
                                         }
                                         
-                                        //print("historyCheck count = \(historyCheck.count)")
-                                        
                                     }
                                     
                                     DispatchQueue.main.async {
+                                        
+                                        
                                         //self.transactionArray = self.transactionArray.sorted{ ($0["date"] as? String)! > ($1["date"] as? String)! }
                                         self.transactionHistoryTable.reloadData()
                                     }
