@@ -278,6 +278,10 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
+        DispatchQueue.main.async {
+            UIImpactFeedbackGenerator().impactOccurred()
+        }
+        
         tableView.allowsMultipleSelection = true
         
         if let cell = self.securitySettingsTable.cellForRow(at: indexPath) {

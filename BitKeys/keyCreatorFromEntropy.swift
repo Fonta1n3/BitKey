@@ -97,8 +97,11 @@ public func createPrivateKey(viewController: UIViewController, userRandomness: B
                 
             keychain?.key.clear()
             data.removeAll()
+            DispatchQueue.main.async {
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            }
             return (privateKeyWIF, bitcoinAddress, recoveryPhrase)
-                
+             
         } else if mainnetMode {
                 
             let keychain = mnemonic.keychain.derivedKeychain(withPath: "m/44'/0'/0'/0")

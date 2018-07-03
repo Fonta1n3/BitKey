@@ -244,6 +244,10 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
+        DispatchQueue.main.async {
+            UIImpactFeedbackGenerator().impactOccurred()
+        }
+        
         tableView.allowsMultipleSelection = true
         
         func updateTableViewSelections(selectedIndex: IndexPath) {

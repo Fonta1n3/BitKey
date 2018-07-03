@@ -16,6 +16,9 @@ import SwiftKeychainWrapper
 
 class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate {
     
+    var scanLabel = UILabel()
+    var payInvoiceMode = Bool()
+    var invoiceButton = UIButton()
     var sweepButton = UIButton()
     var optionsButton = UIButton()
     var walletToSpendFrom = [String:Any]()
@@ -471,28 +474,49 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             
     }
    
-   func addChooseOptionButton() {
+func addChooseOptionButton() {
+    
+    self.optionsButton.removeFromSuperview()
+    self.optionsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 50, y: 20, width: 45, height: 45))
+    self.optionsButton.showsTouchWhenHighlighted = true
+    self.optionsButton.setImage(#imageLiteral(resourceName: "settings2.png"), for: .normal)
+    self.optionsButton.addTarget(self, action: #selector(self.getAmount), for: .touchUpInside)
+    self.view.addSubview(self.optionsButton)
+    
+    self.moreOptionsButton.removeFromSuperview()
+    self.moreOptionsButton = UIButton(frame: CGRect(x: 10, y: self.view.frame.maxY - 320, width: 35, height: 35))
+    self.moreOptionsButton.setImage(#imageLiteral(resourceName: "tool2.png"), for: .normal)
+    self.moreOptionsButton.showsTouchWhenHighlighted = true
+    self.moreOptionsButton.addTarget(self, action: #selector(addRawTransactionView), for: .touchUpInside)
+    self.view.addSubview(self.moreOptionsButton)
+    
+    self.sweepButton.removeFromSuperview()
+    self.sweepButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 45, y: self.view.frame.maxY - 320, width: 35, height: 35))
+    self.sweepButton.setImage(#imageLiteral(resourceName: "sweep.jpeg"), for: .normal)
+    self.sweepButton.showsTouchWhenHighlighted = true
+    self.sweepButton.addTarget(self, action: #selector(sweep), for: .touchUpInside)
+    self.view.addSubview(self.sweepButton)
+    
+    self.invoiceButton.removeFromSuperview()
+    self.invoiceButton = UIButton(frame: CGRect(x: self.view.center.x - (35/2), y: self.view.frame.maxY - 320, width: 35, height: 35))
+    self.invoiceButton.setImage(#imageLiteral(resourceName: "bill.png"), for: .normal)
+    self.invoiceButton.showsTouchWhenHighlighted = true
+    self.invoiceButton.addTarget(self, action: #selector(payInvoice), for: .touchUpInside)
+    self.view.addSubview(self.invoiceButton)
         
+    }
+    
+    @objc func payInvoice() {
+        
+        self.payInvoiceMode = true
+        self.amountToSend.resignFirstResponder()
+        self.amountToSend.removeFromSuperview()
+        self.getReceivingAddressMode = true
         self.optionsButton.removeFromSuperview()
-        self.optionsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 50, y: 20, width: 45, height: 45))
-        self.optionsButton.showsTouchWhenHighlighted = true
-        self.optionsButton.setImage(#imageLiteral(resourceName: "settings2.png"), for: .normal)
-        self.optionsButton.addTarget(self, action: #selector(self.getAmount), for: .touchUpInside)
-        self.view.addSubview(self.optionsButton)
-    
         self.moreOptionsButton.removeFromSuperview()
-        self.moreOptionsButton = UIButton(frame: CGRect(x: 10, y: self.view.frame.maxY - 320, width: 35, height: 35))
-        self.moreOptionsButton.setImage(#imageLiteral(resourceName: "tool2.png"), for: .normal)
-        self.moreOptionsButton.showsTouchWhenHighlighted = true
-        self.moreOptionsButton.addTarget(self, action: #selector(addRawTransactionView), for: .touchUpInside)
-        self.view.addSubview(self.moreOptionsButton)
-    
         self.sweepButton.removeFromSuperview()
-        self.sweepButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 45, y: self.view.frame.maxY - 320, width: 35, height: 35))
-        self.sweepButton.setImage(#imageLiteral(resourceName: "sweep.jpeg"), for: .normal)
-        self.sweepButton.showsTouchWhenHighlighted = true
-        self.sweepButton.addTarget(self, action: #selector(sweep), for: .touchUpInside)
-        self.view.addSubview(self.sweepButton)
+        self.invoiceButton.removeFromSuperview()
+        self.addScanner()
         
     }
     
@@ -504,6 +528,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         self.moreOptionsButton.removeFromSuperview()
         self.sweepButton.removeFromSuperview()
         self.optionsButton.removeFromSuperview()
+        self.invoiceButton.removeFromSuperview()
         self.addScanner()
     }
     
@@ -545,7 +570,23 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     func addQRScannerView() {
         print("addQRScannerView")
         
-        self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.addressToDisplay.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
+        if self.payInvoiceMode != true {
+            
+           self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.addressToDisplay.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
+            
+        } else {
+            
+            self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y - ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: self.view.frame.width - 50)
+            
+            scanLabel = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 10) / 2), y: self.videoPreview.frame.minY - 40, width: self.view.frame.width - 10, height: 20))
+            scanLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 18)
+            scanLabel.textColor = UIColor.black
+            scanLabel.text = "Scan the Invoice"
+            scanLabel.textAlignment = .center
+            self.view.addSubview(scanLabel)
+            
+        }
+        
         addShadow(view:self.videoPreview)
         self.view.addSubview(self.videoPreview)
     }
@@ -594,6 +635,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             self.moreOptionsButton.removeFromSuperview()
             self.sweepButton.removeFromSuperview()
             self.optionsButton.removeFromSuperview()
+            self.invoiceButton.removeFromSuperview()
             self.amount = self.amountToSend.text!
             self.amountToSend.text = ""
             self.amountToSend.resignFirstResponder()
@@ -957,44 +999,72 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     func addScanner() {
         print("addScanner")
         
-        if self.getPayerAddressMode, let _ = self.walletToSpendFrom["label"] as? String {
-            
-            if self.hotMode {
-                
-             self.privateKeytoDebit = self.walletToSpendFrom["privateKey"] as! String
-                
-            } else if self.coldMode {
-                
-                self.getPayerAddressMode = false
-                self.getSignatureMode = true
-                
-            }
-            
-            self.makeHTTPPostRequest()
-            
-        } else if self.getPayerAddressMode {
-            
-                displayAlert(viewController: self, title: "Success", message: "We got your receiving address\n\n\(self.recievingAddress)\n\nNow we need the debit address.")
-            
-            DispatchQueue.main.async {
-                
-                self.addTextInput()
-                self.addQRScannerView()
-                self.scanQRCode()
-                
-            }
-        
-        } else {
+        if self.payInvoiceMode != true {
            
-            DispatchQueue.main.async {
+            if self.getPayerAddressMode, let _ = self.walletToSpendFrom["label"] as? String {
                 
-                self.addTextInput()
-                self.addQRScannerView()
-                self.scanQRCode()
+                if self.hotMode {
+                    
+                    self.privateKeytoDebit = self.walletToSpendFrom["privateKey"] as! String
+                    
+                } else if self.coldMode {
+                    
+                    self.getPayerAddressMode = false
+                    self.getSignatureMode = true
+                    
+                }
+                
+                self.makeHTTPPostRequest()
+                
+            } else if self.getPayerAddressMode {
+                
+                var messageAddress = String()
+                
+                for address in self.addressBook {
+                    
+                    if address["address"] as! String == self.recievingAddress {
+                        
+                        if address["label"] as! String != "" {
+                            
+                            messageAddress = address["label"] as! String
+                        } else {
+                            
+                            messageAddress = self.recievingAddress
+                        }
+                    }
+                }
+                
+                displayAlert(viewController: self, title: "Success", message: "We got your receiving address\n\n\(messageAddress)\n\nNow we need the debit address.")
+                
+                DispatchQueue.main.async {
+                    
+                    self.addTextInput()
+                    self.addQRScannerView()
+                    self.scanQRCode()
+                    
+                }
+                
+            } else {
+                
+                DispatchQueue.main.async {
+                    
+                    self.addTextInput()
+                    self.addQRScannerView()
+                    self.scanQRCode()
+                    
+                }
                 
             }
             
+        } else {
+            
+            DispatchQueue.main.async {
+                self.addQRScannerView()
+                self.scanQRCode()
+            }
         }
+        
+        
         
     }
     
@@ -1040,9 +1110,13 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     
     func scanQRCode() {
         
-        if self.getReceivingAddressMode || self.getPayerAddressMode {
-            
-            self.addAddressBookButton()
+        if self.payInvoiceMode != true {
+          
+            if self.getReceivingAddressMode || self.getPayerAddressMode {
+                
+                self.addAddressBookButton()
+                
+            }
             
         }
         
@@ -1062,24 +1136,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         if metadataObjects.count > 0 {
             print("metadataOutput")
             
-            let machineReadableCode = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
-            
-            if machineReadableCode.type == AVMetadataObject.ObjectType.qr {
-                
-                stringURL = machineReadableCode.stringValue!
-                
-                if stringURL.contains("bitcoin:") {
-                    
-                    stringURL = stringURL.replacingOccurrences(of: "bitcoin:", with: "")
-                    
-                    if stringURL.contains("?") {
-                        
-                        let stringArray = stringURL.split(separator: "?")
-                        stringURL = String(stringArray[0])
-                        
-                    }
-                    
-                }
+            func processScan() {
                 
                 let key = stringURL
                 
@@ -1122,6 +1179,65 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                     
                     processKeys(key: key)
                     
+                }
+            }
+            
+            let machineReadableCode = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
+            
+            if machineReadableCode.type == AVMetadataObject.ObjectType.qr {
+                
+                stringURL = machineReadableCode.stringValue!
+                
+                if stringURL.contains("bitcoin:") {
+                    
+                    stringURL = stringURL.replacingOccurrences(of: "bitcoin:", with: "")
+                    
+                    if stringURL.contains("?") {
+                        
+                        let stringArray = stringURL.split(separator: "?")
+                        stringURL = String(stringArray[0])
+                        processScan()
+                        
+                    }
+                    
+                } else if stringURL.hasPrefix("address:") {
+                    
+                    self.avCaptureSession.stopRunning()
+                    self.removeScanner()
+                    self.scanLabel.removeFromSuperview()
+                    let formatArray = stringURL.split(separator: "?")
+                    self.recievingAddress = formatArray[0].replacingOccurrences(of: "address:", with: "")
+                    self.currency = formatArray[2].replacingOccurrences(of: "currency:", with: "")
+                    self.amount = formatArray[1].replacingOccurrences(of: "amount:", with: "")
+                    self.payInvoiceMode = false
+                    
+                    if self.recievingAddress.hasPrefix("m") || self.recievingAddress.hasPrefix("2") || self.recievingAddress.hasPrefix("n") {
+                        
+                        self.testnetMode = true
+                        
+                    } else if self.recievingAddress.hasPrefix("1") || self.recievingAddress.hasPrefix("3") {
+                        
+                        self.mainnetMode = true
+                        
+                    }
+                    
+                    if self.currency != "BTC" && self.currency != "SAT" {
+                        
+                        self.getPayerAddressMode = true
+                        self.getReceivingAddressMode = false
+                        self.getSatoshiAmount()
+                        
+                    } else {
+                        
+                        self.getPayerAddressMode = true
+                        self.getReceivingAddressMode = false
+                        self.getSatsAndBTCs()
+                        
+                    }
+                    
+                } else {
+                    
+                    processScan()
                 }
                 
             }
@@ -1611,7 +1727,11 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                                                     
                                                     self.removeSpinner()
                                                     
-                                                    let alert = UIAlertController(title: NSLocalizedString("Transaction Sent", comment: ""), message: "Transaction ID: \(hashCheck)", preferredStyle: UIAlertControllerStyle.actionSheet)
+                                                    DispatchQueue.main.async {
+                                                        UIImpactFeedbackGenerator().impactOccurred()
+                                                    }
+                                                    
+                                                    let alert = UIAlertController(title: NSLocalizedString("Transaction Sent\n😁", comment: ""), message: "Transaction ID: \(hashCheck)", preferredStyle: UIAlertControllerStyle.actionSheet)
                                                     
                                                     alert.addAction(UIAlertAction(title: NSLocalizedString("Copy to Clipboard", comment: ""), style: .default, handler: { (action) in
                                                         
@@ -1677,8 +1797,9 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                     
                     if success {
                         
-                       sendNow()
-                                
+                        DispatchQueue.main.async {
+                            sendNow()
+                        }
                         
                     } else {
                         
