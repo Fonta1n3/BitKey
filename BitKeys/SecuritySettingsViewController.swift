@@ -13,8 +13,10 @@ import CoreData
 import AVFoundation
 import AES256CBC
 
-class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate {
+class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
     
+    var uploadButton = UIButton()
+    let imagePicker = UIImagePickerController()
     var segwitMode = Bool()
     var legacyMode = Bool()
     var segwit = SegwitAddrCoder()
@@ -36,7 +38,10 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        imagePicker.delegate = self
+        imagePicker.allowsEditing = false
+        imagePicker.sourceType = .photoLibrary
         securitySettingsTable.delegate = self
         addButtons()
         
@@ -171,7 +176,7 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
             footerView.backgroundColor = UIColor.white
             explanationLabel.backgroundColor = UIColor.white
             
-            explanationLabel.text = "A BIP39 password is used to create a dual factor recovery phrase, meaning you will need to type in the BIP39 password along with your recovery phrase in order to restore your Bitcoin. If you do not create a BIP39 password then you will not need to input a password along with your recovery phrase to recover your Bitcoin. A dual factor recovery phrase is highly recommended as even if someone finds your recovery phrase they won't have access to your Bitcoin unless they also know your BIP39 password."
+            explanationLabel.text = "A BIP39 password is used to create a dual factor recovery phrase, meaning you will need to type in the BIP39 password along with your recovery phrase in order to restore your Bitcoin. A dual factor recovery phrase is highly recommended as even if someone finds your recovery phrase they won't have access to your Bitcoin unless they also know your BIP39 password."
             footerView.addSubview(explanationLabel)
             
             
@@ -190,7 +195,7 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
             footerView.backgroundColor = UIColor.white
             explanationLabel.backgroundColor = UIColor.white
             
-            explanationLabel.text = "Creating a back up will save your encrpyted private keys as QR Codes in a photo album called \"BitSense\". You will need to write down the encyrption key to restore your back up incase you lose this device or delete and reinstall the app. To restore the back up just tap the restore button here, then input the password if needed and scan each encrypted QR Code, remember if your using the same device and have not deleted the app you will NOT need to input the password."
+            explanationLabel.text = "Creating a back up will save your encrpyted private keys as QR Codes in a photo album called \"BitSense\". You will need to write down the encyrption key to restore your back up incase you lose this device. To restore the back up just tap the restore button here, then input the password (only if your on a different device) and scan each encrypted QR Code, remember if your using the same device you will NOT need to input the password even if you deleted and reinstalled BitSense."
             footerView.addSubview(explanationLabel)
             
         }
@@ -656,6 +661,13 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
         importView.frame = view.frame
         importView.backgroundColor = UIColor.white
         
+        let imageView = UIImageView()
+        imageView.image = UIImage(named:"background.jpg")
+        imageView.frame = self.view.frame
+        imageView.contentMode = UIViewContentMode.scaleAspectFill
+        imageView.alpha = 0.05
+        self.importView.addSubview(imageView)
+        
         self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
         self.backButton.showsTouchWhenHighlighted = true
         self.backButton.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
@@ -670,6 +682,13 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
         self.textInput.isSecureTextEntry = true
         self.textInput.placeholder = "Back Up Password"
         
+        self.uploadButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 140, y: self.view.frame.maxY - 60, width: 130, height: 55))
+        self.uploadButton.showsTouchWhenHighlighted = true
+        self.uploadButton.setTitle("From Photos", for: .normal)
+        self.uploadButton.setTitleColor(UIColor.blue, for: .normal)
+        self.uploadButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
+        self.uploadButton.addTarget(self, action: #selector(self.chooseQRCodeFromLibrary), for: .touchUpInside)
+        
         self.qrImageView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.textInput.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
         addShadow(view:self.qrImageView)
         
@@ -679,10 +698,11 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
             self.importView.addSubview(self.backButton)
             self.importView.addSubview(self.textInput)
             self.importView.addSubview(self.qrImageView)
+            self.importView.addSubview(self.uploadButton)
             let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard (_:)))
             self.importView.addGestureRecognizer(tapGesture)
             
-            displayAlert(viewController: self, title: "Alert", message: "If you are restoring a back up that was made on a different device, or you deleted the app, you will need to type in the \"Back Up Password\" that was given to you. If its the same device and you have not deleted the app you can just scan your encrypted QR Codes.")
+            displayAlert(viewController: self, title: "Alert", message: "If you are restoring a back up that was made on a different device, you will need to type in the \"Back Up Password\" that was given to you. If its the same device you can just scan your encrypted QR Codes and leave the password input blank.")
             
         }
         
@@ -703,6 +723,84 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
         
         scanQRCode()
         
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    
+    
+    @objc func chooseQRCodeFromLibrary() {
+        
+        present(imagePicker, animated: true, completion: nil)
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+        
+        if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
+            
+            let detector:CIDetector=CIDetector(ofType: CIDetectorTypeQRCode, context: nil, options: [CIDetectorAccuracy:CIDetectorAccuracyHigh])!
+            
+            let ciImage:CIImage = CIImage(image:pickedImage)!
+            
+            var qrCodeLink = ""
+            
+            let features=detector.features(in: ciImage)
+            
+            for feature in features as! [CIQRCodeFeature] {
+                
+                qrCodeLink += feature.messageString!
+            }
+            
+            print(qrCodeLink)
+            
+            if qrCodeLink != "" {
+                
+                DispatchQueue.main.async {
+                    if self.textInput.text == "" {
+                        
+                        let password = KeychainWrapper.standard.string(forKey: "AESPassword")!
+                        print("password = \(password)")
+                        
+                        if let decrypted = AES256CBC.decryptString(qrCodeLink, password: password) as? String {
+                            
+                            print("decrypted = \(decrypted)")
+                            self.processKey(decryptedKey: decrypted)
+                            self.avCaptureSession.stopRunning()
+                            
+                        } else {
+                            
+                            displayAlert(viewController: self, title: "Error", message: "Password incorrect, take a deep breath, relax and try again. Remember all the letters are lower case, if you see an \"l\" it is a lower case \"L\" not an upper case \"I")
+                        }
+                        
+                        
+                    } else {
+                        
+                        let password = self.textInput.text!
+                        print("password = \(password)")
+                        
+                        if let decrypted = AES256CBC.decryptString(qrCodeLink, password: password) as? String {
+                            
+                            print("decrypted = \(decrypted)")
+                            self.processKey(decryptedKey: decrypted)
+                            self.avCaptureSession.stopRunning()
+                            
+                            
+                        } else {
+                            
+                            displayAlert(viewController: self, title: "Error", message: "Password incorrect, take a deep breath, relax and try again. Remember all the letters are lower case, if you see an \"l\" it is a lower case \"L\" not an upper case \"I")
+                        }
+                        
+                        
+                    }
+                }
+                
+            }
+            
+        }
+        
+        dismiss(animated: true, completion: nil)
     }
     
     enum error: Error {
@@ -1230,6 +1328,7 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                             DispatchQueue.main.async {
                                 
                                 self.giveUserEncryptionPassword()
+                                self.createBackupBool = false
                                 
                             }
                             
@@ -1238,7 +1337,7 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                             DispatchQueue.main.async {
                                 
                                 self.setBIP39Now()
-                                
+                                self.changeBIP39password = false
                             }
                             
                         }

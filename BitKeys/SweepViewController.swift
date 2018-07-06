@@ -9,8 +9,10 @@
 import UIKit
 import AVFoundation
 
-class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate {
+class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
     
+    var uploadButton = UIButton()
+    let imagePicker = UIImagePickerController()
     var backButton = UIButton()
     var testnetMode = Bool()
     var mainnetMode = Bool()
@@ -28,22 +30,153 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
         super.viewDidLoad()
 
         print("SweepViewController")
+        
+        imagePicker.delegate = self
+        imagePicker.allowsEditing = false
+        imagePicker.sourceType = .photoLibrary
+        
+        let imageView = UIImageView()
+        imageView.image = UIImage(named:"background.jpg")
+        imageView.frame = self.view.frame
+        imageView.contentMode = UIViewContentMode.scaleAspectFill
+        imageView.alpha = 0.05
+        self.view.addSubview(imageView)
         privateKeyImportText.delegate = self
         addScanner()
         addBackButton()
+        addUploadButton()
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
         
-       addressBook = checkAddressBook()
+        addressBook = checkAddressBook()
         legacyMode = checkSettingsForKey(keyValue: "legacyMode")
         segwitMode = checkSettingsForKey(keyValue: "segwitMode")
         
+        
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+        
+        if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
+            
+            let detector:CIDetector=CIDetector(ofType: CIDetectorTypeQRCode, context: nil, options: [CIDetectorAccuracy:CIDetectorAccuracyHigh])!
+            
+            let ciImage:CIImage = CIImage(image:pickedImage)!
+            
+            var qrCodeLink = ""
+            
+            let features=detector.features(in: ciImage)
+            
+            for feature in features as! [CIQRCodeFeature] {
+                
+                qrCodeLink += feature.messageString!
+            }
+            
+            print(qrCodeLink)
+            
+            if qrCodeLink.hasPrefix("9") || qrCodeLink.hasPrefix("c") {
+                print("testnetMode")
+                
+                if let privateKey = BTCPrivateKeyAddressTestnet(string: qrCodeLink) {
+                    
+                    if let key = BTCKey.init(privateKeyAddress: privateKey) {
+                        
+                        print("privateKey = \(key.privateKeyAddressTestnet)")
+                        
+                        var bitcoinAddress = String()
+                        
+                        let privateKeyWIF = key.privateKeyAddressTestnet.string
+                        let addressHD = key.addressTestnet.string
+                        let publicKey = key.compressedPublicKey.hex()!
+                        print("publicKey = \(publicKey)")
+                        
+                        if self.legacyMode {
+                            
+                            bitcoinAddress = addressHD
+                            
+                        }
+                        
+                        if segwitMode {
+                            
+                            let compressedPKData = BTCRIPEMD160(BTCSHA256(key.compressedPublicKey as Data!) as Data!) as Data!
+                            
+                            do {
+                                
+                                bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
+                                
+                            } catch {
+                                
+                                displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                                
+                            }
+                            
+                        }
+                        
+                        DispatchQueue.main.async {
+                            saveWallet(viewController: self, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot")
+                        }
+                        
+                    }
+                    
+                }
+                
+            } else if qrCodeLink.hasPrefix("5") || qrCodeLink.hasPrefix("K") || qrCodeLink.hasPrefix("L") {
+                print("mainnetMode")
+                
+                if let privateKey = BTCPrivateKeyAddress(string: qrCodeLink) {
+                    
+                    if let key = BTCKey.init(privateKeyAddress: privateKey) {
+                        
+                        print("privateKey = \(key.privateKeyAddress)")
+                        
+                        var bitcoinAddress = String()
+                        
+                        let privateKeyWIF = key.privateKeyAddress.string
+                        let addressHD = key.address.string
+                        let publicKey = key.compressedPublicKey.hex()!
+                        print("publicKey = \(publicKey)")
+                        
+                        if self.legacyMode {
+                            
+                            bitcoinAddress = addressHD
+                            
+                        }
+                        
+                        if segwitMode {
+                            
+                            let compressedPKData = BTCRIPEMD160(BTCSHA256(key.compressedPublicKey as Data!) as Data!) as Data!
+                            
+                            do {
+                                
+                                bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                                
+                            } catch {
+                                
+                                displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                                
+                            }
+                            
+                        }
+                        
+                        DispatchQueue.main.async {
+                            saveWallet(viewController: self, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot")
+                        }
+                        
+                    }
+                    
+                }
+                
+            }
+
+        }
+        
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        dismiss(animated: true, completion: nil)
     }
     
     func addScanner() {
@@ -89,6 +222,24 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
         
     }
     
+    func addUploadButton() {
+        
+        DispatchQueue.main.async {
+            self.uploadButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 140, y: self.view.frame.maxY - 60, width: 130, height: 55))
+            self.uploadButton.showsTouchWhenHighlighted = true
+            self.uploadButton.setTitle("From Photos", for: .normal)
+            self.uploadButton.setTitleColor(UIColor.blue, for: .normal)
+            self.uploadButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
+            self.uploadButton.addTarget(self, action: #selector(self.chooseQRCodeFromLibrary), for: .touchUpInside)
+            self.view.addSubview(self.uploadButton)
+        }
+    }
+    
+    @objc func chooseQRCodeFromLibrary() {
+        
+        present(imagePicker, animated: true, completion: nil)
+    }
+    
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         print("textFieldShouldReturn")
         self.view.endEditing(true)
@@ -114,8 +265,8 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                 if let key = BTCKey.init(privateKeyAddress: privateKey) {
                     
                     print("privateKey = \(key.privateKeyAddressTestnet)")
-                    privateKeyImportText.removeFromSuperview()
-                    self.removeScanner()
+                    //privateKeyImportText.removeFromSuperview()
+                    //self.removeScanner()
                     
                     var bitcoinAddress = String()
                     
@@ -160,8 +311,8 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                 if let key = BTCKey.init(privateKeyAddress: privateKey) {
                     
                     print("privateKey = \(key.privateKeyAddress)")
-                    privateKeyImportText.removeFromSuperview()
-                    self.removeScanner()
+                    //privateKeyImportText.removeFromSuperview()
+                    //self.removeScanner()
                     
                     var bitcoinAddress = String()
                     
@@ -274,8 +425,8 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                         if let key = BTCKey.init(privateKeyAddress: privateKey) {
                             
                             print("privateKey = \(key.privateKeyAddressTestnet)")
-                            privateKeyImportText.removeFromSuperview()
-                            self.removeScanner()
+                            //privateKeyImportText.removeFromSuperview()
+                            //self.removeScanner()
                             
                             var bitcoinAddress = String()
                             
@@ -320,8 +471,8 @@ class SweepViewController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                         if let key = BTCKey.init(privateKeyAddress: privateKey) {
                             
                             print("privateKey = \(key.privateKeyAddress)")
-                            privateKeyImportText.removeFromSuperview()
-                            self.removeScanner()
+                            //privateKeyImportText.removeFromSuperview()
+                            //self.removeScanner()
                             var bitcoinAddress = String()
                             
                             let privateKeyWIF = key.privateKeyAddress.string

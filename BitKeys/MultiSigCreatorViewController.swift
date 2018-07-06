@@ -48,6 +48,13 @@ class MultiSigCreatorViewController: UIViewController, UITextFieldDelegate, AVCa
 
         print("MultiSigCreatorViewController")
         
+        let imageView = UIImageView()
+        imageView.image = UIImage(named:"background.jpg")
+        imageView.frame = self.view.frame
+        imageView.contentMode = UIViewContentMode.scaleAspectFill
+        imageView.alpha = 0.05
+        self.view.addSubview(imageView)
+        
         textFieldInput.delegate = self
         getNumberOfPrivateKeysMode = true
         addBackButton()

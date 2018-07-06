@@ -14,9 +14,12 @@ import CoreData
 import LocalAuthentication
 import SwiftKeychainWrapper
 
-class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate, AVCaptureMetadataOutputObjectsDelegate {
+class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate, AVCaptureMetadataOutputObjectsDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
     
-    let background = UIImageView()
+    var myLabel = UILabel()
+    var uploadButton = UIButton()
+    let imagePicker = UIImagePickerController()
+    let qrimageview = UIImageView()
     var walletName = String()
     var textToShare = String()
     var filename = String()
@@ -51,7 +54,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     var imageView:UIView!
     var numberArray:[String] = []
     var joinedArray:String!
-    var bitField:UITextView!
+    var bitField = UITextView()
     var myField: UITextView!
     var mnemonicView: UITextView!
     var button = UIButton(type: .custom)
@@ -101,13 +104,30 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        imagePicker.delegate = self
+        imagePicker.allowsEditing = false
+        imagePicker.sourceType = .photoLibrary
+        let imageView = UIImageView()
+        imageView.image = UIImage(named:"background.jpg")
+        imageView.frame = self.view.frame
+        imageView.contentMode = UIViewContentMode.scaleAspectFill
+        imageView.alpha = 0.05
+        self.view.addSubview(imageView)
         diceMode = false
         inputMnemonic.delegate = self
         inputPassword.delegate = self
         privateKeyMode = true
         addHomeScreen()
         
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard (_:)))
+        self.view.addGestureRecognizer(tapGesture)
+        
+    }
+    
+    @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
+        inputMnemonic.resignFirstResponder()
+        inputPassword.resignFirstResponder()
+        //amountToSend.resignFirstResponder()
     }
     
     override func viewWillLayoutSubviews(){
@@ -170,6 +190,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
                 let saveSuccessful:Bool = KeychainWrapper.standard.set(password, forKey: "AESPassword")
                 print("Save was successful: \(saveSuccessful)")
+                
                 
                 
             } catch {
@@ -239,12 +260,64 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         }
         
         addressBook = checkAddressBook()
+        
         hotMode = checkSettingsForKey(keyValue: "hotMode")
         coldMode = checkSettingsForKey(keyValue: "coldMode")
         legacyMode = checkSettingsForKey(keyValue: "legacyMode")
         segwitMode = checkSettingsForKey(keyValue: "segwitMode")
         mainnetMode = checkSettingsForKey(keyValue: "mainnetMode")
         testnetMode = checkSettingsForKey(keyValue: "testnetMode")
+        
+        if hotMode == false && coldMode == false && legacyMode == false && segwitMode == false && mainnetMode == false && testnetMode == false {
+            
+            guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+                
+                return
+                
+            }
+            
+            let context = appDelegate.persistentContainer.viewContext
+            let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "Settings")
+            
+            do {
+                
+                let results = try context.fetch(fetchRequest) as [NSManagedObject]
+                
+                if results.count > 0 {
+                    
+                    
+                } else {
+                    
+                    print("no results so create one")
+                    let entity = NSEntityDescription.entity(forEntityName: "Settings", in: context)
+                    let mySettings = NSManagedObject(entity: entity!, insertInto: context)
+                    mySettings.setValue(true, forKey: "hotMode")
+                    mySettings.setValue(false, forKey: "coldMode")
+                    mySettings.setValue(true, forKey: "legacyMode")
+                    mySettings.setValue(false, forKey: "segwitMode")
+                    mySettings.setValue(true, forKey: "mainnetMode")
+                    mySettings.setValue(false, forKey: "testnetMode")
+                    
+                    do {
+                        
+                        try context.save()
+                        
+                    } catch {
+                        
+                        print("Failed saving")
+                        
+                    }
+                    
+                }
+                
+            } catch {
+                
+                print("Failed")
+                
+            }
+            
+        }
+        
         
        words = ""
         
@@ -455,7 +528,8 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         self.outputMnemonic.frame = CGRect(x: self.view.frame.minX + 5, y: self.inputMnemonic.frame.maxY + 100, width: self.view.frame.width - 10, height: 200)
         self.outputMnemonic.textAlignment = .left
         self.outputMnemonic.isEditable = false
-        self.outputMnemonic.font = UIFont.init(name: "HelveticaNeue-Light", size: 22)
+        self.outputMnemonic.backgroundColor = UIColor.clear
+        self.outputMnemonic.font = UIFont.init(name: "HelveticaNeue-Bold", size: 22)
         self.outputMnemonic.returnKeyType = UIReturnKeyType.done
         self.view.addSubview(self.outputMnemonic)
         
@@ -518,16 +592,17 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
             let modelName = UIDevice.modelName
             
-            self.bitField = UITextView (frame:CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - (self.view.frame.height / 2), width: self.view.frame.width, height: self.view.frame.height))
+            self.bitField.frame = self.view.frame
             self.bitField.isUserInteractionEnabled = false
-            self.bitField.font = .systemFont(ofSize: 24)
+            self.view.addSubview(self.bitField)
             
-            self.background.frame = self.bitField.frame
-            self.background.image = UIImage(named: "binaryImage.jpg")
-            self.background.clipsToBounds = true
-            self.background.contentMode = UIViewContentMode.scaleAspectFit
-            //self.background.contentMode = UIViewContentMode.scaleAspectFill
-            self.bitField.addSubview(self.background)
+            let imageView = UIImageView()
+            imageView.image = UIImage(named:"background.jpg")
+            imageView.frame = self.bitField.frame
+            imageView.contentMode = UIViewContentMode.scaleAspectFill
+            imageView.alpha = 0.05
+            self.bitField.addSubview(imageView)
+            
             
             if self.imageView != nil {
                 self.imageView.removeFromSuperview()
@@ -646,7 +721,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.infoButton.setImage(#imageLiteral(resourceName: "help2.png"), for: .normal)
             self.infoButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             
-            self.view.addSubview(self.bitField)
+            
             self.view.addSubview(self.imageView)
             self.view.addSubview(self.checkAddressButton)
             self.view.addSubview(self.transactionsButton)
@@ -687,7 +762,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     
     @objc func userCreatesRandomness(gestureRecognizer: UIPanGestureRecognizer) {
         
-        self.background.removeFromSuperview()
             self.addressBookButton.removeFromSuperview()
             self.toolboxButton.removeFromSuperview()
             self.priceButton.removeFromSuperview()
@@ -709,9 +783,10 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             var joinedArray = shuffledArray.joined()
             var evenNumbersToZeros = joinedArray.replacingOccurrences(of: "[2468]", with: "0", options: .regularExpression, range: nil)
             var allToBits = evenNumbersToZeros.replacingOccurrences(of: "[3579]", with: "1", options: .regularExpression, range: nil)
-            bitField.text = allToBits
-            bitField.font = UIFont.init(name: "HelveticaNeue-Light", size: 25)
-            
+            self.bitField.text = allToBits
+            self.bitField.font = UIFont.init(name: "HelveticaNeue-Light", size: 25)
+            self.bitField.alpha = 0.25
+        
             if gestureRecognizer.state == UIGestureRecognizerState.began {
                 DispatchQueue.main.async {
                     rotateAnimation(imageView: self.imageView as! UIImageView)
@@ -911,17 +986,17 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         addShadow(view: self.privateKeyQRView)
         self.view.addSubview(self.privateKeyQRView)
             
-        self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.view.frame.minX + 5, y: self.privateKeyQRView.frame.maxY + 30, width: self.view.frame.width - 10, height: 13))
+       /* self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.view.frame.minX + 5, y: self.privateKeyQRView.frame.maxY + 30, width: self.view.frame.width - 10, height: 13))
         
         self.WIFprivateKeyFieldLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 12)
         self.WIFprivateKeyFieldLabel.textColor = UIColor.black
         self.WIFprivateKeyFieldLabel.textAlignment = .left
-        self.view.addSubview(self.WIFprivateKeyFieldLabel)
+        self.view.addSubview(self.WIFprivateKeyFieldLabel)*/
             
         UIView.animate(withDuration: 0.5, animations: {
                 
             self.imageView.alpha = 0
-            self.bitField.alpha = 0
+            //self.bitField.alpha = 0
                 
         }, completion: { _ in
                 
@@ -935,7 +1010,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     
                 DispatchQueue.main.async {
                         UIImpactFeedbackGenerator().impactOccurred()
-                    self.WIFprivateKeyFieldLabel.text = "Text Format:"
+                    //self.WIFprivateKeyFieldLabel.text = "Text Format:"
                     self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 20) / 2), y: self.privateKeyQRView.frame.minY - 60, width: self.view.frame.width - 20, height: 50))
                     
                     if self.bitcoinAddress.count > 45 {
@@ -959,14 +1034,23 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     self.view.addSubview(self.privateKeyTitle)
                         
                 }
+                
+                self.myLabel = UILabel (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 20)/2), y: self.privateKeyQRView.frame.maxY, width: self.view.frame.width - 20, height: 50))
+                self.myLabel.textAlignment = .center
+                self.myLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 18)
+                self.myLabel.text = self.bitcoinAddress
+                self.myLabel.adjustsFontSizeToFitWidth = true
+                self.view.addSubview(self.myLabel)
+                
                     
-                self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 10)/2), y: self.WIFprivateKeyFieldLabel.frame.maxY, width: self.view.frame.width - 10, height: 150))
+                /*self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 10)/2), y: self.WIFprivateKeyFieldLabel.frame.maxY, width: self.view.frame.width - 10, height: 150))
                 self.myField.isEditable = false
                 self.myField.isSelectable = true
                 self.myField.textAlignment = .center
+                self.myField.backgroundColor = UIColor.clear
                 self.myField.font = UIFont.init(name: "HelveticaNeue-Light", size: 18)
                 self.myField.text = self.bitcoinAddress
-                self.view.addSubview(self.myField)
+                self.view.addSubview(self.myField)*/
                 self.addHomeButton()
                 self.addBackUpButton()
                 self.zero = 0
@@ -979,14 +1063,16 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     }
     
     @objc func importNow() {
+        print("importNow")
         
-        if let testInputMnemonic = BTCMnemonic.init(words: self.wordArray, password: self.password, wordListType: BTCMnemonicWordListType.english) {
+        if let testInputMnemonic = BTCMnemonic.init(words: self.wordArray, password: self.inputPassword.text!, wordListType: BTCMnemonicWordListType.english) {
            
             self.removeHomeScreen()
             self.inputMnemonic.resignFirstResponder()
             self.inputMnemonic.removeFromSuperview()
             self.inputPassword.removeFromSuperview()
             self.scanQRCodeButton.removeFromSuperview()
+            self.uploadButton.removeFromSuperview()
             
             let recoveryPhrase = testInputMnemonic.words.description
             let formatMnemonic1 = recoveryPhrase.replacingOccurrences(of: "[", with: "")
@@ -1100,13 +1186,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         print("addImportActionButton")
         
         DispatchQueue.main.async {
-            self.importAction = UIButton(frame: CGRect(x: 10, y: self.inputMnemonic.frame.maxY + 10, width: self.view.frame.width - 20, height: 50))
+            self.importAction = UIButton(frame: CGRect(x: self.view.center.x - 45, y: self.inputMnemonic.frame.maxY + 10, width: 90, height: 50))
             self.importAction.showsTouchWhenHighlighted = true
             self.importAction.titleLabel?.textAlignment = .center
-            self.importAction.layer.cornerRadius = 10
-            self.importAction.backgroundColor = UIColor.black
-            addShadow(view:self.importAction)
             self.importAction.setTitle("Import", for: .normal)
+            self.importAction.setTitleColor(UIColor.blue, for: .normal)
+            self.importAction.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
             self.importAction.addTarget(self, action: #selector(self.importNow), for: .touchUpInside)
             self.view.addSubview(self.importAction)
         }
@@ -1128,15 +1213,79 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         }
     }
     
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    
+    
+    @objc func chooseQRCodeFromLibrary() {
+        
+        present(imagePicker, animated: true, completion: nil)
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+        
+        if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
+            
+            let detector:CIDetector=CIDetector(ofType: CIDetectorTypeQRCode, context: nil, options: [CIDetectorAccuracy:CIDetectorAccuracyHigh])!
+            
+            let ciImage:CIImage = CIImage(image:pickedImage)!
+            
+            var qrCodeLink = ""
+            
+            let features=detector.features(in: ciImage)
+            
+            for feature in features as! [CIQRCodeFeature] {
+                
+                qrCodeLink += feature.messageString!
+            }
+            
+            print(qrCodeLink)
+            
+            if qrCodeLink != "" {
+                
+                DispatchQueue.main.async {
+                    
+                    self.scanQRCodeButton.removeFromSuperview()
+                    self.outputMnemonic.text = qrCodeLink
+                    self.wordArray = qrCodeLink.wordList
+                    
+                    for word in self.wordArray {
+                        
+                        self.listArray.append(word + " ")
+                        
+                    }
+                    
+                }
+                
+                self.qrimageview.removeFromSuperview()
+                self.avCaptureSession.stopRunning()
+            }
+            
+       }
+        
+        dismiss(animated: true, completion: nil)
+    }
+    
     @objc func scanRecoveryPhrase() {
         
         self.inputMnemonic.resignFirstResponder()
         self.inputPassword.resignFirstResponder()
         
-        self.imageView.frame = CGRect(x: 25, y: self.importAction.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 20)
+        self.qrimageview.frame = CGRect(x: 25, y: self.importAction.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 20)
+        addShadow(view: self.qrimageview)
+        
+        self.uploadButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 140, y: self.view.frame.maxY - 60, width: 130, height: 55))
+        self.uploadButton.showsTouchWhenHighlighted = true
+        self.uploadButton.setTitle("From Photos", for: .normal)
+        self.uploadButton.setTitleColor(UIColor.blue, for: .normal)
+        self.uploadButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
+        self.uploadButton.addTarget(self, action: #selector(self.chooseQRCodeFromLibrary), for: .touchUpInside)
+        self.view.addSubview(self.uploadButton)
         
         DispatchQueue.main.async {
-            self.view.addSubview(self.imageView)
+            self.view.addSubview(self.qrimageview)
         }
         
         func scanQRCode() {
@@ -1153,7 +1302,9 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
         }
         
-        scanQRCode()
+        DispatchQueue.main.async {
+            scanQRCode()
+        }
         
     }
     
@@ -1179,33 +1330,32 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             throw error.videoInputInitFail
         }
         
+            let avCaptureMetadataOutput = AVCaptureMetadataOutput()
+            avCaptureMetadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
         
-        let avCaptureMetadataOutput = AVCaptureMetadataOutput()
-        avCaptureMetadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
         
-        if let inputs = self.avCaptureSession.inputs as? [AVCaptureDeviceInput] {
-            for input in inputs {
-                self.avCaptureSession.removeInput(input)
+            if let inputs = self.avCaptureSession.inputs as? [AVCaptureDeviceInput] {
+                for input in inputs {
+                    self.avCaptureSession.removeInput(input)
+                }
             }
-        }
         
-        if let outputs = self.avCaptureSession.outputs as? [AVCaptureMetadataOutput] {
-            for output in outputs {
-                self.avCaptureSession.removeOutput(output)
+        
+            if let outputs = self.avCaptureSession.outputs as? [AVCaptureMetadataOutput] {
+                for output in outputs {
+                    self.avCaptureSession.removeOutput(output)
+                }
             }
-        }
         
-        self.avCaptureSession.addInput(avCaptureInput)
-        self.avCaptureSession.addOutput(avCaptureMetadataOutput)
         
-        avCaptureMetadataOutput.metadataObjectTypes = [AVMetadataObject.ObjectType.qr]
-        
-        let avCaptureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: avCaptureSession)
-        avCaptureVideoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
-        avCaptureVideoPreviewLayer.frame = self.imageView.bounds
-        self.imageView.layer.addSublayer(avCaptureVideoPreviewLayer)
-        
-        self.avCaptureSession.startRunning()
+            self.avCaptureSession.addInput(avCaptureInput)
+            self.avCaptureSession.addOutput(avCaptureMetadataOutput)
+            avCaptureMetadataOutput.metadataObjectTypes = [AVMetadataObject.ObjectType.qr]
+            let avCaptureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: self.avCaptureSession)
+            avCaptureVideoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
+            avCaptureVideoPreviewLayer.frame = self.qrimageview.bounds
+            self.qrimageview.layer.addSublayer(avCaptureVideoPreviewLayer)
+            self.avCaptureSession.startRunning()
         
     }
     
@@ -1234,7 +1384,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     
                 }
                 
-                self.imageView.removeFromSuperview()
+                self.qrimageview.removeFromSuperview()
                 self.avCaptureSession.stopRunning()
                 
             }
@@ -1322,6 +1472,13 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         for dice in self.diceArray {
             dice.removeFromSuperview()
         }
+        
+        self.qrimageview.removeFromSuperview()
+        if self.myField != nil {
+            self.myField.removeFromSuperview()
+        }
+        self.uploadButton.removeFromSuperview()
+        self.scanQRCodeButton.removeFromSuperview()
         self.imageView.removeFromSuperview()
         self.diceArray.removeAll()
         self.tappedIndex = 0
@@ -1430,7 +1587,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 
                 DispatchQueue.main.async {
                     
-                    self.myField.text = self.bitcoinAddress
+                    self.myLabel.text = self.bitcoinAddress
                     self.privateKeyQRCode = self.generateQrCode(key: self.bitcoinAddress)
                     self.privateKeyQRView.image = self.privateKeyQRCode!
                     
@@ -1486,7 +1643,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     }
                     
                     self.WIFprivateKeyFieldLabel.text = ""
-                    self.myField.text = self.privateKeyText
+                    self.myLabel.text = self.privateKeyText
                     self.privateKeyQRCode = self.generateQrCode(key: self.privateKeyText)
                     self.privateKeyQRView.image = self.privateKeyQRCode!
                     self.privateKeyMode = true
@@ -1560,11 +1717,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         self.privateKeyQRView.alpha = 0
         self.view.addSubview(self.privateKeyQRView)
         
-        self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.view.frame.minX + 5, y: self.privateKeyQRView.frame.maxY + 30, width: self.view.frame.width - 10, height: 13))
+        /*self.WIFprivateKeyFieldLabel = UILabel(frame: CGRect(x: self.view.frame.minX + 5, y: self.privateKeyQRView.frame.maxY + 30, width: self.view.frame.width - 10, height: 13))
         self.WIFprivateKeyFieldLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 12)
         self.WIFprivateKeyFieldLabel.textColor = UIColor.black
         self.WIFprivateKeyFieldLabel.textAlignment = .left
-        self.view.addSubview(self.WIFprivateKeyFieldLabel)
+        self.view.addSubview(self.WIFprivateKeyFieldLabel)*/
         
         self.textToShare = self.privateKeyWIF
         self.filename = "privateKey"
@@ -1572,7 +1729,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         UIView.animate(withDuration: 0.5, animations: {
             
             self.imageView.alpha = 0
-            self.bitField.alpha = 0
+            //self.bitField.alpha = 0
             
         }, completion: { _ in
             
@@ -1584,7 +1741,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 DispatchQueue.main.async {
                     UIImpactFeedbackGenerator().impactOccurred()
                 }
-                self.WIFprivateKeyFieldLabel.text = ""
+                //self.WIFprivateKeyFieldLabel.text = ""
                 
                 self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 20) / 2), y: self.privateKeyQRView.frame.minY - 60, width: self.view.frame.width - 20, height: 50))
                 self.privateKeyTitle.text = "Private Key"
@@ -1601,13 +1758,22 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 self.privateKeyTitle.textAlignment = .center
                 self.view.addSubview(self.privateKeyTitle)
                 
-                self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 10)/2), y: self.WIFprivateKeyFieldLabel.frame.maxY, width: self.view.frame.width - 10, height: 150))
+                self.myLabel = UILabel (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 20)/2), y: self.privateKeyQRView.frame.maxY, width: self.view.frame.width - 20, height: 50))
+                
+                self.myLabel.textAlignment = .center
+                self.myLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 18)
+                self.myLabel.text = self.privateKeyWIF
+                self.myLabel.adjustsFontSizeToFitWidth = true
+                self.view.addSubview(self.myLabel)
+                
+                /*self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 10)/2), y: self.WIFprivateKeyFieldLabel.frame.maxY, width: self.view.frame.width - 10, height: 150))
                 self.myField.isEditable = false
                 self.myField.isSelectable = true
+                self.myField.backgroundColor = UIColor.clear
                 self.myField.textAlignment = .center
                 self.myField.font = UIFont.init(name: "HelveticaNeue-Light", size: 18)
                 self.myField.text = self.privateKeyWIF
-                self.view.addSubview(self.myField)
+                self.view.addSubview(self.myField)*/
                 addButtons()
                 self.addBackUpButton()
                 self.zero = 0
@@ -1667,6 +1833,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         self.mnemonicView = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 10) / 2), y: self.mnemonicLabel.frame.maxY + 1, width: self.view.frame.width - 10, height: 130))
         self.mnemonicView.text = self.words
+        self.mnemonicView.backgroundColor = UIColor.clear
         self.mnemonicView.isEditable = false
         self.mnemonicView.isSelectable = true
         self.mnemonicView.textAlignment = .natural
@@ -1687,7 +1854,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         UIView.animate(withDuration: 0.5, animations: {
             
             self.imageView.alpha = 0
-            self.bitField.alpha = 0
+            //self.bitField.alpha = 0
             
         }, completion: { _ in
             
@@ -1727,6 +1894,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
             DispatchQueue.main.async {
                 
+                self.myLabel.removeFromSuperview()
                 self.walletName = ""
                 self.mnemonicLabel.removeFromSuperview()
                 self.recoveryPhraseLabel.removeFromSuperview()
@@ -1746,7 +1914,10 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                     self.privateKeyQRCode = nil
                     self.privateKeyImage = nil
                     self.privateKeyQRView.image = nil
-                    self.myField.text = ""
+                    if self.myField != nil {
+                       self.myField.text = ""
+                    }
+                    
                     
                 }
                 

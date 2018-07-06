@@ -120,7 +120,7 @@ class TransactionSettingsViewController: UIViewController, UITableViewDelegate, 
     
     func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
         
-        return 70
+        return 80
         
     }
     
@@ -146,8 +146,8 @@ class TransactionSettingsViewController: UIViewController, UITableViewDelegate, 
             
         } else if section == 1 {
             
-            footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 60))
-            explanationLabel = UILabel(frame: CGRect(x: 10, y: 0, width: view.frame.size.width - 20, height: 60))
+            footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 80))
+            explanationLabel = UILabel(frame: CGRect(x: 10, y: 0, width: view.frame.size.width - 20, height: 80))
             explanationLabel.textColor = UIColor.darkGray
             footerView.backgroundColor = UIColor.white
             explanationLabel.backgroundColor = UIColor.white

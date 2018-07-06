@@ -31,6 +31,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     var addressLabel = UILabel()
     var addressBook: [[String: Any]] = []
     var addresses = String()
+    var addressToShare = String()
 
     
     @IBAction func addressText(_ sender: Any) {
@@ -92,6 +93,13 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let imageView = UIImageView()
+        imageView.image = UIImage(named:"background.jpg")
+        imageView.frame = self.view.frame
+        imageView.contentMode = UIViewContentMode.scaleAspectFill
+        imageView.alpha = 0.05
+        self.view.addSubview(imageView)
         
         self.addressToDisplay.delegate = self
         print("ViewControllerBalanceChecker")
@@ -241,6 +249,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func checkBalance(address: String) {
         print("checkBalance")
         
+        self.addressToShare = address
+        
         self.addSpinner()
         
         var url:NSURL!
@@ -298,7 +308,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                         btcBalanceLabel.textAlignment = .center
                                         self.view.addSubview(btcBalanceLabel)
                                         
-                                        
                                         self.addressLabel.adjustsFontSizeToFitWidth = true
                                         self.addressLabel.textColor = UIColor.black
                                         self.addressLabel.font = UIFont.systemFont(ofSize: 23)
@@ -308,7 +317,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                         self.addressBookButton.removeFromSuperview()
                                         self.myAddressButton.removeFromSuperview()
                                         self.addBackUpButton()
-                                        self.generateQrCode(key: address)
                                         self.getExchangeRates()
                                         
                                     }
@@ -488,15 +496,15 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     }
     
     func addBackUpButton() {
-        
+        print("addBackUpButton")
         DispatchQueue.main.async {
-            
-            self.backUpButton.removeFromSuperview()
-            self.backUpButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: self.view.frame.maxY - 60, width: 55, height: 55))
-            self.backUpButton.setImage(#imageLiteral(resourceName: "backUp.jpg"), for: .normal)
+            self.backUpButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.view.frame.maxY - 60, width: 80, height: 55))
+            self.backUpButton.showsTouchWhenHighlighted = true
+            self.backUpButton.setTitle("Share", for: .normal)
+            self.backUpButton.setTitleColor(UIColor.blue, for: .normal)
+            self.backUpButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
             self.backUpButton.addTarget(self, action: #selector(self.airDropImage), for: .touchUpInside)
             self.view.addSubview(self.backUpButton)
-            
         }
         
     }
@@ -531,7 +539,12 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 
                 for (index, wallet) in self.addressBook.enumerated() {
                     
-                    let walletName = wallet["label"] as! String
+                    var walletName = wallet["label"] as! String
+                    
+                    if walletName == "" {
+                        
+                        walletName = wallet["address"] as! String
+                    }
                     
                     alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
                         
@@ -607,6 +620,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         print("checkBech32Address")
         
+        self.addressToShare = address
+        
         self.addSpinner()
         
         var url:NSURL!
@@ -677,7 +692,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                     self.addressBookButton.removeFromSuperview()
                                     self.myAddressButton.removeFromSuperview()
                                     self.addBackUpButton()
-                                    self.generateQrCode(key: address)
                                     self.getExchangeRates()
                                     
                                 }
@@ -747,15 +761,17 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                         
                     }
                     
-                    saveWallet(viewController: self, address: address, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold")
+                    saveWallet(viewController: self, address: self.addressToShare, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold")
                     
                 }))
                 
             }
             
             alert.addAction(UIAlertAction(title: NSLocalizedString("QR Code", comment: ""), style: .default, handler: { (action) in
+                
+                let qrcode = self.generateQrCode(key: self.addressToShare)
                     
-                    if let data = UIImagePNGRepresentation(self.bitcoinAddressQRCode) {
+                    if let data = UIImagePNGRepresentation(qrcode) {
                         
                         let fileName = getDocumentsDirectory().appendingPathComponent("bitcoinAddress.png")
                         
@@ -773,7 +789,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("Text", comment: ""), style: .default, handler: { (action) in
                     
-                    let activityViewController = UIActivityViewController(activityItems: [self.addresses], applicationActivities: nil)
+                    let activityViewController = UIActivityViewController(activityItems: [self.addressToShare], applicationActivities: nil)
                     self.present(activityViewController, animated: true, completion: nil)
                     
                 }))
@@ -794,8 +810,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
     }
     
-    func generateQrCode(key: String) {
-        
+    func generateQrCode(key: String) -> UIImage {
+        var qrcode = UIImage()
         let ciContext = CIContext()
         let data = key.data(using: String.Encoding.ascii)
         
@@ -804,9 +820,11 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             let transform = CGAffineTransform(scaleX: 10, y: 10)
             let upScaledImage = filter.outputImage?.transformed(by: transform)
             let cgImage = ciContext.createCGImage(upScaledImage!, from: upScaledImage!.extent)
-            self.bitcoinAddressQRCode = UIImage(cgImage: cgImage!)
+            qrcode = UIImage(cgImage: cgImage!)
+            return qrcode
         }
         
+       return qrcode
     }
  
 }

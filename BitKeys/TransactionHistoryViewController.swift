@@ -18,13 +18,20 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
     var latestBlockHeight = Int()
     var transactionArray = [[String:Any]]()
     var addressBook = [[String:Any]]()
+    var activityIndicator:UIActivityIndicatorView!
     
     @IBOutlet var transactionHistoryTable: UITableView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         transactionHistoryTable.delegate = self
+        let imageView = UIImageView()
+        imageView.image = UIImage(named:"background.jpg")
+        imageView.frame = self.view.frame
+        imageView.contentMode = UIViewContentMode.scaleAspectFill
+        imageView.alpha = 0.02
+        self.view.addSubview(imageView)
         addBackButton()
         address = wallet["address"] as! String
         refresher = UIRefreshControl()
@@ -32,10 +39,13 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         transactionHistoryTable.addSubview(refresher)
         
         let title = UILabel(frame: CGRect(x: 70, y: 25, width: self.view.frame.width - 140, height: 50))
+        title.font = UIFont.init(name: "HelveticaNeue-Bold", size: 18)
+        title.textColor = UIColor.black
+        title.textAlignment = .center
         
         if self.wallet["label"] as! String != "" {
             
-         title.text = "\"\(self.wallet["label"] as! String)\""
+            title.text = "\(self.wallet["label"] as! String)"
             
         } else {
             
@@ -44,10 +54,17 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         }
         
         title.adjustsFontSizeToFitWidth = true
-        title.font = UIFont.init(name: "HelveticaNeue-Light", size: 32)
+        title.font = UIFont.init(name: "HelveticaNeue-Bold", size: 18)
         title.textColor = UIColor.black
         title.textAlignment = .center
         self.view.addSubview(title)
+        
+        self.activityIndicator = UIActivityIndicatorView(frame: CGRect(x: self.view.center.x - 25, y: self.view.center.y - 25, width: 50, height: 50))
+        self.activityIndicator.hidesWhenStopped = true
+        self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+        self.activityIndicator.isUserInteractionEnabled = true
+        self.view.addSubview(self.activityIndicator)
+        self.activityIndicator.startAnimating()
         
     }
 
@@ -225,11 +242,11 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
             
             var url:NSURL!
             
-            if address.hasPrefix("1") || address.hasPrefix("3") {
+            if address.hasPrefix("1") || address.hasPrefix("3") || address.hasPrefix("bc1") {
                 
                 url = NSURL(string: "https://blockchain.info/latestblock")
                 
-            } else if address.hasPrefix("m") || address.hasPrefix("2") || address.hasPrefix("n") {
+            } else if address.hasPrefix("m") || address.hasPrefix("2") || address.hasPrefix("n") || address.hasPrefix("tb") {
                 
                 url = NSURL(string: "https://testnet.blockchain.info/latestblock")
                 
@@ -720,7 +737,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         } else if address.hasPrefix("m") || address.hasPrefix("2") || address.hasPrefix("n") {
             
             //url = NSURL(string: "https://testnet.blockchain.info/rawaddr/\(address)")
-            url = NSURL(string: "https://api.blockcypher.com/v1/btc/test3/addrs/\(address)/full")
+            url = NSURL(string: "https://api.blockcypher.com/v1/btc/test3/addrs/\(address)/full?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
             
             let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
                 
@@ -979,7 +996,10 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         
         DispatchQueue.main.async {
             
-            if self.imageView != nil {
+            
+            
+            
+            /*if self.imageView != nil {
                 self.imageView.removeFromSuperview()
             }
             let bitcoinImage = UIImage(named: "Bitsense image.png")
@@ -988,7 +1008,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
             //self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
             self.imageView.frame = CGRect(x: self.view.frame.maxX - 55, y: 20, width: 50, height: 50)
             rotateAnimation(imageView: self.imageView as! UIImageView)
-            self.view.addSubview(self.imageView)
+            self.view.addSubview(self.imageView)*/
             
         }
         
@@ -998,7 +1018,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         
         DispatchQueue.main.async {
             
-            self.imageView.removeFromSuperview()
+            self.activityIndicator.stopAnimating()
             self.refresher.endRefreshing()
             
         }

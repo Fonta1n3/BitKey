@@ -36,6 +36,13 @@ class MayerMultipleViewController: UIViewController {
         
         print("MayerMultipleViewController")
         
+        let imageView = UIImageView()
+        imageView.image = UIImage(named:"background.jpg")
+        imageView.frame = self.view.frame
+        imageView.contentMode = UIViewContentMode.scaleAspectFill
+        imageView.alpha = 0.05
+        self.view.addSubview(imageView)
+        
         let bitcoinImage = UIImage(named: "Bitsense image.png")
         self.imageView = UIImageView(image: bitcoinImage!)
         self.imageView.center = self.view.center
@@ -140,40 +147,31 @@ class MayerMultipleViewController: UIViewController {
                                                                     self.removeSpinner()
                                                                     
                                                                     let exchangeRate = Double(rateCheck)
-                                                                    //print("exchangeRate = \(exchangeRate)")
-                                                                    //let priceDifference = round(100 * (exchangeRate - twoHundredDayMovingAverage)) / 100
-                                                                    //let percentage = Int((priceDifference / twoHundredDayMovingAverage) * 100)
+                                           
                                                                     
                                                                     let mayerMultipleLabel = UITextView()
+                                                                    mayerMultipleLabel.backgroundColor = UIColor.clear
                                                                     mayerMultipleLabel.textAlignment = .natural
                                                                     mayerMultipleLabel.frame = CGRect(x: self.view.frame.minX + 15, y: self.view.center.y - (self.view.frame.height / 3), width: self.view.frame.width - 30, height: 500)
-                                                                    
-                                                                    //if self.simpleMode {
-                                                                        
-                                                                        
-                                                                        
-                                                                    //} else {
-                                                                    
-                                                                    mayerMultipleLabel.text = "One Bitcoin costs:\n$\((round(100 * exchangeRate) / 100).withCommas()) USD\n\n200 Day Moving Average:\n$\((round(100 * twoHundredDayMovingAverage) / 100).withCommas()) USD\n\nMayer Multiple:\n\(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100)"
-                                                                        
-                                                                        /*if priceDifference < 0 {
-                                                                            
-                                                                            mayerMultipleLabel.text = "The Bitcoin Mayer Multiple is \(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100) with a current price of $\(round(100 * exchangeRate) / 100) USD and a 200 day moving average of $\(round(100 * twoHundredDayMovingAverage) / 100) USD.\n\nThe current price is $\(priceDifference) USD below the 200 day moving average.\n\nThat is a \(percentage)% deviation from the 200 day moving average."
-                                                                            
-                                                                        } else if priceDifference > 0 {
-                                                                            
-                                                                            mayerMultipleLabel.text = "The Bitcoin Mayer Multiple is \(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100) with a current price of $\(round(100 * exchangeRate) / 100) USD and a 200 day moving average of $\(round(100 * twoHundredDayMovingAverage) / 100) USD.\n\nThe current price is $\(priceDifference) USD above the 200 day moving average.\n\nThat is a \(percentage)% deviation from the 200 day moving average."
-                                                                            
-                                                                        } else if priceDifference == 0 {
-                                                                            
-                                                                            mayerMultipleLabel.text = "The Bitcoin Mayer Multiple is \(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100) with a current price of $\(round(100 * exchangeRate) / 100) USD and a 200 day moving average of $\(round(100 * twoHundredDayMovingAverage) / 100) USD.\n\nThe current price is equal to the 200 day moving average.\n\nThat is a \(percentage)% deviation from the 200 day moving average."
-                                                                            
-                                                                        }*/
-                                                                        
-                                                                    //}
-                                                                    
                                                                     mayerMultipleLabel.textColor = UIColor.black
-                                                                    mayerMultipleLabel.font = UIFont.systemFont(ofSize: 28)
+                                           mayerMultipleLabel.text = "One Bitcoin costs:\n$\((round(100 * exchangeRate) / 100).withCommas()) USD\n\n200 Day Moving Average:\n$\((round(100 * twoHundredDayMovingAverage) / 100).withCommas()) USD\n\nMayer Multiple:\n\(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100)"
+                                                                    
+                                                                    func attributedText()-> NSAttributedString
+                                                                    {
+                                                                        let string = mayerMultipleLabel.text as NSString
+                                                                        
+                                                                        let attributedString = NSMutableAttributedString(string: string as String, attributes: [NSAttributedStringKey.font:UIFont.init(name: "HelveticaNeue-Light", size: 18)!])
+                                                                        
+                                                                        let boldFontAttribute = [NSAttributedStringKey.font: UIFont.init(name: "HelveticaNeue-Bold", size: 35)]
+                                                                        
+                                                                        attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "$\((round(100 * exchangeRate) / 100).withCommas()) USD"))
+                                                                        attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "$\((round(100 * twoHundredDayMovingAverage) / 100).withCommas()) USD"))
+                                                                        attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "\(round(100 * (exchangeRate / twoHundredDayMovingAverage)) / 100)"))
+                                                                        
+                                                                        return attributedString
+                                                                    }
+                                                                    
+                                                                    mayerMultipleLabel.attributedText = attributedText()
                                                                     mayerMultipleLabel.textAlignment = .natural
                                                                     self.view.addSubview(mayerMultipleLabel)
                                                                     

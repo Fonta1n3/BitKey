@@ -9,8 +9,10 @@
 import UIKit
 import AVFoundation
 
-class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCaptureMetadataOutputObjectsDelegate {
+class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCaptureMetadataOutputObjectsDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
     
+    var uploadButton = UIButton()
+    let imagePicker = UIImagePickerController()
     var scanView = UIView()
     var pushRawTransactionButton = UIButton()
     var decodeRawTransactionButton = UIButton()
@@ -26,6 +28,17 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        imagePicker.delegate = self
+        imagePicker.allowsEditing = false
+        imagePicker.sourceType = .photoLibrary
+        
+        let imageView = UIImageView()
+        imageView.image = UIImage(named:"background.jpg")
+        imageView.frame = self.view.frame
+        imageView.contentMode = UIViewContentMode.scaleAspectFill
+        imageView.alpha = 0.05
+        self.view.addSubview(imageView)
         
         mainnetMode = checkSettingsForKey(keyValue: "mainnetMode")
         testnetMode = checkSettingsForKey(keyValue: "testnetMode")
@@ -49,20 +62,18 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
         pushRawTransactionButton = UIButton(frame: CGRect(x: view.center.x - 150, y: self.rawTransactionView.frame.maxY + 10, width: 300, height: 55))
         pushRawTransactionButton.showsTouchWhenHighlighted = true
         pushRawTransactionButton.titleLabel?.textAlignment = .center
-        pushRawTransactionButton.layer.cornerRadius = 10
-        pushRawTransactionButton.backgroundColor = UIColor.black
-        addShadow(view:self.pushRawTransactionButton)
         pushRawTransactionButton.setTitle("Push", for: .normal)
+        pushRawTransactionButton.setTitleColor(UIColor.blue, for: .normal)
+        pushRawTransactionButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
         pushRawTransactionButton.addTarget(self, action: #selector(self.pushRawTransaction), for: .touchUpInside)
         
         
         decodeRawTransactionButton = UIButton(frame: CGRect(x: view.center.x - 150, y: self.pushRawTransactionButton.frame.maxY + 10, width: 300, height: 55))
         decodeRawTransactionButton.showsTouchWhenHighlighted = true
         decodeRawTransactionButton.titleLabel?.textAlignment = .center
-        decodeRawTransactionButton.layer.cornerRadius = 10
-        decodeRawTransactionButton.backgroundColor = UIColor.black
-        addShadow(view:self.decodeRawTransactionButton)
         decodeRawTransactionButton.setTitle("Decode", for: .normal)
+        decodeRawTransactionButton.setTitleColor(UIColor.blue, for: .normal)
+        decodeRawTransactionButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
         decodeRawTransactionButton.addTarget(self, action: #selector(self.decodeRawTransaction), for: .touchUpInside)
         
         scanQRCodeButton.removeFromSuperview()
@@ -81,6 +92,7 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
         view.addSubview(rawTransactionView)
         view.addSubview(pushRawTransactionButton)
         view.addSubview(decodeRawTransactionButton)
+        rawTransactionView.becomeFirstResponder()
     }
 
     @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
@@ -106,6 +118,13 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
         scanView.frame = view.frame
         scanView.backgroundColor = UIColor.white
         
+        let backgroundView = UIImageView()
+        backgroundView.image = UIImage(named:"background.jpg")
+        backgroundView.frame = self.view.frame
+        backgroundView.contentMode = UIViewContentMode.scaleAspectFill
+        backgroundView.alpha = 0.05
+        
+        
         self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
         self.backButton.showsTouchWhenHighlighted = true
         self.backButton.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
@@ -116,10 +135,20 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
         self.imageView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: 150, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
         addShadow(view: self.imageView)
         
+        self.uploadButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 140, y: self.view.frame.maxY - 60, width: 130, height: 55))
+        self.uploadButton.showsTouchWhenHighlighted = true
+        self.uploadButton.setTitle("From Photos", for: .normal)
+        self.uploadButton.setTitleColor(UIColor.blue, for: .normal)
+        self.uploadButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
+        self.uploadButton.addTarget(self, action: #selector(self.chooseQRCodeFromLibrary), for: .touchUpInside)
+        
+        
         DispatchQueue.main.async {
             self.view.addSubview(self.scanView)
+            self.scanView.addSubview(backgroundView)
             self.scanView.addSubview(self.imageView)
             self.scanView.addSubview(self.backButton)
+            self.scanView.addSubview(self.uploadButton)
         }
         
         func scanQRCode() {
@@ -137,6 +166,7 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
         }
         
         scanQRCode()
+        
         
     }
     
@@ -205,10 +235,53 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
             if machineReadableCode.type == AVMetadataObject.ObjectType.qr {
                 
                 self.rawTransactionView.text = machineReadableCode.stringValue!
-                self.avCaptureSession.stopRunning()
                 self.dismissScanView()
             }
         }
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    
+    
+    @objc func chooseQRCodeFromLibrary() {
+        
+        present(imagePicker, animated: true, completion: nil)
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+        
+        if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
+            
+            let detector:CIDetector=CIDetector(ofType: CIDetectorTypeQRCode, context: nil, options: [CIDetectorAccuracy:CIDetectorAccuracyHigh])!
+            
+            let ciImage:CIImage = CIImage(image:pickedImage)!
+            
+            var qrCodeLink = ""
+            
+            let features=detector.features(in: ciImage)
+            
+            for feature in features as! [CIQRCodeFeature] {
+                
+                qrCodeLink += feature.messageString!
+            }
+            
+            print(qrCodeLink)
+            
+            if qrCodeLink != "" {
+                
+                DispatchQueue.main.async {
+                    self.rawTransactionView.text = qrCodeLink
+                    self.dismissScanView()
+                }
+                
+            }
+            
+        }
+        
+        dismiss(animated: true, completion: nil)
     }
     
     @objc func decodeRawTransaction() {

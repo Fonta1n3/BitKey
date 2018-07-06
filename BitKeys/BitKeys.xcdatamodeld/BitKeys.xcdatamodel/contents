@@ -21,12 +21,24 @@
         <attribute name="segwitMode" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
         <attribute name="testnetMode" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
     </entity>
+    <entity name="TransactionSettings" representedClassName="TransactionSettings" syncable="YES" codeGenerationType="class">
+        <attribute name="bitcoin" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="customFee" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="dollar" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="euro" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="high" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="low" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="medium" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="pounds" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="satoshi" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+    </entity>
     <entity name="Wallet" representedClassName="Wallet" syncable="YES" codeGenerationType="class">
         <attribute name="isEncrypted" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
     </entity>
     <elements>
+        <element name="AddressBook" positionX="-63" positionY="36" width="128" height="210"/>
         <element name="Settings" positionX="-63" positionY="-9" width="128" height="135"/>
         <element name="Wallet" positionX="-63" positionY="-18" width="128" height="60"/>
-        <element name="AddressBook" positionX="-63" positionY="36" width="128" height="210"/>
+        <element name="TransactionSettings" positionX="-63" positionY="90" width="128" height="180"/>
     </elements>
 </model>

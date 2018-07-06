@@ -17,6 +17,13 @@ class InfoViewController: UIViewController, UITextViewDelegate {
         super.viewDidLoad()
 
         print("InfoViewController")
+        
+        let imageView = UIImageView()
+        imageView.image = UIImage(named:"background.jpg")
+        imageView.frame = self.view.frame
+        imageView.contentMode = UIViewContentMode.scaleAspectFill
+        imageView.alpha = 0.05
+        self.view.addSubview(imageView)
         textView.delegate = self
         addBackButton()
         addTextView()
@@ -45,6 +52,7 @@ class InfoViewController: UIViewController, UITextViewDelegate {
         textView.isEditable = false
         textView.isSelectable = true
         textView.isScrollEnabled = true
+        textView.backgroundColor = UIColor.clear
         //textView.font = UIFont.init(name: "HelveticaNeue-Light", size: 18)
         
         textView.text = """
