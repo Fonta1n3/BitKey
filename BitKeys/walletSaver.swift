@@ -11,7 +11,7 @@ import CoreData
 import SwiftKeychainWrapper
 import AES256CBC
 
-public func saveWallet(viewController: UIViewController, address: String, privateKey: String, publicKey: String, redemptionScript: String, network: String, type: String) {
+public func saveWallet(viewController: UIViewController, mnemonic: String, xpub: String, address: String, privateKey: String, publicKey: String, redemptionScript: String, network: String, type: String, index: UInt32) {
     
     print("saveWallet")
     
@@ -52,9 +52,16 @@ public func saveWallet(viewController: UIViewController, address: String, privat
     
     func saveToCoreData(label: String) {
         
-        let keys = ["address", "balance", "label", "network", "privateKey", "publicKey", "recoveryPhrase", "redemptionScript", "type", "xpriv", "xpub"]
+        let keys = ["mnemonic", "xpub", "address", "balance", "label", "network", "privateKey", "publicKey", "redemptionScript", "type", "index"]
         
+        var mn = mnemonic
         var pk = privateKey
+        var xp = xpub
+        
+        if xp != "" {
+            
+            xp = AES256CBC.encryptString(xp, password: aesPassword!)!
+        }
         
         if pk != "" {
             
@@ -62,7 +69,13 @@ public func saveWallet(viewController: UIViewController, address: String, privat
             
         }
         
-        let values = [address, "", label, network, pk, publicKey, "", redemptionScript, type, "", ""]
+        if mn != "" {
+            
+            mn = AES256CBC.encryptString(mn, password: aesPassword!)!
+            
+        }
+        
+        let values = [mn, xp, address, "", label, network, pk, publicKey, redemptionScript, type, index] as [Any]
         var alreadySaved = Bool()
         var success = Bool()
         
@@ -92,7 +105,7 @@ public func saveWallet(viewController: UIViewController, address: String, privat
                     
                     for _ in keys {
                         
-                        if values[0] == data.value(forKey: "address") as? String {
+                        if (values[2] as! String) == data.value(forKey: "address") as? String {
                             
                             alreadySaved = true
                             displayAlert(viewController: viewController, title: "Error", message: "Can not save the same address to your Address Book more then once, please delete the old wallet and try again.")

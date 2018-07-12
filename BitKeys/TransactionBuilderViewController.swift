@@ -16,6 +16,11 @@ import SwiftKeychainWrapper
 
 class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
     
+    var activityIndicator:UIActivityIndicatorView!
+    var index = Int()
+    var HDMode = Bool()
+    var balance = Int()
+    var totalSatoshisAvailable = Int()
     var tappedUploadButton = Bool()
     var uploadButton = UIButton()
     let imagePicker = UIImagePickerController()
@@ -26,6 +31,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     var sweepButton = UIButton()
     var optionsButton = UIButton()
     var walletToSpendFrom = [String:Any]()
+    var addressArray = [[String:Any]]()
     let textView = UILabel()
     var sendButton = UIButton()
     let titleLable = UILabel()
@@ -36,7 +42,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     var hotMode = Bool()
     var sweepAmount = String()
     var privateKey = String()
-    var imageView:UIView!
+    //var imageView:UIView!
     let avCaptureSession = AVCaptureSession()
     var bitcoinAddressQRCode = UIImage()
     var json = NSMutableDictionary()
@@ -93,7 +99,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         self.view.addSubview(imageView)
         
         print("wallettospendfrom = \(walletToSpendFrom)")
-        
         
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         
@@ -169,6 +174,9 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     
     override func viewDidAppear(_ animated: Bool) {
         
+        self.balance = 0
+        self.totalSatoshisAvailable = 0
+        
         if tappedUploadButton != true {
             
             recievingAddress = ""
@@ -184,7 +192,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     }
     
     override func viewWillDisappear(_ animated: Bool) {
-        
+        addressArray.removeAll()
         //self.sendingFromAddress = ""
         //self.recievingAddress = ""
         //self.privateKey = ""
@@ -257,13 +265,178 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             }
         }
         
+        if let check = walletToSpendFrom["privateKey"] as? String {
+            
+            if check == "" {
+                
+               displayAlert(viewController: self, title: "FYI", message: "The wallet you would like to spend from is a cold wallet meaning you will have to scan the private key or type it in to spend from it.")
+                
+            }
+       }
+        
+        
+        
+        /*if walletToSpendFrom.count > 0 && walletToSpendFrom["privateKey"] as! String != ""  {
+            if addressBook.count > 0 {
+                let address = walletToSpendFrom["address"] as! String
+                let network = walletToSpendFrom["network"] as! String
+                if let index = walletToSpendFrom["index"] as? UInt32 {
+                    if let mnemonic = walletToSpendFrom["mnemonic"] as? String {
+                        if mnemonic != "" {
+                            var walletName = ""
+                            if walletToSpendFrom["label"] as! String != "" {
+                                walletName = walletToSpendFrom["label"] as! String
+                            } else {
+                                walletName = address
+                            }
+                            self.fetchTotalBalance(network: network, address: address, index: index, mnemonic: mnemonic, walletName: walletName)
+                        }
+                    }
+                }
+            }
+        }*/
    }
+    
+    /*func fetchTotalBalance(network: String, address: String, index: UInt32, mnemonic: String, walletName: String) {
+        
+        let aespassword = KeychainWrapper.standard.string(forKey: "AESPassword")!
+        
+        if let decryptedMnemonic = AES256CBC.decryptString(mnemonic, password: aespassword) {
+                    
+            let replaceSpaces = decryptedMnemonic.replacingOccurrences(of: " ", with: "")
+            let words = replaceSpaces.split(separator: ",")
+            var password = ""
+                    
+            if let passwordCheck = KeychainWrapper.standard.string(forKey: "BIP39Password") {
+                password = passwordCheck
+            }
+                    
+            if let testInputMnemonic = BTCMnemonic.init(words: words, password: password, wordListType: BTCMnemonicWordListType.english) {
+                        
+                if let keychain = testInputMnemonic.keychain.derivedKeychain(withPath: "m/44'/0'/0'/0") {
+                    
+                    keychain.key.isPublicKeyCompressed = true
+                    
+                    print("index = \(index)")
+            
+                    if index > 0 {
+                
+                        for i in 0 ... index {
+                    
+                            var privateKey = String()
+                            var addressHD = String()
+                    
+                            if network == "testnet" {
+                        
+                                privateKey = keychain.key(at: i).privateKeyAddressTestnet.string
+                                addressHD = keychain.key(at: i).addressTestnet.string
+                        
+                            } else if network == "mainnet" {
+                        
+                                privateKey = keychain.key(at: i).privateKeyAddress.string
+                                addressHD = keychain.key(at: i).address.string
+                            
+                            }
+                    
+                            var bitcoinAddress = String()
+                    
+                            if address.hasPrefix("1") || address.hasPrefix("3") || address.hasPrefix("2") || address.hasPrefix("m") || address.hasPrefix("n") {
+                        
+                                bitcoinAddress = addressHD
+                        
+                            }
+                    
+                            let dict = ["address":bitcoinAddress, "privateKey":privateKey, "balance":"0", "walletName":walletName]
+                            self.addressArray.append(dict)
+                    
+                        }
+                
+                        if address.hasPrefix("b") {
+                    
+                            //do nothing
+                    
+                        } else {
+                            
+                            for (index, key) in self.addressArray.enumerated() {
+                        
+                                self.checkBalance(index: index, address: key["address"] as! String)
+                            
+                            }
+                    
+                        }
+                
+                    }
+                
+                }
+            
+            } else {
+                
+                print("error with mnemonic")
+            }
+                    
+        }
+                
+    }*/
+    
+    func checkBalance(index: Int, address: String) {
+        print("checkBalance")
+        
+        var url:NSURL!
+        
+        if address.hasPrefix("1") || address.hasPrefix("3") {
+            
+            url = NSURL(string: "https://blockchain.info/balance?active=\(address)")
+            
+        } else if address.hasPrefix("m") || address.hasPrefix("2") || address.hasPrefix("n") {
+            
+            url = NSURL(string: "https://testnet.blockchain.info/balance?active=\(address)")
+            
+        }
+        
+        let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
+            
+            do {
+                
+                if error != nil {
+                    
+                    print(error as Any)
+                    
+                } else {
+                    
+                    if let urlContent = data {
+                        
+                        do {
+                            
+                            let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
+                            
+                            print("jsonAddressResult = \(jsonAddressResult)")
+                            
+                            if let addressCheck = jsonAddressResult["\(address)"] as? NSDictionary {
+                                
+                                if let finalBalanceCheck = addressCheck["final_balance"] as? Int {
+                                    DispatchQueue.main.async {
+                                        self.balance = finalBalanceCheck
+                                        self.totalSatoshisAvailable = self.balance + self.totalSatoshisAvailable
+                                        self.addressArray[index]["balance"] = self.balance.avoidNotation
+                                        self.index = index
+                                        print("totalBTC = \(self.totalSatoshisAvailable.avoidNotation)")
+                                    }
+                                }
+                            }
+                        } catch {
+                            print("JSon processing failed")
+                        }
+                    }
+                }
+            }
+        }
+        
+        task.resume()
+    }
     
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         dismiss(animated: true, completion: nil)
     }
-    
-    
     
     @objc func chooseQRCodeFromLibrary() {
         
@@ -314,6 +487,11 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                                     
                                 self.processKeys(key: key)
                                 self.avCaptureSession.stopRunning()
+                                
+                            } else if let _ = BTCScriptHashAddressTestnet.init(string: key) {
+                                
+                                self.processKeys(key: key)
+                                self.avCaptureSession.stopRunning()
                                     
                             } else if let _ = BTCPrivateKeyAddress.init(string: key) {
                                     
@@ -333,6 +511,7 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
                             } else {
                                     
                                 displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Key.")
+                                print("Key = \(key)")
                             }
                                 
                             
@@ -986,7 +1165,6 @@ func addChooseOptionButton() {
         self.amountToSend.borderStyle = .roundedRect
         self.amountToSend.backgroundColor = UIColor.groupTableViewBackground
         self.amountToSend.keyboardType = UIKeyboardType.decimalPad
-        //self.amountToSend.addDoneButtonToKeyboard(myAction:  #selector(self.saveAmountInSatoshis))
         
         if BTC {
             currency = "BTC"
@@ -1054,15 +1232,12 @@ func addChooseOptionButton() {
         print("addSpinner")
         
         DispatchQueue.main.async {
-            if self.imageView != nil {
-                self.imageView.removeFromSuperview()
-            }
-            let bitcoinImage = UIImage(named: "Bitsense image.png")
-            self.imageView = UIImageView(image: bitcoinImage!)
-            self.imageView.center = self.view.center
-            self.imageView.frame = CGRect(x: self.view.center.x - 25, y: 20, width: 50, height: 50)
-            rotateAnimation(imageView: self.imageView as! UIImageView)
-            self.view.addSubview(self.imageView)
+            self.activityIndicator = UIActivityIndicatorView(frame: CGRect(x: self.view.center.x - 25, y: self.view.center.y - 25, width: 50, height: 50))
+            self.activityIndicator.hidesWhenStopped = true
+            self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+            self.activityIndicator.isUserInteractionEnabled = true
+            self.view.addSubview(self.activityIndicator)
+            self.activityIndicator.startAnimating()
         }
         
     }
@@ -1071,13 +1246,7 @@ func addChooseOptionButton() {
         print("removeSpinner")
         
         DispatchQueue.main.async {
-            
-            if self.imageView != nil {
-                
-             self.imageView.removeFromSuperview()
-                
-            }
-            
+            self.activityIndicator.stopAnimating()
         }
     }
     
@@ -1142,7 +1311,7 @@ func addChooseOptionButton() {
                             
                             alert.addAction(UIAlertAction(title: NSLocalizedString("Yes", comment: ""), style: .default, handler: { (action) in
                                 
-                                saveWallet(viewController: self, address: key, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold")
+                                saveWallet(viewController: self, mnemonic: "", xpub: "", address: key, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold", index:UInt32())
                                 
                                 self.recievingAddress = key
                                 self.getReceivingAddressMode = false
@@ -1187,9 +1356,14 @@ func addChooseOptionButton() {
                         
                         processReceivingAddress(network: "testnet")
                         
+                    } else if let _ = BTCScriptHashAddressTestnet.init(string: key) {
+                        
+                        processReceivingAddress(network: "testnet")
+                        
                     } else {
                         
                         displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address")
+                        print("Key = \(key)")
                     }
                     
                 } else if key.hasPrefix("1") || key.hasPrefix("3") {
@@ -1201,11 +1375,13 @@ func addChooseOptionButton() {
                     } else {
                         
                         displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address")
+                        print("Key = \(key)")
                     }
                     
                 } else {
                     
                     displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address")
+                    print("Key = \(key)")
                 }
                 
             } else if getPayerAddressMode {
@@ -1227,9 +1403,15 @@ func addChooseOptionButton() {
                         
                         processPayerAddress()
                         
+                    } else if let _ = BTCScriptHashAddressTestnet.init(string: key) {
+                        
+                        //processPayerAddress()
+                        displayAlert(viewController: self, title: "Sorry", message: "We are working to enable multi sig transactions but we are not quite there yet, please be patient and keep the app up to date.")
+                        
                     } else {
                         
                         displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address")
+                        print("Key = \(key)")
                     }
                     
                 } else if key.hasPrefix("1") || key.hasPrefix("3") {
@@ -1238,29 +1420,21 @@ func addChooseOptionButton() {
                         
                         processPayerAddress()
                         
+                    } else if let _ = BTCScriptHashAddress.init(string: key) {
+                        
+                        displayAlert(viewController: self, title: "Sorry", message: "We are working to enable multi sig transactions but we are not quite there yet, please be patient and keep the app up to date.")
+                        
                     } else {
                         
                         displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address")
+                        print("Key = \(key)")
                     }
                     
                 } else {
                     
                     displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address")
+                    print("Key = \(key)")
                 }
-                
-                /*if let _ = BTCPublicKeyAddressTestnet.init(string: key) {
-                    
-                    processPayerAddress()
-                    
-                } else if let _ = BTCAddress.init(string: key) {
-                    
-                    processPayerAddress()
-                    
-                } else {
-                    
-                    displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Address")
-                    
-                }*/
                 
             } else if getSignatureMode {
                 
@@ -1279,6 +1453,7 @@ func addChooseOptionButton() {
                 } else {
                     
                     displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Private Key")
+                    print("Key = \(key)")
                     
                 }
             }
@@ -1332,6 +1507,7 @@ func addChooseOptionButton() {
                     } else {
                         
                         displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Key.")
+                        print("Key = \(key)")
                         
                     }
                     
@@ -1354,6 +1530,37 @@ func addChooseOptionButton() {
     func getSatsAndBTCs() {
         print("getSatsAndBTCs")
         
+        func scanHD() {
+            
+            if self.totalSatoshisAvailable > self.satoshiAmount {
+                
+                var amountSatisfied = false
+                
+                while !amountSatisfied {
+                    
+                    for address in self.addressArray {
+                        
+                        let balanceString = (address["balance"] as! String).replacingOccurrences(of: ",", with: "")
+                        
+                        if balanceString != "0" {
+                            
+                            let balanceInt = Int(balanceString)!
+                            
+                            if balanceInt > self.satoshiAmount && !amountSatisfied {
+                                
+                                self.sendingFromAddress = address["address"] as! String
+                                self.privateKeytoDebit = address["privateKey"] as! String
+                                self.HDMode = true
+                                print("sendingFromAddress = \(self.sendingFromAddress)")
+                                amountSatisfied = true
+                                
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         if self.amount == "-1" {
                 
             self.amountToSend.removeFromSuperview()
@@ -1363,6 +1570,7 @@ func addChooseOptionButton() {
                 
             self.amountInBTC = Double(self.amount)!
             self.satoshiAmount = Int(self.amountInBTC * 100000000)
+            scanHD()
             self.addScanner()
                 
         } else if self.currency == "SAT" && self.amount != "-1" {
@@ -1375,6 +1583,7 @@ func addChooseOptionButton() {
                 
                 self.satoshiAmount = Int(self.amount)!
                 self.amountInBTC = Double(self.amount)! / 100000000
+                scanHD()
                 self.addScanner()
                 
             }
@@ -1424,9 +1633,37 @@ func addChooseOptionButton() {
                                             
                                             DispatchQueue.main.async {
                                                 
-                                                self.removeSpinner()
-                                                self.amountToSend.removeFromSuperview()
-                                                self.addScanner()
+                                                if self.totalSatoshisAvailable > self.satoshiAmount {
+                                                        
+                                                    var amountSatisfied = false
+                                                        
+                                                    while !amountSatisfied {
+                                                            
+                                                        for address in self.addressArray {
+                                                                
+                                                            let balanceString = (address["balance"] as! String).replacingOccurrences(of: ",", with: "")
+                                                                
+                                                            if balanceString != "0" {
+                                                                    
+                                                                let balanceInt = Int(balanceString)!
+                                                                    
+                                                                if balanceInt > self.satoshiAmount && !amountSatisfied {
+                                                                        
+                                                                    self.sendingFromAddress = address["address"] as! String
+                                                                    self.privateKeytoDebit = address["privateKey"] as! String
+                                                                    self.HDMode = true
+                                                                    print("sendingFromAddress = \(self.sendingFromAddress)")
+                                                                    amountSatisfied = true
+                                                                        
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                
+                                            self.removeSpinner()
+                                            self.amountToSend.removeFromSuperview()
+                                            self.addScanner()
                                                 
                                             }
                                         }
@@ -1469,6 +1706,7 @@ func addChooseOptionButton() {
                 if self.hotMode {
                     
                     self.privateKeytoDebit = self.walletToSpendFrom["privateKey"] as! String
+                    print("privatekey = \(self.privateKeytoDebit)")
                     
                 } else if self.coldMode {
                     
@@ -1478,6 +1716,10 @@ func addChooseOptionButton() {
                 }
                 
                 self.makeHTTPPostRequest()
+                
+            /*} else if self.getPayerAddressMode && self.privateKeytoDebit != "" && self.addressArray.count > 0  {
+                
+                self.makeHTTPPostRequest()*/
                 
             } else if self.getPayerAddressMode {
                 
@@ -1606,50 +1848,97 @@ func addChooseOptionButton() {
                 
                 let key = stringURL
                 
-                if key.hasPrefix("m") || key.hasPrefix("2") || key.hasPrefix("n") {
-                    
-                    self.testnetMode = true
-                    self.mainnetMode = false
-                    
-                } else if key.hasPrefix("1") || key.hasPrefix("3") {
-                    
-                    self.mainnetMode = true
-                    self.testnetMode = false
-                    
-                }
+                print("keyStringurl = \(key)")
                 
                 if self.getSignatureMode || self.getPayerAddressMode || self.getReceivingAddressMode {
                     
                     if key != "" {
                         
-                        if let _ = BTCAddress.init(string: key) {
+                        if key.hasPrefix("m") || key.hasPrefix("n") {
                             
-                            processKeys(key: key)
-                            self.avCaptureSession.stopRunning()
+                            self.testnetMode = true
+                            self.mainnetMode = false
+                            print("key.hasprefix = \(key)")
                             
-                        } else if let _ = BTCPrivateKeyAddress.init(string: key) {
+                            if let _ = BTCPublicKeyAddressTestnet.init(string: key) {
+                                
+                                processKeys(key: key)
+                                self.avCaptureSession.stopRunning()
+                                
+                            } else {
+                                
+                                displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Key.")
+                                print("Key = \(key)")
+                            }
                             
-                            processKeys(key: key)
-                            self.avCaptureSession.stopRunning()
+                        } else if key.hasPrefix("2") {
                             
-                        } else if let _ = BTCPublicKeyAddressTestnet.init(string: key) {
+                            self.testnetMode = true
+                            self.mainnetMode = false
                             
-                            processKeys(key: key)
-                            self.avCaptureSession.stopRunning()
+                            if let _ = BTCScriptHashAddressTestnet.init(string: key) {
+                                
+                                processKeys(key: key)
+                                self.avCaptureSession.stopRunning()
+                                
+                            } else {
+                                
+                                displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Key.")
+                                print("Key = \(key)")
+                            }
                             
-                        } else if let _ = BTCPrivateKeyAddressTestnet.init(string: key) {
                             
-                            processKeys(key: key)
-                            self.avCaptureSession.stopRunning()
+                        } else if key.hasPrefix("1") || key.hasPrefix("3") {
+                            
+                            self.mainnetMode = true
+                            self.testnetMode = false
+                            
+                            if let _ = BTCAddress.init(string: key) {
+                                
+                                processKeys(key: key)
+                                self.avCaptureSession.stopRunning()
+                                
+                            } else {
+                                
+                                displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Key.")
+                                print("Key = \(key)")
+                            }
+                            
+                        } else if key.hasPrefix("5") || key.hasPrefix("K") || key.hasPrefix("L") {
+                            
+                            if let _ = BTCPrivateKeyAddress.init(string: key) {
+                                
+                                processKeys(key: key)
+                                self.avCaptureSession.stopRunning()
+                                
+                            } else {
+                                
+                                displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Key.")
+                                print("Key = \(key)")
+                            }
+                            
+                        } else if key.hasPrefix("9") || key.hasPrefix("c") {
+                            
+                            if let _ = BTCPrivateKeyAddressTestnet.init(string: key) {
+                                
+                                processKeys(key: key)
+                                self.avCaptureSession.stopRunning()
+                                
+                            } else {
+                                
+                                displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Key.")
+                                print("Key = \(key)")
+                            }
                             
                         } else {
                             
                             displayAlert(viewController: self, title: "Error", message: "That is not a valid Bitcoin Key.")
+                            print("Key = \(key)")
                         }
                         
                     } else {
                         
-                        shakeAlert(viewToShake: imageView)
+                        shakeAlert(viewToShake: self.videoPreview)
                         
                     }
                     
@@ -1695,6 +1984,8 @@ func addChooseOptionButton() {
             if machineReadableCode.type == AVMetadataObject.ObjectType.qr {
                 
                 stringURL = machineReadableCode.stringValue!
+                
+                print("stringurl = \(stringURL)")
                 
                 //format bip21
                 if stringURL.contains("bitcoin:") && self.payInvoiceMode {
@@ -1918,6 +2209,10 @@ func addChooseOptionButton() {
                         self.amount = double.withCommas()
                     }
                     
+                    if self.HDMode {
+                        sendAddress = self.addressArray[self.index]["walletName"] as! String
+                    }
+                    
                     
                     if self.currency != "BTC" && self.currency != "SAT" {
                         
@@ -1927,15 +2222,19 @@ func addChooseOptionButton() {
                         
                         if receiveAddress != "" && sendAddress != "" {
                             
-                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
                             
                         } else if receiveAddress != "" {
                             
-                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
                             
                         } else if sendAddress != "" {
                             
-                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                            
+                        } else if receiveAddress == "" && sendAddress == "" {
+                            
+                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
                             
                         }
                         
@@ -1943,15 +2242,19 @@ func addChooseOptionButton() {
                             
                             if receiveAddress != "" && sendAddress != "" {
                                 
-                                message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                                message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
                                 
                             } else if receiveAddress != "" {
                                 
-                                message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                                message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
                                 
                             } else if sendAddress != "" {
                                 
-                                message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                                message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                                
+                            } else if receiveAddress == "" && sendAddress == "" {
+                                
+                                message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
                                 
                             }
                             
@@ -1964,15 +2267,19 @@ func addChooseOptionButton() {
                         
                         if receiveAddress != "" && sendAddress != "" {
                             
-                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis"
+                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis"
                             
                         } else if receiveAddress != "" {
                             
-                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis"
+                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis"
                             
                         } else if sendAddress != "" {
                             
-                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) with a miner fee of \(self.fees.withCommas()) Satoshis"
+                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis"
+                            
+                        } else if receiveAddress == "" && sendAddress == "" {
+                            
+                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis"
                             
                         }
                         
@@ -1980,15 +2287,19 @@ func addChooseOptionButton() {
                             
                             if receiveAddress != "" && sendAddress != "" {
                                 
-                                message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis"
+                                message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped plus a miner fee of \(self.fees.withCommas()) Satoshis"
                                 
                             } else if receiveAddress != "" {
                                 
-                                message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis"
+                                message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped plus a miner fee of \(self.fees.withCommas()) Satoshis"
                                 
                             } else if sendAddress != "" {
                                 
-                                message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped with a miner fee of \(self.fees.withCommas()) Satoshis"
+                                message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped plus a miner fee of \(self.fees.withCommas()) Satoshis"
+                                
+                            } else if receiveAddress == "" && sendAddress == "" {
+                                
+                                message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\nAmount:\n\nAll Bitcoin to be sweeped plus a miner fee of \(self.fees.withCommas()) Satoshis"
                                 
                             }
                             
@@ -2091,11 +2402,11 @@ func addChooseOptionButton() {
                 
                 if self.sendingFromAddress.hasPrefix("m") || self.sendingFromAddress.hasPrefix("2") || self.sendingFromAddress.hasPrefix("n") {
                     
-                    url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/new?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
+                    url = URL(string: "https://api.blockcypher.com/v1/btc/test3/txs/new")//?token=a9d88ea606fb4a92b5134d34bc1cb2a0
                     
                 } else if self.sendingFromAddress.hasPrefix("1") || self.sendingFromAddress.hasPrefix("3") {
                     
-                    url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/new?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
+                    url = URL(string: "https://api.blockcypher.com/v1/btc/main/txs/new")//?token=a9d88ea606fb4a92b5134d34bc1cb2a0
                     
                 }
                 
@@ -2141,6 +2452,8 @@ func addChooseOptionButton() {
                                 do {
                                     
                                     let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
+                                    
+                                    print("jsonAddressResult = \(jsonAddressResult)")
                                     
                                     if let error = jsonAddressResult["errors"] as? NSArray {
                                         

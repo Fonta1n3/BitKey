@@ -949,7 +949,7 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                         self.avCaptureSession.startRunning()
                     }
                     
-                    saveWallet(viewController: self, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot")
+                    saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot", index: UInt32())
                     
                 }
                 
@@ -996,7 +996,7 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                         self.avCaptureSession.startRunning()
                     }
                     
-                    saveWallet(viewController: self, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot")
+                    saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot", index: UInt32())
                     
                 }
                 

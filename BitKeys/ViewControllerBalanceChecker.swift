@@ -8,19 +8,33 @@
 
 import UIKit
 import AVFoundation
+import AES256CBC
+import SwiftKeychainWrapper
 
 class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate {
     
+    var activityIndicator:UIActivityIndicatorView!
+    var exRate = Double()
+    var currency = String()
+    var gbpBalanceLabel = UILabel()
+    var euroBalanceLabel = UILabel()
+    var usdBalanceLabel = UILabel()
+    var btcBalanceLabel = UILabel()
+    var segwit = SegwitAddrCoder()
+    var addressArray = [[String:Any]]()
+    var totalBTC = Double()
+    var usdXe = Double()
+    var gbpXe = Double()
+    var eurXe = Double()
     var addressToDisplay = UITextField()
     var videoPreview = UIView()
-    let segwit = SegwitAddrCoder()
     var legacyMode = Bool()
     var segwitMode = Bool()
     var testnetMode = Bool()
     var mainnetMode = Bool()
     var coldMode = Bool()
     var hotMode = Bool()
-    var imageView:UIView!
+    //var imageView:UIView!
     let avCaptureSession = AVCaptureSession()
     var balance = Double()
     var backUpButton = UIButton(type: .custom)
@@ -42,9 +56,37 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     
     override func viewDidAppear(_ animated: Bool) {
         
+        
+        if let BTC = checkTransactionSettingsForKey(keyValue: "bitcoin") as? Bool {
+            if BTC {
+                self.currency = "BTC"
+            }
+        }
+        if let SAT = checkTransactionSettingsForKey(keyValue: "satoshi") as? Bool {
+            if SAT {
+                self.currency = "SAT"
+            }
+        }
+        if let USD = checkTransactionSettingsForKey(keyValue: "dollar") as? Bool {
+            if USD {
+                self.currency = "USD"
+            }
+        }
+        if let GBP = checkTransactionSettingsForKey(keyValue: "pounds") as? Bool {
+            if GBP {
+                self.currency = "GBP"
+            }
+        }
+        if let EUR = checkTransactionSettingsForKey(keyValue: "euro") as? Bool {
+            if EUR {
+                self.currency = "EUR"
+                
+            }
+        }
+        
+        getExchangeRates()
         addHomeButton()
         addAddressBookButton()
-        scanQRCode()
         getUserDefaults()
         
         self.addressLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2 - 20), y: 100, width: self.view.frame.width - 40, height: 60)
@@ -69,27 +111,22 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func addSpinner() {
         
         DispatchQueue.main.async {
-            let bitcoinImage = UIImage(named: "Bitsense image.png")
-            self.imageView = UIImageView(image: bitcoinImage!)
-            self.imageView.center = self.view.center
-            self.imageView.frame = CGRect(x: self.view.center.x - 25, y: 20, width: 50, height: 50)
-            rotateAnimation(imageView: self.imageView as! UIImageView)
-            self.view.addSubview(self.imageView)
+            self.activityIndicator = UIActivityIndicatorView(frame: CGRect(x: self.view.center.x - 25, y: self.view.center.y - 25, width: 50, height: 50))
+            self.activityIndicator.hidesWhenStopped = true
+            self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+            self.activityIndicator.isUserInteractionEnabled = true
+            self.view.addSubview(self.activityIndicator)
+            self.activityIndicator.startAnimating()
         }
         
     }
     
     func removeSpinner() {
-        
+        print("removeSpinner")
         DispatchQueue.main.async {
-            self.imageView.removeFromSuperview()
+            self.activityIndicator.stopAnimating()
         }
     }
-    
-    
-    //@IBOutlet var addressToDisplay: UITextField!
-    
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -106,6 +143,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         addTextInput()
         addQRScannerView()
+        scanQRCode()
         
     }
     
@@ -145,6 +183,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 self.checkBalance(address: self.addressToDisplay.text!)
                 self.addressToDisplay.text = ""
                 self.avCaptureSession.stopRunning()
+                self.addBalanceView()
                 
             }
             
@@ -203,11 +242,10 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 }
                 
                 self.addresses = stringURL
-                
                 self.addressLabel.text = self.addresses
-                
                 self.avCaptureSession.stopRunning()
                 self.checkBalance(address: stringURL)
+                self.addBalanceView()
                 
             }
         }
@@ -250,74 +288,53 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         print("checkBalance")
         
         self.addressToShare = address
-        
-        self.addSpinner()
-        
         var url:NSURL!
         
-        if address.hasPrefix("1") || address.hasPrefix("3") {
-            
-            url = NSURL(string: "https://blockchain.info/balance?active=\(address)")
-            
-        } else if address.hasPrefix("m") || address.hasPrefix("2") {
-            
-            url = NSURL(string: "https://testnet.blockchain.info/balance?active=\(address)")
-            
-        }
-        
-       let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
-            
-            do {
+        func get() {
+         
+            let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
                 
-                if error != nil {
+                do {
                     
-                    print(error as Any)
-                    self.removeSpinner()
-                    DispatchQueue.main.async {
-                        self.avCaptureSession.startRunning()
-                        displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
-                    }
-                    
-                } else {
-                    
-                    if let urlContent = data {
+                    if error != nil {
                         
-                        do {
+                        print(error as Any)
+                        self.removeSpinner()
+                        DispatchQueue.main.async {
+                            self.avCaptureSession.startRunning()
+                            displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
+                        }
+                        
+                    } else {
+                        
+                        if let urlContent = data {
                             
-                            let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
-                            
-                            print("jsonAddressResult = \(jsonAddressResult)")
-                            
-                            if let addressCheck = jsonAddressResult["\(address)"] as? NSDictionary {
+                            do {
                                 
-                                if let finalBalanceCheck = addressCheck["final_balance"] as? Double {
-                                    
-                                    
-                                let btcAmount = finalBalanceCheck / 100000000
-                                self.balance = btcAmount
+                                let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
                                 
-                                    DispatchQueue.main.async {
-                                        self.videoPreview.removeFromSuperview()
-                                        self.addressToDisplay.removeFromSuperview()
+                                print("jsonAddressResult = \(jsonAddressResult)")
+                                
+                                if let addressCheck = jsonAddressResult["\(address)"] as? NSDictionary {
+                                    
+                                    if let finalBalanceCheck = addressCheck["final_balance"] as? Double {
                                         
-                                        let btcBalanceLabel = UILabel()
-                                        btcBalanceLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - ((self.view.frame.height / 2) + 120), width: self.view.frame.width, height: self.view.frame.height)
-                                        btcBalanceLabel.text = "\(btcAmount.avoidNotation) BTC"
-                                        btcBalanceLabel.textColor = UIColor.black
-                                        btcBalanceLabel.font = UIFont.systemFont(ofSize: 32)
-                                        btcBalanceLabel.textAlignment = .center
-                                        self.view.addSubview(btcBalanceLabel)
                                         
-                                        self.addressLabel.adjustsFontSizeToFitWidth = true
-                                        self.addressLabel.textColor = UIColor.black
-                                        self.addressLabel.font = UIFont.systemFont(ofSize: 23)
-                                        self.addressLabel.textAlignment = .center
-                                        self.view.addSubview(self.addressLabel)
+                                        DispatchQueue.main.async {
+                                            self.balance = finalBalanceCheck / 100000000
+                                            self.totalBTC = self.balance + self.totalBTC
+                                            self.btcBalanceLabel.text = "\(self.totalBTC.avoidNotation) BTC"
+                                            self.usdBalanceLabel.text = self.convertBTCtoCurrency(btcAmount: self.totalBTC, exchangeRate: self.exRate)
+                                            self.removeSpinner()
+                                        }
                                         
-                                        self.addressBookButton.removeFromSuperview()
-                                        self.myAddressButton.removeFromSuperview()
-                                        self.addBackUpButton()
-                                        self.getExchangeRates()
+                                    } else {
+                                        
+                                        DispatchQueue.main.async {
+                                            self.removeSpinner()
+                                            self.avCaptureSession.startRunning()
+                                            displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                                        }
                                         
                                     }
                                     
@@ -331,31 +348,37 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                     
                                 }
                                 
-                            } else {
+                            } catch {
                                 
+                                print("JSon processing failed")
                                 DispatchQueue.main.async {
                                     self.removeSpinner()
                                     self.avCaptureSession.startRunning()
                                     displayAlert(viewController: self, title: "Error", message: "Please try again.")
                                 }
-                                
-                            }
-                            
-                        } catch {
-                            
-                            print("JSon processing failed")
-                            DispatchQueue.main.async {
-                                self.removeSpinner()
-                                self.avCaptureSession.startRunning()
-                                displayAlert(viewController: self, title: "Error", message: "Please try again.")
                             }
                         }
                     }
                 }
             }
+            
+            task.resume()
         }
-        
-        task.resume()
+       
+        if address.hasPrefix("1") || address.hasPrefix("3") {
+            
+            url = NSURL(string: "https://blockchain.info/balance?active=\(address)")
+            get()
+            
+        } else if address.hasPrefix("m") || address.hasPrefix("2") || address.hasPrefix("n") {
+            
+            url = NSURL(string: "https://testnet.blockchain.info/balance?active=\(address)")
+            get()
+            
+        } else {
+            
+            displayAlert(viewController: self, title: "Oops", message: "You scanned an invalid Bitcoin address, if you are trying to scan a private key then go to the main screen and tap the plus button to import it. You can put BitSense into cold mode for watch only keys.")
+        }
     }
     
     func getExchangeRates() {
@@ -370,10 +393,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 if error != nil {
                     
                     print(error as Any)
-                    self.removeSpinner()
                     DispatchQueue.main.async {
-                        self.avCaptureSession.startRunning()
-                        displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
+                        displayAlert(viewController: self, title: "Error", message: "Please check your internet connection.")
                     }
                     
                 } else {
@@ -388,68 +409,12 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                 
                                 print("exchangeCheck = \(exchangeCheck)")
                                 
-                                self.removeSpinner()
-                                if let usdCheck = exchangeCheck["USD"] as? NSDictionary {
+                                if let check = exchangeCheck[self.currency] as? NSDictionary {
                                     
-                                    if let rateCheck = usdCheck["rate_float"] as? Float {
+                                    if let rateCheck = check["rate_float"] as? Float {
                                         
-                                        DispatchQueue.main.async {
-                                            
-                                            let exchangeRate = Double(rateCheck)
-                                            let usdAmount = (self.balance * exchangeRate)
-                                            let roundedUsdAmount = round(100 * usdAmount) / 100
-                                            let roundedInt = Int(roundedUsdAmount)
-                                            let usdBalanceLabel = UILabel()
-                                            usdBalanceLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - ((self.view.frame.height / 2) + 60), width: self.view.frame.width, height: self.view.frame.height)
-                                            usdBalanceLabel.text = "\(roundedInt.withCommas()) USD"
-                                            usdBalanceLabel.textColor = UIColor.black
-                                            usdBalanceLabel.font = UIFont.systemFont(ofSize: 32)
-                                            usdBalanceLabel.textAlignment = .center
-                                            self.view.addSubview(usdBalanceLabel)
-                                            
-                                        }
-                                    }
-                                }
-                                
-                                if let gbpCheck = exchangeCheck["GBP"] as? NSDictionary {
-                                    
-                                    if let rateCheck = gbpCheck["rate_float"] as? Float {
+                                        self.exRate = Double(rateCheck)
                                         
-                                        DispatchQueue.main.async {
-                                            let exchangeRate = Double(rateCheck)
-                                            let gbpAmount = (self.balance * exchangeRate)
-                                            let roundedGbpAmount = round(100 * gbpAmount) / 100
-                                            let roundedInt = Int(roundedGbpAmount)
-                                            let gbpBalanceLabel = UILabel()
-                                            gbpBalanceLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - ((self.view.frame.height / 2)), width: self.view.frame.width, height: self.view.frame.height)
-                                            gbpBalanceLabel.text = "\(roundedInt.withCommas()) GBP"
-                                            gbpBalanceLabel.textColor = UIColor.black
-                                            gbpBalanceLabel.font = UIFont.systemFont(ofSize: 32)
-                                            gbpBalanceLabel.textAlignment = .center
-                                            self.view.addSubview(gbpBalanceLabel)
-                                            
-                                        }
-                                    }
-                                }
-                                
-                                if let euroCheck = exchangeCheck["EUR"] as? NSDictionary {
-                                    
-                                    if let rateCheck = euroCheck["rate_float"] as? Float {
-                                        
-                                        DispatchQueue.main.async {
-                                            let exchangeRate = Double(rateCheck)
-                                            let euroAmount = (self.balance * exchangeRate)
-                                            let roundedEuroAmount = round(100 * euroAmount) / 100
-                                            let roundedInt = Int(roundedEuroAmount)
-                                            let euroBalanceLabel = UILabel()
-                                            euroBalanceLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - ((self.view.frame.height / 2) - 60), width: self.view.frame.width, height: self.view.frame.height)
-                                            euroBalanceLabel.text = "\(roundedInt.withCommas()) EUR"
-                                            euroBalanceLabel.textColor = UIColor.black
-                                            euroBalanceLabel.font = UIFont.systemFont(ofSize: 32)
-                                            euroBalanceLabel.textAlignment = .center
-                                            self.view.addSubview(euroBalanceLabel)
-                                            
-                                        }
                                     }
                                 }
                              }
@@ -458,8 +423,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                             
                             print("JSon processing failed")
                             DispatchQueue.main.async {
-                                self.removeSpinner()
-                                self.avCaptureSession.startRunning()
                                 displayAlert(viewController: self, title: "Error", message: "Please try again.")
                             }
                         }
@@ -470,6 +433,45 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         task.resume()
         
+    }
+    
+    func convertBTCtoCurrency(btcAmount: Double, exchangeRate: Double) -> String {
+        
+        var convertedAmount = ""
+        //let btcDouble = Double(btcAmount)!
+        
+        func convertToFiat(currency: String) -> String {
+            
+            var sign = ""
+            switch currency {
+            case "USD": sign = "﹩"
+            case "GBP": sign = "£"
+            case "EUR": sign = "€"
+            case "BTC": sign = ""
+            case "SAT": sign = ""
+            default:
+                break
+            }
+            
+            let usdAmount = btcAmount * exchangeRate
+            let roundedUsdAmount = round(100 * usdAmount) / 100
+            let roundedInt = Int(roundedUsdAmount)
+            let fiat = "\(sign)\(roundedInt.withCommas()) \(currency)"
+            return fiat
+            
+        }
+        
+        switch self.currency {
+        case "USD":convertedAmount = convertToFiat(currency: "USD")
+        case "GBP":convertedAmount = convertToFiat(currency: "GBP")
+        case "EUR":convertedAmount = convertToFiat(currency: "EUR")
+        case "SAT":convertedAmount = "\((btcAmount * 100000000).withCommas()) Sat"
+        case "BTC":convertedAmount = ""
+        default:
+            break
+        }
+        
+        return convertedAmount
     }
     
     func addHomeButton() {
@@ -531,13 +533,15 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     @objc func openAddressBook() {
         print("openAddressBook")
         
+        let aespassword = KeychainWrapper.standard.string(forKey: "AESPassword")!
+        
         DispatchQueue.main.async {
             
             if self.addressBook.count > 1 {
                 
                 let alert = UIAlertController(title: "Which Wallet?", message: "Please select which wallet you'd like to check the balance for", preferredStyle: UIAlertControllerStyle.actionSheet)
                 
-                for (index, wallet) in self.addressBook.enumerated() {
+                for wallet in self.addressBook {
                     
                     var walletName = wallet["label"] as! String
                     
@@ -548,25 +552,65 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     
                     alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
                         
-                        let bitcoinAddress = self.addressBook[index]["address"] as! String
+                        self.addSpinner()
                         
-                        if bitcoinAddress.hasPrefix("b") {
-                            
-                            self.checkBech32Address(address: bitcoinAddress)
-                            
-                        } else {
-                            
-                            self.checkBalance(address: bitcoinAddress)
-                            
-                        }
+                        let address = wallet["address"] as! String
+                        let network = wallet["network"] as! String
                         
                         if walletName != "" {
                             
-                           self.addressLabel.text = walletName
+                            self.addressLabel.text = walletName
                             
                         } else {
                             
-                           self.addressLabel.text = bitcoinAddress
+                            self.addressLabel.text = address
+                        }
+                        
+                        if let index = wallet["index"] as? UInt32 {
+                            
+                            print("index = \(index)")
+                            
+                            if let xpub = wallet["xpub"] as? String {
+                                
+                                if xpub != "" {
+                                    
+                                    if let decryptedXpub = AES256CBC.decryptString(xpub, password: aespassword) {
+                                    
+                                        self.fetchTotalBalance(network: network, address: address, index: index, xpub: decryptedXpub)
+                                        
+                                    } else {
+                                        
+                                        displayAlert(viewController: self, title: "Error", message: "Error decrypting your xpub.")
+                                    }
+                                    
+                                } else {
+                                    
+                                    if address.hasPrefix("b") {
+                                        
+                                        self.checkBech32Address(address: address)
+                                        
+                                    } else {
+                                        
+                                        self.checkBalance(address: address)
+                                        
+                                    }
+                                    
+                                }
+                                
+                            }
+                            
+                        } else {
+                            
+                            if address.hasPrefix("b") {
+                                
+                                self.checkBech32Address(address: address)
+                                
+                            } else {
+                                
+                                self.checkBalance(address: address)
+                                
+                            }
+                            
                         }
                         
                     }))
@@ -577,7 +621,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     
                 }))
                 
-                alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+                alert.popoverPresentationController?.sourceView = self.view
                 
                 self.present(alert, animated: true) {
                     print("option menu presented")
@@ -585,8 +629,11 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 
             } else if self.addressBook.count == 1 {
                 
+                self.addSpinner()
+                
                 let walletName = self.addressBook[0]["label"] as! String
-                let bitcoinAddress = self.addressBook[0]["address"] as! String
+                let address = self.addressBook[0]["address"] as! String
+                let network = self.addressBook[0]["network"] as! String
                 
                 if walletName != "" {
                     
@@ -594,26 +641,162 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     
                 } else {
                     
-                    self.addressLabel.text = bitcoinAddress
+                    self.addressLabel.text = address
                 }
                 
-                if bitcoinAddress.hasPrefix("b") {
+                if let index = self.addressBook[0]["index"] as? UInt32 {
                     
-                    self.checkBech32Address(address: bitcoinAddress)
+                    if let xpub = self.addressBook[0]["xpub"] as? String {
+                        
+                        if xpub != "" {
+                            
+                            if let decryptedXpub = AES256CBC.decryptString(xpub, password: aespassword) {
+                                
+                                self.fetchTotalBalance(network: network, address: address, index: index, xpub: decryptedXpub)
+                                
+                            } else {
+                                
+                                displayAlert(viewController: self, title: "Error", message: "Error decrypting your xpub.")
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                    //self.fetchTotalBalance(network: network, address: address, index: index, xpub: xpub)
                     
                 } else {
                     
-                    self.checkBalance(address: bitcoinAddress)
+                    if address.hasPrefix("b") {
+                        
+                        self.checkBech32Address(address: address)
+                        
+                    } else {
+                        
+                        self.checkBalance(address: address)
+                        
+                    }
                     
                 }
                 
             } else if self.addressBook.count == 0 {
                 
+                displayAlert(viewController: self, title: "Oops", message: "Your address book is empty, please create or import some wallets")
                 
-                }
-            
             }
-
+            
+           self.addBalanceView()
+            
+        }
+        
+    }
+    
+    func addBalanceView() {
+        
+        DispatchQueue.main.async {
+            self.videoPreview.removeFromSuperview()
+            self.addressToDisplay.removeFromSuperview()
+            
+            self.btcBalanceLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - ((self.view.frame.height / 2) + 120), width: self.view.frame.width, height: self.view.frame.height)
+            self.btcBalanceLabel.textColor = UIColor.black
+            self.btcBalanceLabel.textAlignment = .center
+            self.btcBalanceLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 35)
+            self.view.addSubview(self.btcBalanceLabel)
+            
+            self.usdBalanceLabel.textColor = UIColor.black
+            self.usdBalanceLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 35)
+            self.usdBalanceLabel.textAlignment = .center
+            self.usdBalanceLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - ((self.view.frame.height / 2) + 60), width: self.view.frame.width, height: self.view.frame.height)
+            
+            self.addressLabel.adjustsFontSizeToFitWidth = true
+            self.addressLabel.textColor = UIColor.black
+            self.addressLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 23)
+            self.addressLabel.textAlignment = .center
+            self.view.addSubview(self.addressLabel)
+            
+            self.addressBookButton.removeFromSuperview()
+            self.myAddressButton.removeFromSuperview()
+            self.addBackUpButton()
+            self.view.addSubview(self.usdBalanceLabel)
+            
+        }
+    }
+    
+    func fetchTotalBalance(network: String, address: String, index: UInt32, xpub: String) {
+        
+        if let watchOnlyTestKey = BTCKeychain.init(extendedKey: xpub) {
+            
+                for i in 0 ... index {
+                    
+                    var addressHD = String()
+                        
+                    if network == "testnet" {
+                            
+                        addressHD = (watchOnlyTestKey.key(at: i).addressTestnet.string)
+                            
+                    } else if network == "mainnet" {
+                            
+                        addressHD = (watchOnlyTestKey.key(at: i).address.string)
+                            
+                    }
+                        
+                    var bitcoinAddress = String()
+                        
+                    if address.hasPrefix("1") || address.hasPrefix("3") || address.hasPrefix("2") || address.hasPrefix("m") || address.hasPrefix("n") {
+                            
+                        bitcoinAddress = addressHD
+                            
+                    } else if address.hasPrefix("bc1") || address.hasPrefix("tb") {
+                            
+                        let compressedPKData = BTCRIPEMD160(BTCSHA256(watchOnlyTestKey.key(at: i).compressedPublicKey as Data!) as Data!) as Data!
+                            
+                        do {
+                                
+                            if network == "mainnet" {
+                                    
+                                bitcoinAddress = try self.segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                                    
+                            } else if network == "testnet" {
+                                    
+                                bitcoinAddress = try self.segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
+                                    
+                            }
+                                
+                        } catch {
+                                
+                            displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                                
+                        }
+                            
+                    }
+                        
+                    let dict = ["address":bitcoinAddress]
+                    self.addressArray.append(dict)
+                        
+                }
+                    
+                if address.hasPrefix("b") {
+                        
+                    for key in self.addressArray {
+                            
+                        self.checkBech32Address(address: key["address"] as! String)
+                    }
+                        
+                } else {
+                        
+                    for key in self.addressArray {
+                            
+                        self.checkBalance(address: key["address"] as! String)
+                    }
+                        
+                }
+                    
+            
+        } else {
+            
+            displayAlert(viewController: self, title: "Error", message: "We had an issue with the xpub.")
+        }
+            
     }
     
     func checkBech32Address(address: String) {
@@ -622,104 +805,77 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         self.addressToShare = address
         
-        self.addSpinner()
-        
         var url:NSURL!
         
-        if testnetMode {
+        func get() {
             
-            //find testnet for bech32
-            url = NSURL(string: "https://api.blockchair.com/bitcoin/dashboards/address/\(address)")
-            
-        } else if mainnetMode {
-            
-            url = NSURL(string: "https://api.blockchair.com/bitcoin/dashboards/address/\(address)")
-            
-        }
-        
-        print("url = \(url)")
-        
-        let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
-            
-            do {
+            let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
                 
-                if error != nil {
+                do {
                     
-                    print(error as Any)
-                    self.removeSpinner()
-                    DispatchQueue.main.async {
-                        self.avCaptureSession.startRunning()
-                        displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
-                    }
-                    
-                } else {
-                    
-                    if let urlContent = data {
+                    if error != nil {
                         
-                        do {
+                        print(error as Any)
+                        self.removeSpinner()
+                        DispatchQueue.main.async {
+                            self.avCaptureSession.startRunning()
+                            displayAlert(viewController: self, title: "Error", message: "\(String(describing: error))")
+                        }
+                        
+                    } else {
+                        
+                        if let urlContent = data {
                             
-                            let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
-                            
-                            print("jsonAddressResult = \(jsonAddressResult)")
-                            
-                           
-                            
-                            if let btcAmount = ((jsonAddressResult["data"] as? NSArray)?[0] as? NSDictionary)?["sum_value_unspent"] as? Double {
-                                    
-                                print("btcAmount = \(btcAmount)")
+                            do {
                                 
-                                self.balance = btcAmount
+                                let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
                                 
-                                DispatchQueue.main.async {
+                                if let btcAmount = ((jsonAddressResult["data"] as? NSArray)?[0] as? NSDictionary)?["sum_value_unspent"] as? Double {
                                     
-                                    self.videoPreview.removeFromSuperview()
-                                    self.addressToDisplay.removeFromSuperview()
+                                    print("btcAmount = \(btcAmount)")
+                                    self.balance = btcAmount
+                                    //self.balance = finalBalanceCheck / 100000000
+                                    self.btcBalanceLabel.text = "\(self.balance.avoidNotation) BTC"
+                                    self.usdBalanceLabel.text = self.convertBTCtoCurrency(btcAmount: self.totalBTC, exchangeRate: self.exRate)
                                     
-                                    let btcBalanceLabel = UILabel()
-                                    btcBalanceLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - ((self.view.frame.height / 2) + 120), width: self.view.frame.width, height: self.view.frame.height)
-                                    btcBalanceLabel.text = "\(btcAmount.avoidNotation) BTC"
-                                    btcBalanceLabel.textColor = UIColor.black
-                                    btcBalanceLabel.font = UIFont.systemFont(ofSize: 32)
-                                    btcBalanceLabel.textAlignment = .center
-                                    self.view.addSubview(btcBalanceLabel)
+                                } else {
                                     
-                                    self.addressLabel.adjustsFontSizeToFitWidth = true
-                                    self.addressLabel.textColor = UIColor.black
-                                    self.addressLabel.font = UIFont.systemFont(ofSize: 23)
-                                    self.addressLabel.textAlignment = .center
-                                    self.view.addSubview(self.addressLabel)
-                                    
-                                    self.addressBookButton.removeFromSuperview()
-                                    self.myAddressButton.removeFromSuperview()
-                                    self.addBackUpButton()
-                                    self.getExchangeRates()
-                                    
+                                    DispatchQueue.main.async {
+                                        self.removeSpinner()
+                                        self.avCaptureSession.startRunning()
+                                        displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                                    }
                                 }
- 
-                            } else {
                                 
+                            } catch {
+                                
+                                print("JSon processing failed")
                                 DispatchQueue.main.async {
                                     self.removeSpinner()
                                     self.avCaptureSession.startRunning()
                                     displayAlert(viewController: self, title: "Error", message: "Please try again.")
                                 }
                             }
- 
-                        } catch {
-                            
-                            print("JSon processing failed")
-                            DispatchQueue.main.async {
-                                self.removeSpinner()
-                                self.avCaptureSession.startRunning()
-                                displayAlert(viewController: self, title: "Error", message: "Please try again.")
-                            }
                         }
                     }
                 }
             }
+            
+            task.resume()
         }
         
-        task.resume()
+        
+        
+        if address.hasPrefix("tb") || address.hasPrefix("bc1") {
+            
+            //find testnet for bech32
+            url = NSURL(string: "https://api.blockchair.com/bitcoin/dashboards/address/\(address)")
+            get()
+            
+        } else {
+            
+            displayAlert(viewController: self, title: "Oops", message: "That is not a valid address, if you'd like to create a watch only address with a private key then put the app into cold mode in settings then tap the plus button on the home screen to import a watch only key.")
+        }
     }
     
     @objc func airDropImage() {
@@ -761,7 +917,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                         
                     }
                     
-                    saveWallet(viewController: self, address: self.addressToShare, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold")
+                    saveWallet(viewController: self,mnemonic: "", xpub: "", address: self.addressToShare, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold", index:UInt32())
                     
                 }))
                 

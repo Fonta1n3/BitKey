@@ -70,18 +70,9 @@ class InfoViewController: UIViewController, UITextViewDelegate {
         You can check any balance by tapping the Balance button, from there you can scan or input any Bitcoin address or tap the address book.
         
         
-        Why do I need to move the Bitcoin around?
-        
-        A Bitcoin wallet is simply a Private Key which is really just a large random number. In order for your Private Key to be unhackable it should be as random as possible. If the Private Key is not random then it gives a hacker an advantage at guessing what your Private Key is, for example it is more likely for a hacker to guess the number 11111111111111111111111 then 9237532487584593829339825.
-        
-        To create randomness we use your finger motion on the device to track your X and Y coordinates across the screen, these coordinates are just numbers, we convert the even numbers to 0's and the odd numbers to 1's. As your swiping and creating this long string of 1's and 0's we are also randomly shuffling those 1's and 0's to add another layer of randomness. We wait until you have a string of 1's and 0's that is 800 digits in length and then convert those ones and zeros into bits, and we randomnly select 256 of those 800 bits to create a 256 bit number (which in normal number format that you are used to is about 76 digits in length and approximately equivalent to the number of atoms in the visible universe!).
-        
-        We then put that 256 bit number through a SHA256 algorithm to add an extra layer of randomness and to guarantee the result is 256 bits, this is your Private Key.
-        
-        
         BitSense Principles:
         
-        We are FOSS (Free Open Sourced Software). You can take a look at the code at https://github.com/FontaineDenton/BitKey/tree/master/BitKeys
+        We are FOSS (Free Open Sourced Software). You can take a look at the code at https://github.com/FontaineDenton/BitKey/tree/master/BitKeys 
         
         BitSense puts you the user in ultimate control of your private keys. You can export your private key and make your hot wallet cold at any time. You can put the app into cold mode and carry out transactions in a way that ensures no private key is ever saved anywhere. It is the perfect app for taking control of your own private keys. The likes of Coinbase and other exchanges are security holes and highly risky to store your Bitcoin on.
         

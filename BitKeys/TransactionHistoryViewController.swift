@@ -114,35 +114,39 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
     
     func numberOfSections(in tableView: UITableView) -> Int {
         
-        return 1
+        return transactionArray.count
         
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return self.transactionArray.count
+        return 1//self.transactionArray.count
         
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "CustomCell", for: indexPath)
-        
+        cell.layer.cornerRadius = 10
         let titleLabel = cell.viewWithTag(1) as! UILabel
         let subTitleLabel1 = cell.viewWithTag(2) as! UILabel
         let subTitleLabel2 = cell.viewWithTag(3) as! UILabel
         let subTitleLabel3 = cell.viewWithTag(4) as! UILabel
+        subTitleLabel1.textColor = UIColor.white
+        subTitleLabel2.textColor = UIColor.white
+        subTitleLabel3.textColor = UIColor.white
+        titleLabel.textColor = UIColor.white
         
-        let type = self.transactionArray[indexPath.row]["type"] as! String
-        let fees = self.transactionArray[indexPath.row]["fees"] as! Double
-        let confirmations = self.transactionArray[indexPath.row]["confirmations"] as! Int
-        let date = self.transactionArray[indexPath.row]["date"] as! String
+        let type = self.transactionArray[indexPath.section]["type"] as! String
+        let fees = self.transactionArray[indexPath.section]["fees"] as! Double
+        let confirmations = self.transactionArray[indexPath.section]["confirmations"] as! Int
+        let date = self.transactionArray[indexPath.section]["date"] as! String
         var fromAddress = String()
         
         if type == "receiving" {
             
-            let fromAddresses = self.transactionArray[indexPath.row]["fromAddress"] as! [String]
-            let amountReceived = self.transactionArray[indexPath.row]["amountReceived"] as! Double
+            let fromAddresses = self.transactionArray[indexPath.section]["fromAddress"] as! [String]
+            let amountReceived = self.transactionArray[indexPath.section]["amountReceived"] as! Double
             
             var addressesEqual = Bool()
             
@@ -192,8 +196,8 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
             
         } else if type == "sending" {
             
-            var toAddress = self.transactionArray[indexPath.row]["toAddress"] as! String
-            let amountSent = self.transactionArray[indexPath.row]["amountSent"] as! Double
+            var toAddress = self.transactionArray[indexPath.section]["toAddress"] as! String
+            let amountSent = self.transactionArray[indexPath.section]["amountSent"] as! Double
             
             for wallet in self.addressBook {
                 
@@ -221,7 +225,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
             
         } else {
             
-            cell.backgroundColor = UIColor.white
+            cell.backgroundColor = UIColor.black
         }
         
         return cell
@@ -237,8 +241,6 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         print("getLatestBlock")
         
         if isInternetAvailable() == true {
-            
-            self.addSpinner()
             
             var url:NSURL!
             
@@ -310,8 +312,6 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
     func checkBalance(address: String) {
         print("checkBalance")
         
-        self.addSpinner()
-        
         var url:NSURL!
         
         if address.hasPrefix("1") || address.hasPrefix("3") {
@@ -338,7 +338,14 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                 
                                 let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
                                 
+                                print("result = \(jsonAddressResult)")
+                                
                                 if let historyCheck = jsonAddressResult["txs"] as? NSArray {
+                                    
+                                    if historyCheck.count == 0 {
+                                        
+                                        displayAlert(viewController: self, title: "Oops", message: "No transactions yet for address \(address)")
+                                    }
                                     
                                     self.transactionArray.removeAll()
                                     
@@ -737,7 +744,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         } else if address.hasPrefix("m") || address.hasPrefix("2") || address.hasPrefix("n") {
             
             //url = NSURL(string: "https://testnet.blockchain.info/rawaddr/\(address)")
-            url = NSURL(string: "https://api.blockcypher.com/v1/btc/test3/addrs/\(address)/full?token=a9d88ea606fb4a92b5134d34bc1cb2a0")
+            url = NSURL(string: "https://api.blockcypher.com/v1/btc/test3/addrs/\(address)/full")//?token=a9d88ea606fb4a92b5134d34bc1cb2a0
             
             let task = URLSession.shared.dataTask(with: url! as URL) { (data, response, error) -> Void in
                 
@@ -992,29 +999,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         
     }
     
-    func addSpinner() {
-        
-        DispatchQueue.main.async {
-            
-            
-            
-            
-            /*if self.imageView != nil {
-                self.imageView.removeFromSuperview()
-            }
-            let bitcoinImage = UIImage(named: "Bitsense image.png")
-            self.imageView = UIImageView(image: bitcoinImage!)
-            self.imageView.center = self.view.center
-            //self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
-            self.imageView.frame = CGRect(x: self.view.frame.maxX - 55, y: 20, width: 50, height: 50)
-            rotateAnimation(imageView: self.imageView as! UIImageView)
-            self.view.addSubview(self.imageView)*/
-            
-        }
-        
-    }
-    
-    func removeSpinner() {
+   func removeSpinner() {
         
         DispatchQueue.main.async {
             

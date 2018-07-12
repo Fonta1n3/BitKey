@@ -10,8 +10,7 @@ import UIKit
 
 class MayerMultipleViewController: UIViewController {
     
-  
-    var imageView:UIView!
+    var activityIndicator:UIActivityIndicatorView!
     var button = UIButton(type: .custom)
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask { return UIInterfaceOrientationMask.portrait }
@@ -19,7 +18,12 @@ class MayerMultipleViewController: UIViewController {
     func addSpinner() {
         
         DispatchQueue.main.async {
-            rotateAnimation(imageView: self.imageView as! UIImageView)
+            self.activityIndicator = UIActivityIndicatorView(frame: CGRect(x: self.view.center.x - 25, y: self.view.center.y - 25, width: 50, height: 50))
+            self.activityIndicator.hidesWhenStopped = true
+            self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+            self.activityIndicator.isUserInteractionEnabled = true
+            self.view.addSubview(self.activityIndicator)
+            self.activityIndicator.startAnimating()
         }
         
     }
@@ -27,7 +31,7 @@ class MayerMultipleViewController: UIViewController {
     func removeSpinner() {
         
         DispatchQueue.main.async {
-            self.imageView.removeFromSuperview()
+            self.activityIndicator.stopAnimating()
         }
     }
 
@@ -43,19 +47,11 @@ class MayerMultipleViewController: UIViewController {
         imageView.alpha = 0.05
         self.view.addSubview(imageView)
         
-        let bitcoinImage = UIImage(named: "Bitsense image.png")
-        self.imageView = UIImageView(image: bitcoinImage!)
-        self.imageView.center = self.view.center
-        self.imageView.frame = CGRect(x: self.view.center.x - 25, y: 20, width: 50, height: 50)
-        self.view.addSubview(self.imageView)
-        
         self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
         self.button.showsTouchWhenHighlighted = true
         self.button.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
         self.button.addTarget(self, action: #selector(self.goBack), for: .touchUpInside)
         self.view.addSubview(self.button)
-        
-        
         
     }
     
@@ -74,9 +70,7 @@ class MayerMultipleViewController: UIViewController {
     }
 
     func getMayerMultiple() {
-        
-        self.addSpinner()
-        
+                
         var url:NSURL!
         url = NSURL(string: "https://blockchain.info/charts/market-price?timespan=200days&format=json")
         

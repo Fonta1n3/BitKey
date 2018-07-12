@@ -11,6 +11,7 @@ import AVFoundation
 
 class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCaptureMetadataOutputObjectsDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
     
+    var activityIndicator:UIActivityIndicatorView!
     var uploadButton = UIButton()
     let imagePicker = UIImagePickerController()
     var scanView = UIView()
@@ -539,15 +540,12 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
         print("addSpinner")
         
         DispatchQueue.main.async {
-            if self.imageView != nil {
-                self.imageView.removeFromSuperview()
-            }
-            let bitcoinImage = UIImage(named: "Bitsense image.png")
-            self.imageView = UIImageView(image: bitcoinImage!)
-            self.imageView.center = self.view.center
-            self.imageView.frame = CGRect(x: self.view.center.x - 25, y: 20, width: 50, height: 50)
-            rotateAnimation(imageView: self.imageView as! UIImageView)
-            self.view.addSubview(self.imageView)
+            self.activityIndicator = UIActivityIndicatorView(frame: CGRect(x: self.view.center.x - 25, y: self.view.center.y - 25, width: 50, height: 50))
+            self.activityIndicator.hidesWhenStopped = true
+            self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+            self.activityIndicator.isUserInteractionEnabled = true
+            self.view.addSubview(self.activityIndicator)
+            self.activityIndicator.startAnimating()
         }
         
     }
@@ -556,13 +554,7 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
         print("removeSpinner")
         
         DispatchQueue.main.async {
-            
-            if self.imageView != nil {
-                
-                self.imageView.removeFromSuperview()
-                
-            }
-            
+            self.activityIndicator.stopAnimating()
         }
     }
     
