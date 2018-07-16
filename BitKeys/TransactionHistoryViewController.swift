@@ -19,6 +19,8 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
     var transactionArray = [[String:Any]]()
     var addressBook = [[String:Any]]()
     var activityIndicator:UIActivityIndicatorView!
+    var backgroundColours = [UIColor()]
+    var backgroundLoop:Int = 0
     
     @IBOutlet var transactionHistoryTable: UITableView!
     
@@ -26,12 +28,6 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         super.viewDidLoad()
         
         transactionHistoryTable.delegate = self
-        let imageView = UIImageView()
-        imageView.image = UIImage(named:"background.jpg")
-        imageView.frame = self.view.frame
-        imageView.contentMode = UIViewContentMode.scaleAspectFill
-        imageView.alpha = 0.02
-        self.view.addSubview(imageView)
         addBackButton()
         address = wallet["address"] as! String
         refresher = UIRefreshControl()
@@ -61,11 +57,28 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         
         self.activityIndicator = UIActivityIndicatorView(frame: CGRect(x: self.view.center.x - 25, y: self.view.center.y - 25, width: 50, height: 50))
         self.activityIndicator.hidesWhenStopped = true
-        self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+        self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.whiteLarge
         self.activityIndicator.isUserInteractionEnabled = true
         self.view.addSubview(self.activityIndicator)
         self.activityIndicator.startAnimating()
         
+        backgroundColours = [UIColor.red, UIColor.blue, UIColor.yellow]
+        backgroundLoop = 0
+        animateBackgroundColour()
+        
+    }
+    
+    func animateBackgroundColour () {
+        if backgroundLoop < backgroundColours.count - 1 {
+            self.backgroundLoop += 1
+        } else {
+            backgroundLoop = 0
+        }
+        UIView.animate(withDuration: 5, delay: 0, options: UIViewAnimationOptions.allowUserInteraction, animations: { () -> Void in
+            self.view.backgroundColor =  self.backgroundColours[self.backgroundLoop];
+        }) {(Bool) -> Void in
+            self.animateBackgroundColour();
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -344,7 +357,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                     
                                     if historyCheck.count == 0 {
                                         
-                                        displayAlert(viewController: self, title: "Oops", message: "No transactions yet for address \(address)")
+                                        displayAlert(viewController: self, title: "No transactions yet for address \(address)", message: "")
                                     }
                                     
                                     self.transactionArray.removeAll()
@@ -769,6 +782,11 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
                                 print("jsonAddressResult = \(jsonAddressResult)")
                                 
                                 if let historyCheck = jsonAddressResult["txs"] as? NSArray {
+                                    
+                                    if historyCheck.count == 0 {
+                                        
+                                        displayAlert(viewController: self, title: "No transactions yet for address \(address)", message: "")
+                                    }
                                     
                                     self.transactionArray.removeAll()
                                     

@@ -26,6 +26,8 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
     var rawTransaction = String()
     var transactionID = String()
     let avCaptureSession = AVCaptureSession()
+    var backgroundColours = [UIColor()]
+    var backgroundLoop:Int = 0
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -53,10 +55,15 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
         
         rawTransactionView.frame = CGRect(x: (view.frame.width / 2) - ((view.frame.width - 10) / 2), y: view.frame.minY + 100, width: view.frame.width - 10, height: 325)
         rawTransactionView.textAlignment = .left
-        rawTransactionView.backgroundColor = UIColor.groupTableViewBackground
+        //rawTransactionView.backgroundColor = UIColor.groupTableViewBackground
         rawTransactionView.keyboardDismissMode = .interactive
+        rawTransactionView.keyboardAppearance = UIKeyboardAppearance.dark
+        rawTransactionView.backgroundColor = UIColor.clear
+        rawTransactionView.textColor = UIColor.white
+        addShadow(view: rawTransactionView)
+        rawTransactionView.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
         rawTransactionView.isEditable = true
-        rawTransactionView.font = UIFont.systemFont(ofSize: 22, weight: .regular)
+        //rawTransactionView.font = UIFont.systemFont(ofSize: 22, weight: .regular)
         rawTransactionView.returnKeyType = UIReturnKeyType.done
         
         
@@ -64,7 +71,8 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
         pushRawTransactionButton.showsTouchWhenHighlighted = true
         pushRawTransactionButton.titleLabel?.textAlignment = .center
         pushRawTransactionButton.setTitle("Push", for: .normal)
-        pushRawTransactionButton.setTitleColor(UIColor.blue, for: .normal)
+        addShadow(view: pushRawTransactionButton)
+        pushRawTransactionButton.setTitleColor(UIColor.white, for: .normal)
         pushRawTransactionButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
         pushRawTransactionButton.addTarget(self, action: #selector(self.pushRawTransaction), for: .touchUpInside)
         
@@ -72,8 +80,9 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
         decodeRawTransactionButton = UIButton(frame: CGRect(x: view.center.x - 150, y: self.pushRawTransactionButton.frame.maxY + 10, width: 300, height: 55))
         decodeRawTransactionButton.showsTouchWhenHighlighted = true
         decodeRawTransactionButton.titleLabel?.textAlignment = .center
+        addShadow(view: decodeRawTransactionButton)
         decodeRawTransactionButton.setTitle("Decode", for: .normal)
-        decodeRawTransactionButton.setTitleColor(UIColor.blue, for: .normal)
+        decodeRawTransactionButton.setTitleColor(UIColor.white, for: .normal)
         decodeRawTransactionButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
         decodeRawTransactionButton.addTarget(self, action: #selector(self.decodeRawTransaction), for: .touchUpInside)
         
@@ -94,6 +103,23 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
         view.addSubview(pushRawTransactionButton)
         view.addSubview(decodeRawTransactionButton)
         rawTransactionView.becomeFirstResponder()
+        
+        backgroundColours = [UIColor.red, UIColor.blue, UIColor.yellow]
+        backgroundLoop = 0
+        animateBackgroundColour()
+    }
+    
+    func animateBackgroundColour () {
+        if backgroundLoop < backgroundColours.count - 1 {
+            self.backgroundLoop += 1
+        } else {
+            backgroundLoop = 0
+        }
+        UIView.animate(withDuration: 5, delay: 0, options: UIViewAnimationOptions.allowUserInteraction, animations: { () -> Void in
+            self.view.backgroundColor =  self.backgroundColours[self.backgroundLoop];
+        }) {(Bool) -> Void in
+            self.animateBackgroundColour();
+        }
     }
 
     @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
@@ -542,7 +568,7 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
         DispatchQueue.main.async {
             self.activityIndicator = UIActivityIndicatorView(frame: CGRect(x: self.view.center.x - 25, y: self.view.center.y - 25, width: 50, height: 50))
             self.activityIndicator.hidesWhenStopped = true
-            self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+            self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.whiteLarge
             self.activityIndicator.isUserInteractionEnabled = true
             self.view.addSubview(self.activityIndicator)
             self.activityIndicator.startAnimating()

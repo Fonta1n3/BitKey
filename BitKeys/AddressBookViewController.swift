@@ -15,8 +15,12 @@ import AES256CBC
 
 class AddressBookViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIGestureRecognizerDelegate {
     
+    var descriptor = String()
+    var stringToExport = String()
+    var stopColorChange = Bool()
+    let amountLabel = UILabel()
     @IBOutlet var bottomView: UIView!
-    
+    let blur = UIVisualEffectView(effect: UIBlurEffect(style: UIBlurEffectStyle.regular))
     let imageImportView = UIImageView()
     var tapGesture = UITapGestureRecognizer()
     var words = ""
@@ -53,7 +57,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     var fileName = String()
     var editWalletMode = Bool()
     let blurView = UIView()
-    var tappedCell = UITableViewCell()
     var buttonViewVisible = Bool()
     var buttonView = UIView()
     var textInput = UITextField()
@@ -65,22 +68,20 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     var walletNameToExport = String()
     var backButton = UIButton()
     var addButton = UIButton()
-    var addressBook: [[String: Any]] = []
+    var addressBook = [[String: Any]]()
     var imageView:UIView!
-    var hotMainnetArray = [[String: Any]]()
-    var hotTestnetArray = [[String: Any]]()
-    var coldMainnetArray = [[String: Any]]()
-    var coldTestnetArray = [[String: Any]]()
     var sections = Int()
     var addressToExport = String()
     var privateKeyToExport = String()
     var refresher: UIRefreshControl!
     var ableToDelete = Bool()
     var wallet = [String:Any]()
+    var walletToExport = [String:Any]()
     var segwitMode = Bool()
     var legacyMode = Bool()
     var segwit = SegwitAddrCoder()
-    
+    var backgroundColours = [UIColor()]
+    var backgroundLoop:Int = 0    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -97,11 +98,12 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         refresher.addTarget(self, action: #selector(self.getArrays), for: UIControlEvents.valueChanged)
         addressBookTable.addSubview(refresher)
         addHomeScreen()
-        addShadow(view: addressBookTable)
         bottomView.layer.shadowColor = UIColor.black.cgColor
         bottomView.layer.shadowOffset = CGSize(width: -2.5, height: -2.5)
         bottomView.layer.shadowRadius = 2.5
         bottomView.layer.shadowOpacity = 0.5
+        
+        
         
         if UserDefaults.standard.object(forKey: "firstTimeHere") != nil {
             
@@ -129,8 +131,8 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     
                     let entity = NSEntityDescription.entity(forEntityName: "TransactionSettings", in: context)
                     let mySettings = NSManagedObject(entity: entity!, insertInto: context)
-                    mySettings.setValue(true, forKey: "dollar")
-                    mySettings.setValue(false, forKey: "bitcoin")
+                    mySettings.setValue(false, forKey: "dollar")
+                    mySettings.setValue(true, forKey: "bitcoin")
                     mySettings.setValue(false, forKey: "satoshi")
                     mySettings.setValue(false, forKey: "pounds")
                     mySettings.setValue(false, forKey: "euro")
@@ -161,33 +163,73 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
         self.activityIndicator = UIActivityIndicatorView(frame: CGRect(x: self.view.center.x - 25, y: self.view.center.y - 25, width: 50, height: 50))
         self.activityIndicator.hidesWhenStopped = true
-        self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+        self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.whiteLarge
         self.activityIndicator.isUserInteractionEnabled = true
         self.view.addSubview(self.activityIndicator)
         self.activityIndicator.startAnimating()
         
         tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissButtonView))
         tapGesture.delegate = self
+        tapGesture.numberOfTapsRequired = 1
         tapGesture.cancelsTouchesInView = false
         self.view.addGestureRecognizer(tapGesture)
         
         addButtonView()
         addressBook = checkAddressBook()
+        
         for (index, _) in addressBook.enumerated() {
             
             addressBook[index]["fiatBalance"] = "loading..."
         }
         
+        backgroundColours = [UIColor.red, UIColor.blue, UIColor.green]
+        backgroundLoop = 0
+        animateBackgroundColour()
+    }
+    
+   func animateBackgroundColour () {
+        
+        if !stopColorChange {
+            
+            if backgroundLoop < backgroundColours.count - 1 {
+                self.backgroundLoop += 1
+            } else {
+                backgroundLoop = 0
+            }
+            UIView.animate(withDuration: 5, delay: 0, options: UIViewAnimationOptions.allowUserInteraction, animations: { () -> Void in
+                self.view.backgroundColor =  self.backgroundColours[self.backgroundLoop];
+                self.blurView.backgroundColor =  self.backgroundColours[self.backgroundLoop];
+                self.importView.backgroundColor =  self.backgroundColours[self.backgroundLoop];
+            }) {(Bool) -> Void in
+                self.animateBackgroundColour();
+            }
+            
+        }
+        
     }
     
     
+    
+    
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        
+        if touch.view == self.importView {
+            
+            return false
+            
+        } else if touch.view == self.addressBookTable {
+            
+           return !(touch.view is UITableViewCell)
+            
+        }
         
         return !(touch.view is UIButton)
     }
     
     override func viewDidAppear(_ animated: Bool) {
         print("viewdidappear")
+        
+        
         
         getArrays()
         
@@ -367,34 +409,32 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         if let BTC = checkTransactionSettingsForKey(keyValue: "bitcoin") as? Bool {
             if BTC {
                 self.currency = "BTC"
-                self.amountToSend.placeholder = "Invoice amount in Bitcoin"
             }
         }
         if let SAT = checkTransactionSettingsForKey(keyValue: "satoshi") as? Bool {
             if SAT {
                 self.currency = "SAT"
-                self.amountToSend.placeholder = "Invoice amount in Satoshis"
             }
         }
         if let USD = checkTransactionSettingsForKey(keyValue: "dollar") as? Bool {
             if USD {
                 self.currency = "USD"
-                self.amountToSend.placeholder = "Invoice amount in Dollars"
             }
         }
         if let GBP = checkTransactionSettingsForKey(keyValue: "pounds") as? Bool {
             if GBP {
                 self.currency = "GBP"
-                self.amountToSend.placeholder = "Invoice amount in Pounds"
+                
             }
         }
         if let EUR = checkTransactionSettingsForKey(keyValue: "euro") as? Bool {
             if EUR {
                 self.currency = "EUR"
-                self.amountToSend.placeholder = "Invoice amount in Euros"
                 
             }
         }
+        
+        self.amountToSend.placeholder = "Optional"
         
     }
     
@@ -448,7 +488,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                 
                             }
                             
-                            saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot", index:UInt32())
+                            //saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot", index:UInt32())
                             
                             //self.addressBook = checkAddressBook()
                             
@@ -490,7 +530,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                 
                             }
                             
-                            saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot", index:UInt32())
+                            //saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot", index:UInt32())
                             
                             //self.addressBook = checkAddressBook()
                             
@@ -514,7 +554,13 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
         if (segue.identifier == "exportKeys") {
             
-            if self.privateKeyToExport != "" {
+            if let vc = segue.destination as? ViewController {
+                
+                vc.exportKeys = true
+                vc.walletToExport = self.walletToExport
+            }
+            
+            /*if self.privateKeyToExport != "" {
                 
                 if let vc = segue.destination as? ViewController {
                     
@@ -535,7 +581,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     vc.exportKeys = true
                 }
                 
-            }
+            }*/
             
         } else if (segue.identifier == "showHistory") {
             
@@ -565,6 +611,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             if let vc = segue.destination as? HDChildViewController {
                 
                 vc.masterWallet = self.wallet
+                vc.exchangeRate = self.exchangeRate
                 print("masterWallet = \(vc.masterWallet)")
                 
             }
@@ -595,10 +642,11 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     
     func addPrice(exchangeRate: Double) {
         
-        //add iphone X
         priceLabel.removeFromSuperview()
         priceLabel.frame = CGRect(x: self.view.center.x - 100, y: 25, width: 200, height: 25)
-        priceLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 15)
+        priceLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 15)
+        priceLabel.textColor = UIColor.white
+        addShadow(view: priceLabel)
         var sign = ""
         switch currency {
         case "USD": sign = "﹩"
@@ -665,13 +713,13 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
         let modelName = UIDevice.modelName
         
-        if modelName == "iPhone X" {
-            buttonView = UIView(frame: CGRect(x: 0, y: self.view.frame.maxY + 6, width: view.frame.width, height: 150))
+        if modelName == "Simulator iPhone X" {
+            buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY + 6, width: view.frame.width, height: 160)
         } else {
-           buttonView = UIView(frame: CGRect(x: 0, y: view.frame.maxY + 6, width: view.frame.width, height: 90))
+           buttonView.frame = CGRect(x: 0, y: view.frame.maxY + 6, width: view.frame.width, height: 100)
         }
         
-        buttonView.backgroundColor = UIColor.white
+        buttonView.backgroundColor = UIColor.black
         buttonView.layer.shadowColor = UIColor.black.cgColor
         buttonView.layer.shadowOffset = CGSize(width: -2.5, height: -2.5)
         buttonView.layer.shadowRadius = 2.5
@@ -681,65 +729,65 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
         let createInvoiceButton =  UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) - (self.view.frame.width / 2.25 - (35/2)) - 5, y: 28, width: 35, height: 35))
          createInvoiceButton.showsTouchWhenHighlighted = true
-         createInvoiceButton.setImage(#imageLiteral(resourceName: "bill.png"), for: .normal)
+         createInvoiceButton.setImage(#imageLiteral(resourceName: "whiteInvoice.png"), for: .normal)
          createInvoiceButton.addTarget(self, action: #selector(checkforHD), for: .touchUpInside)
          buttonView.addSubview(createInvoiceButton)
         
         let createInvoiceLabel = UILabel(frame: CGRect(x: createInvoiceButton.center.x - (createInvoiceButton.frame.width / 2), y: 64, width: createInvoiceButton.frame.width, height: 12))
         createInvoiceLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
-        createInvoiceLabel.textColor = UIColor.black
+        createInvoiceLabel.textColor = UIColor.white
         createInvoiceLabel.textAlignment = .center
         createInvoiceLabel.text = "Invoice"
         buttonView.addSubview(createInvoiceLabel)
         
         let spendButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) - (self.view.frame.width / 4 - (35/2)) - 5, y: 28, width: 35, height: 35))
         spendButton.showsTouchWhenHighlighted = true
-        spendButton.setImage(#imageLiteral(resourceName: "pay.png"), for: .normal)
+        spendButton.setImage(#imageLiteral(resourceName: "whitePay.png"), for: .normal)
         spendButton.addTarget(self, action: #selector(spendFromWallet), for: .touchUpInside)
         buttonView.addSubview(spendButton)
         
         let spendLabel = UILabel(frame: CGRect(x: spendButton.center.x - (spendButton.frame.width / 2), y: 64, width: spendButton.frame.width, height: 12))
         spendLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
-        spendLabel.textColor = UIColor.black
+        spendLabel.textColor = UIColor.white
         spendLabel.textAlignment = .center
         spendLabel.text = "Pay"
         buttonView.addSubview(spendLabel)
         
         let historyButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)), y: 28, width: 35, height: 35))
         historyButton.showsTouchWhenHighlighted = true
-        historyButton.setImage(#imageLiteral(resourceName: "history.png"), for: .normal)
+        historyButton.setImage(#imageLiteral(resourceName: "whiteHistory.png"), for: .normal)
         historyButton.addTarget(self, action: #selector(getHistoryWallet), for: .touchUpInside)
         buttonView.addSubview(historyButton)
         
         let historyLabel = UILabel(frame: CGRect(x: historyButton.center.x - (historyButton.frame.width / 2), y: 64, width: historyButton.frame.width, height: 12))
         historyLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
-        historyLabel.textColor = UIColor.black
+        historyLabel.textColor = UIColor.white
         historyLabel.textAlignment = .center
         historyLabel.text = "History"
         buttonView.addSubview(historyLabel)
         
-        let editButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 4 - (45/2)) - 5, y: 28, width: 45, height: 35))
+        let editButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 4 - (45/2)) - 5, y: 28, width: 35, height: 35))
         editButton.showsTouchWhenHighlighted = true
-        editButton.setImage(#imageLiteral(resourceName: "infinity.png"), for: .normal)
+        editButton.setImage(#imageLiteral(resourceName: "whiteInfinity.png"), for: .normal)
         editButton.addTarget(self, action: #selector(goToChildTable), for: .touchUpInside)
         buttonView.addSubview(editButton)
         
         let editLabel = UILabel(frame: CGRect(x: editButton.center.x - ((editButton.frame.width + 5) / 2), y: 64, width: editButton.frame.width + 5, height: 12))
         editLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
-        editLabel.textColor = UIColor.black
+        editLabel.textColor = UIColor.white
         editLabel.textAlignment = .center
         editLabel.text = "HD Keys"
         buttonView.addSubview(editLabel)
         
         let exportButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 2.25 - (35/2)) - 5, y: 28, width: 35, height: 35))
         exportButton.showsTouchWhenHighlighted = true
-        exportButton.setImage(#imageLiteral(resourceName: "qr.png"), for: .normal)
+        exportButton.setImage(#imageLiteral(resourceName: "whiteQR.png"), for: .normal)
         exportButton.addTarget(self, action: #selector(exportWallet), for: .touchUpInside)
         buttonView.addSubview(exportButton)
         
         let exportLabel = UILabel(frame: CGRect(x: exportButton.center.x - (exportButton.frame.width / 2), y: 64, width: exportButton.frame.width, height: 12))
         exportLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
-        exportLabel.textColor = UIColor.black
+        exportLabel.textColor = UIColor.white
         exportLabel.textAlignment = .center
         exportLabel.text = "Export"
         buttonView.addSubview(exportLabel)
@@ -816,12 +864,12 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     
                 } else {
                     
-                    displayAlert(viewController: self, title: "Oops", message: "Thats just a normal wallet or a segwit wallet, we can't derive HD keys from normal private keys or segwit wallets yet. We are working on segwit HD keys and will be updating the app soon. If you want to use HD keys then put the app into legacy mode and either import your recovery phrase or create a new wallet. You can do that by tapping the key button or plus sign.")
+                    displayAlert(viewController: self, title: "Oops", message: "Thats not an HD wallet HD wallets have the ∞ symbol.")
                 }
                 
             } else {
                 
-                displayAlert(viewController: self, title: "Oops", message: "Thats just a normal wallet or a segwit wallet, we can't derive HD keys from normal private keys or segwit wallets yet. We are working on segwit HD keys and will be updating the app soon. If you want to use HD keys then put the app into legacy mode and either import your recovery phrase or create a new wallet. You can do that by tapping the key button or plus sign.")
+                displayAlert(viewController: self, title: "Oops", message: "Thats not an HD wallet HD wallets have the ∞ symbol.")
                 
             }
             
@@ -833,12 +881,12 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 
             } else {
                 
-                displayAlert(viewController: self, title: "Oops", message: "Thats just a normal wallet or a segwit wallet, we can't derive HD keys from normal private keys or segwit wallets yet. We are working on segwit HD keys and will be updating the app soon. If you want to use HD keys then put the app into legacy mode and either import your recovery phrase or create a new wallet. You can do that by tapping the key button or plus sign.")
+                displayAlert(viewController: self, title: "Oops", message: "Thats not an HD wallet HD wallets have the ∞ symbol.")
             }
             
         } else {
             
-            displayAlert(viewController: self, title: "Oops", message: "Thats just a normal wallet or a segwit wallet, we can't derive HD keys from normal private keys or segwit wallets yet. We are working on segwit HD keys and will be updating the app soon. If you want to use HD keys then put the app into legacy mode and either import your recovery phrase or create a new wallet. You can do that by tapping the key button or plus sign.")
+            displayAlert(viewController: self, title: "Oops", message: "Thats not an HD wallet HD wallets have the ∞ symbol.")
         }
         
     }
@@ -865,7 +913,11 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                     
                                     self.addressBook[index]["privateKey"] = ""
                                     self.addressBook[index]["type"] = "cold"
+                                    self.addressBook[index]["xpriv"] = ""
+                                    self.addressBook[index]["mnemonic"] = ""
                                     self.editWallet(address: wallets["address"] as! String, newValue: "", oldValue: "", keyToEdit: "privateKey")
+                                    self.editWallet(address: wallets["address"] as! String, newValue: "", oldValue: "", keyToEdit: "xpriv")
+                                    self.editWallet(address: wallets["address"] as! String, newValue: "", oldValue: "", keyToEdit: "mnemonic")
                                     
                                 }
                                 
@@ -947,7 +999,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
         if UserDefaults.standard.object(forKey: "bioMetricsEnabled") != nil {
             
-            self.authenticationWithTouchID()
+            self.authenticationWithTouchID(item: "")
             
         } else if let _ = KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
             
@@ -979,7 +1031,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 
             }))
             
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
                 self.editWalletMode = false
             }))
             
@@ -1031,7 +1083,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         let modelName = UIDevice.modelName
 
         self.blurView.frame = self.view.frame
-        self.blurView.backgroundColor = UIColor.white
+        //self.blurView.backgroundColor = UIColor.white
         self.view.addSubview(self.blurView)
         
         let imageView = UIImageView()
@@ -1041,7 +1093,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         imageView.alpha = 0.05
         self.blurView.addSubview(imageView)
         
-        if modelName == "iPhone X" {
+        if modelName == "Simulator iPhone X" {
             
             self.backButton = UIButton(frame: CGRect(x: 5, y: 30, width: 55, height: 55))
             
@@ -1059,7 +1111,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
         self.settingsButton.removeFromSuperview()
         
-        if modelName == "iPhone X" {
+        if modelName == "Simulator iPhone X" {
             
             self.settingsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 50, y: 30, width: 45, height: 45))
             
@@ -1074,22 +1126,34 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         self.settingsButton.addTarget(self, action: #selector(self.goToSettings), for: .touchUpInside)
         self.blurView.addSubview(self.settingsButton)
         
-        self.amountToSend.frame = CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 150, width: self.view.frame.width - 10, height: 50)
+        self.amountToSend.frame = CGRect(x: 50, y: self.view.frame.minY + 150, width: self.view.frame.width - 100, height: 50)
         self.amountToSend.textAlignment = .center
         self.amountToSend.borderStyle = .roundedRect
         self.amountToSend.backgroundColor = UIColor.groupTableViewBackground
         self.amountToSend.keyboardType = UIKeyboardType.decimalPad
+        self.amountToSend.keyboardAppearance = UIKeyboardAppearance.dark
         self.blurView.addSubview(self.amountToSend)
+        
+        amountLabel.frame = CGRect(x: 50, y: self.amountToSend.frame.minY - 65, width: self.view.frame.width - 100, height: 55)
+        amountLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
+        amountLabel.adjustsFontSizeToFitWidth = true
+        amountLabel.textAlignment = .center
+        amountLabel.textColor = UIColor.white
+        amountLabel.text = "Amount to Receive in \(self.currency):"
+        addShadow(view: amountLabel)
         
         self.createButton = UIButton(frame: CGRect(x: self.view.center.x - 40, y: self.amountToSend.frame.maxY + 10, width: 80, height: 55))
         self.createButton.showsTouchWhenHighlighted = true
+        addShadow(view: self.createButton)
+        self.createButton.backgroundColor = UIColor.clear
         self.createButton.setTitle("Next", for: .normal)
-        self.createButton.setTitleColor(UIColor.blue, for: .normal)
+        self.createButton.setTitleColor(UIColor.white, for: .normal)
         self.createButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
         self.createButton.addTarget(self, action: #selector(self.createNow), for: .touchUpInside)
         self.blurView.addSubview(self.createButton)
         
         self.amountToSend.becomeFirstResponder()
+        self.blurView.addSubview(amountLabel)
         
     }
     
@@ -1103,6 +1167,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             self.amountToSend.resignFirstResponder()
             self.amountToSend.removeFromSuperview()
+            self.amountLabel.removeFromSuperview()
             self.settingsButton.removeFromSuperview()
             self.createButton.removeFromSuperview()
             self.addInvoiceView(address: self.HDAddress, amount: self.amountToSend.text!, currency: self.currency)
@@ -1111,12 +1176,11 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             self.amountToSend.resignFirstResponder()
             self.amountToSend.removeFromSuperview()
+            self.amountLabel.removeFromSuperview()
             self.settingsButton.removeFromSuperview()
             self.createButton.removeFromSuperview()
             self.addInvoiceView(address: self.HDAddress, amount: "0", currency: self.currency)
         }
-        
-        print("hdaddress = \(self.HDAddress)")
         
     }
     
@@ -1196,10 +1260,11 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 20) / 2), y: self.privateKeyQRView.frame.minY - 80, width: self.view.frame.width - 20, height: 50))
                     self.fileName = "Invoice"
                     self.privateKeyTitle.text = "Invoice\n🤑"
+                    addShadow(view: self.privateKeyTitle)
                     self.privateKeyTitle.numberOfLines = 0
                     self.privateKeyTitle.adjustsFontSizeToFitWidth = true
-                    self.privateKeyTitle.font = UIFont.init(name: "HelveticaNeue-Light", size: 32)
-                    self.privateKeyTitle.textColor = UIColor.black
+                    self.privateKeyTitle.font = UIFont.init(name: "HelveticaNeue-Bold", size: 32)
+                    self.privateKeyTitle.textColor = UIColor.white
                     self.privateKeyTitle.textAlignment = .center
                     self.blurView.addSubview(self.privateKeyTitle)
                     
@@ -1214,8 +1279,10 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 10)/2), y: self.privateKeyQRView.frame.maxY + 10, width: self.view.frame.width - 10, height: 75))
                 self.myField.isEditable = false
                 self.myField.backgroundColor = UIColor.clear
+                self.myField.textColor = UIColor.white
+                addShadow(view: self.myField)
                 self.myField.isSelectable = true
-                self.myField.font = UIFont.init(name: "HelveticaNeue-Light", size: 15)
+                self.myField.font = UIFont.init(name: "HelveticaNeue-Bold", size: 15)
                 
                 var amountwithcommas = amount
                 
@@ -1244,7 +1311,9 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 self.backUpButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.view.frame.maxY - 60, width: 80, height: 55))
                 self.backUpButton.showsTouchWhenHighlighted = true
                 self.backUpButton.setTitle("Share", for: .normal)
-                self.backUpButton.setTitleColor(UIColor.blue, for: .normal)
+                self.backUpButton.backgroundColor = UIColor.clear
+                addShadow(view: self.backUpButton)
+                self.backUpButton.setTitleColor(UIColor.white, for: .normal)
                 self.backUpButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
                 self.backUpButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
                 self.blurView.addSubview(self.backUpButton)
@@ -1381,6 +1450,12 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 
             }))
             
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Create Multi Sig", comment: ""), style: .default, handler: { (action) in
+                
+                self.performSegue(withIdentifier: "createMultiSig", sender: self)
+                
+            }))
+            
             alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
                 
             }))
@@ -1409,6 +1484,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         self.privateKeyQRView.removeFromSuperview()
         self.createButton.removeFromSuperview()
         self.amountToSend.removeFromSuperview()
+        self.amountLabel.removeFromSuperview()
         self.myField.removeFromSuperview()
         self.blurView.removeFromSuperview()
     
@@ -1533,6 +1609,14 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     
     @objc func dismissButtonView() {
         
+        if self.stopColorChange {
+            
+            
+        } else {
+            
+            self.stopColorChange = true
+        }
+        
         let modelName = UIDevice.modelName
         
         DispatchQueue.main.async {
@@ -1548,15 +1632,15 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     self.transactionsButton.alpha = 1
                     self.newAddressButton.alpha = 1
                     
-                    if modelName == "iPhone X" {
+                    if modelName == "Simulator iPhone X" {
                         //add pricelabel
-                        self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY + 6, width: self.view.frame.width, height: 150)
-                        self.transactionsButton.frame = CGRect(x: 5, y: self.view.frame.maxY - (85*2), width: 85, height: 50)
-                        self.newAddressButton.frame = CGRect(x: self.view.frame.maxX - 90, y: self.view.frame.maxY - (85*2), width: 85, height: 50)
+                        self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY + 6, width: self.view.frame.width, height: 160)
+                        self.transactionsButton.frame = CGRect(x: 5, y: self.bottomView.frame.minY - 70, width: 85, height: 50)
+                        self.newAddressButton.frame = CGRect(x: self.view.frame.maxX - 110, y: self.bottomView.frame.minY - 70, width: 100, height: 50)
                     } else {
-                        self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY + 6, width: self.view.frame.width, height: 90)
-                        self.transactionsButton.frame = CGRect(x: 5, y: self.view.frame.maxY - (55*2), width: 85, height: 50)
-                        self.newAddressButton.frame = CGRect(x: self.view.frame.maxX - 90, y: self.view.frame.maxY - (55*2), width: 85, height: 50)
+                        self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY + 6, width: self.view.frame.width, height: 100)
+                        self.transactionsButton.frame = CGRect(x: self.view.frame.maxX - 60, y: self.bottomView.frame.minY - 55, width: 50, height: 50)
+                        self.newAddressButton.frame = CGRect(x: 5, y: self.bottomView.frame.minY - 55, width: 100, height: 50)
                     }
                     
                 })
@@ -1567,21 +1651,37 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
     }
     
+    func decrypt(item: String) -> String {
+        
+        var decrypted = ""
+        
+        if let password = KeychainWrapper.standard.string(forKey: "AESPassword") {
+            
+            if let decryptedCheck = AES256CBC.decryptString(item, password: password) {
+                
+                decrypted = decryptedCheck.replacingOccurrences(of: ",", with: "")
+                
+            }
+            
+        }
+        
+        return decrypted
+        
+    }
+    
     @objc func exportWallet() {
         
         DispatchQueue.main.async {
             UIImpactFeedbackGenerator().impactOccurred()
         }
         
-        self.addressToExport = self.wallet["address"] as! String
-        self.privateKeyToExport = self.wallet["privateKey"] as! String
-        self.walletNameToExport = self.wallet["label"] as! String
         
-        if self.privateKeyToExport != "" {
+        
+        func authorize(item: String) {
             
             if UserDefaults.standard.object(forKey: "bioMetricsEnabled") != nil {
                 
-                self.authenticationWithTouchID()
+                self.authenticationWithTouchID(item: item)
                 
             } else if let _ = KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
                 
@@ -1603,10 +1703,23 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                         
                         if password == KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
                             
-                            DispatchQueue.main.async {
-                                self.processKeyAndSegue()
+                            let descriptor = self.walletToExport["descriptor"] as! String
+                            
+                            func getSecret() {
+                                
+                                let decryptedItem = self.decrypt(item: item)
+                                
+                                if decryptedItem != "" {
+                                    
+                                    self.walletToExport["stringToExport"] = decryptedItem
+                                    self.performSegue(withIdentifier: "exportKeys", sender: self)
+                                }
                             }
                             
+                            switch descriptor {
+                            case "redemptionScript": self.performSegue(withIdentifier: "exportKeys", sender: self)
+                            default:getSecret()
+                            }
                             
                         } else {
                             
@@ -1615,25 +1728,111 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                         
                     }))
                     
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
                         
                         
                     }))
                     
                     self.present(alert, animated: true, completion: nil)
-
+                    
                 }
                 
+            }
+            
+        }
+        
+        var array = [[String:Any]]()
+        var name = self.wallet["label"] as! String
+        let privateKey = self.wallet["privateKey"] as! String
+        let address = self.wallet["address"] as! String
+        let publicKey = self.wallet["publicKey"] as! String
+        let mnemonic = self.wallet["mnemonic"] as! String
+        let xpub = self.wallet["xpub"] as! String
+        let xprv = self.wallet["xpriv"] as! String
+        let redemptionScript = self.wallet["redemptionScript"] as! String
+        
+        if name == "" {
+            name = address
+        }
+        
+        if privateKey.contains(" ") {
+            
+            let privateKeyArray = privateKey.split(separator: " ")
+            
+            for (index, key) in privateKeyArray.enumerated() {
                 
-            } else {
+                let keyString = String(key)
                 
-                self.processKeyAndSegue()
+                array.append(["stringToExport":keyString, "descriptor":"privateKey", "title":"Private Key \(index + 1)", "label":name])
+                
+            }
+            
+        } else {
+          
+            array.append(["stringToExport":privateKey, "descriptor":"privateKey", "title":"Private Key", "label":name])
+            
+        }
+        
+        if publicKey.contains(" ") {
+            
+            let publicKeyArray = publicKey.split(separator: " ")
+            
+            for (index, key) in publicKeyArray.enumerated() {
+                
+                let keyString = String(key)
+                
+                array.append(["stringToExport":keyString, "descriptor":"publicKey", "title":"Public Key \(index + 1)", "label":name])
                 
             }
             
         } else {
             
-            self.processKeyAndSegue()
+            array.append(["stringToExport":publicKey, "descriptor":"publicKey", "title":"Public Key", "label":name])
+            
+        }
+        
+        array.append(["stringToExport":address, "descriptor":"address", "title":"Address", "label":name])
+        array.append(["stringToExport":mnemonic, "descriptor":"mnemonic", "title":"Recovery Phrase", "label":name])
+        array.append(["stringToExport":xpub, "descriptor":"xpub", "title":"XPUB", "label":name])
+        array.append(["stringToExport":xprv, "descriptor":"xpriv", "title":"XPRV", "label":name])
+        array.append(["stringToExport":redemptionScript, "descriptor":"redemptionScript", "title":"Redemption Script", "label":name])
+        
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: "Select Item to Export", message: "From: \(name)", preferredStyle: .actionSheet)
+            
+            for item in array {
+                
+                let descriptor = item["descriptor"] as! String
+                let itemToExport = item["stringToExport"] as! String
+                let title = item["title"] as! String
+                
+                if itemToExport != "" {
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString(title, comment: ""), style: .default, handler: { (action) in
+                        
+                        self.walletToExport = item
+                        
+                        switch descriptor {
+                        case "privateKey": authorize(item:item["stringToExport"] as! String)
+                        case "mnemonic": authorize(item:item["stringToExport"] as! String)
+                        case "xpub": authorize(item:item["stringToExport"] as! String)
+                        case "xpriv": authorize(item:item["stringToExport"] as! String)
+                        case "redemptionScript": authorize(item:item["stringToExport"] as! String)
+                        default: self.performSegue(withIdentifier: "exportKeys", sender: self)
+                        }
+                        
+                    }))
+                    
+                }
+                
+            }
+            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                
+                
+            }))
+            
+            self.present(alert, animated: true, completion: nil)
             
         }
         
@@ -1695,7 +1894,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 }
                 
                 self.buttonTitle.font = UIFont.init(name: "HelveticaNeue-Light", size: 15)
-                self.buttonTitle.textColor = UIColor.black
+                self.buttonTitle.textColor = UIColor.white
                 self.buttonTitle.textAlignment = .center
                 self.buttonTitle.adjustsFontSizeToFitWidth = true
                 self.buttonTitle.text = text
@@ -1706,11 +1905,11 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     self.transactionsButton.removeFromSuperview()
                     self.newAddressButton.removeFromSuperview()
                     
-                    if modelName == "iPhone X" {
-                        self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY - 155, width: self.view.frame.width, height: 150)
+                    if modelName == "Simulator iPhone X" {
+                        self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY - 160, width: self.view.frame.width, height: 160)
                     } else {
                         
-                      self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY - 90, width: self.view.frame.width, height: 90)
+                      self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY - 100, width: self.view.frame.width, height: 100)
                     }
                     
                 })
@@ -1768,13 +1967,11 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
         print("importWallet")
         importView.frame = view.frame
-        importView.backgroundColor = UIColor.white
         
         imageImportView.image = UIImage(named:"background.jpg")
         imageImportView.frame = self.view.frame
         imageImportView.contentMode = UIViewContentMode.scaleAspectFill
         imageImportView.alpha = 0.05
-        self.importView.addSubview(imageImportView)
         
         
         self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
@@ -1788,17 +1985,20 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         self.textInput.borderStyle = .roundedRect
         self.textInput.autocorrectionType = .no
         self.textInput.autocapitalizationType = .none
+        self.textInput.keyboardAppearance = UIKeyboardAppearance.dark
         self.textInput.backgroundColor = UIColor.groupTableViewBackground
         self.textInput.returnKeyType = UIReturnKeyType.go
         self.textInput.placeholder = "Scan or type an Address or Private Key"
         
         let title = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 50) / 2), y: self.textInput.frame.minY - 65, width: self.view.frame.width - 50, height: 55))
-        title.font = UIFont.init(name: "HelveticaNeue-Bold", size: 18)
-        title.textColor = UIColor.black
-        title.text = "Import Address or Private Key"
+        title.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
+        title.textColor = UIColor.white
+        title.text = "Import Address, Private Key, XPUB or XPRV"
+        title.numberOfLines = 0
+        addShadow(view: title)
         title.adjustsFontSizeToFitWidth = true
         title.textAlignment = .center
-        self.importView.addSubview(title)
+        
         
         self.qrImageView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.textInput.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
         addShadow(view:self.qrImageView)
@@ -1806,7 +2006,8 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         self.uploadButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 140, y: self.view.frame.maxY - 60, width: 130, height: 55))
         self.uploadButton.showsTouchWhenHighlighted = true
         self.uploadButton.setTitle("From Photos", for: .normal)
-        self.uploadButton.setTitleColor(UIColor.blue, for: .normal)
+        addShadow(view: self.uploadButton)
+        self.uploadButton.setTitleColor(UIColor.white, for: .normal)
         self.uploadButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
         self.uploadButton.addTarget(self, action: #selector(self.chooseQRCodeFromLibrary), for: .touchUpInside)
         
@@ -1814,21 +2015,10 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         createNew.frame = CGRect(x: 10, y: self.view.frame.maxY - 60, width: 130, height: 55)
         createNew.showsTouchWhenHighlighted = true
         createNew.setTitle("Create New", for: .normal)
-        createNew.setTitleColor(UIColor.blue, for: .normal)
+        createNew.setTitleColor(UIColor.white, for: .normal)
+        addShadow(view: createNew)
         createNew.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
         createNew.addTarget(self, action: #selector(self.createNew), for: .touchUpInside)
-        
-        DispatchQueue.main.async {
-            
-            self.view.addSubview(self.importView)
-            self.importView.addSubview(self.backButton)
-            self.importView.addSubview(self.textInput)
-            self.importView.addSubview(self.qrImageView)
-            self.importView.addSubview(self.uploadButton)
-            self.importView.addSubview(createNew)
-            
-        }
-        
         
         func scanQRCode() {
             
@@ -1844,7 +2034,18 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
         }
         
-        scanQRCode()
+        DispatchQueue.main.async {
+            
+            self.view.addSubview(self.importView)
+            self.importView.addSubview(self.imageImportView)
+            self.importView.addSubview(title)
+            self.importView.addSubview(self.backButton)
+            self.importView.addSubview(self.textInput)
+            self.importView.addSubview(self.qrImageView)
+            self.importView.addSubview(self.uploadButton)
+            self.importView.addSubview(createNew)
+            scanQRCode()
+        }
         
     }
     
@@ -1977,6 +2178,8 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     func processKeys(key: String) {
         print("processKeys = \(key)")
         
+        var success = Bool()
+        
         func processPrivateKey(privateKey: String) {
             
             if privateKey.hasPrefix("9") || privateKey.hasPrefix("c") {
@@ -2020,7 +2223,15 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                         DispatchQueue.main.async {
                             self.importView.removeFromSuperview()
                             
-                            saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot", index: UInt32())
+                            success = saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot", index: UInt32(), label: "", xpriv: "")
+                            if success {
+                                self.addressBook = checkAddressBook()
+                                self.getArrays()
+                                displayAlert(viewController: self, title: "Success", message: "You imported a wallet, you can rename it by swiping it left and tapping edit.")
+                                
+                            } else {
+                                displayAlert(viewController: self, title: "Error", message: "There was a problem importing your key, please contact us at BitSenseApp@gmail.com")
+                            }
                         }
                         
                     }
@@ -2066,7 +2277,15 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                         DispatchQueue.main.async {
                             self.importView.removeFromSuperview()
                             
-                            saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot", index: UInt32())
+                            success = saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot", index: UInt32(), label: "", xpriv: "")
+                            if success {
+                                self.addressBook = checkAddressBook()
+                                self.getArrays()
+                                displayAlert(viewController: self, title: "Success", message: "You imported a wallet, you can rename it by swiping it left and tapping edit.")
+                                
+                            } else {
+                                displayAlert(viewController: self, title: "Error", message: "There was a problem importing your key, please contact us at BitSenseApp@gmail.com")
+                            }
                         }
                         
                     }
@@ -2085,13 +2304,79 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             self.importView.removeFromSuperview()
             
-            saveWallet(viewController: self, mnemonic: "", xpub: "", address: key, privateKey: "", publicKey: "", redemptionScript: "", network: "mainnet", type: "cold", index: UInt32())
+            success = saveWallet(viewController: self, mnemonic: "", xpub: "", address: key, privateKey: "", publicKey: "", redemptionScript: "", network: "mainnet", type: "cold", index: UInt32(), label: "", xpriv: "")
+            
+            if success {
+                self.addressBook = checkAddressBook()
+                self.getArrays()
+                displayAlert(viewController: self, title: "Success", message: "You imported a wallet, you can rename it by swiping it left and tapping edit.")
+                
+            } else {
+                displayAlert(viewController: self, title: "Error", message: "There was a problem importing your key, please contact us at BitSenseApp@gmail.com")
+            }
             
         } else if key.hasPrefix("m") || key.hasPrefix("tb") || key.hasPrefix("2") {
             
             self.importView.removeFromSuperview()
             
-            saveWallet(viewController: self, mnemonic: "", xpub: "", address: key, privateKey: "", publicKey: "", redemptionScript: "", network: "testnet", type: "cold", index: UInt32())
+            success = saveWallet(viewController: self, mnemonic: "", xpub: "", address: key, privateKey: "", publicKey: "", redemptionScript: "", network: "testnet", type: "cold", index: UInt32(), label: "", xpriv: "")
+            if success {
+                self.addressBook = checkAddressBook()
+                self.getArrays()
+                displayAlert(viewController: self, title: "Success", message: "You imported a wallet, you can rename it by swiping it left and tapping edit.")
+                
+            } else {
+                displayAlert(viewController: self, title: "Error", message: "There was a problem importing your key, please contact us at BitSenseApp@gmail.com")
+            }
+            
+        } else if key.hasPrefix("xpub") {
+                
+            self.importView.removeFromSuperview()
+            
+            if let keychain = BTCKeychain.init(extendedKey: key) {
+                
+                let addressHD = (keychain.key(at: 0).address.string)
+                keychain.key.isPublicKeyCompressed = true
+                let publicKey = (keychain.key(at: 0).compressedPublicKey.hex())!
+                
+                success = saveWallet(viewController: self, mnemonic: "", xpub: key, address: addressHD, privateKey: "", publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "cold", index: UInt32(), label: "", xpriv: "")
+                if success {
+                    self.addressBook = checkAddressBook()
+                    self.getArrays()
+                    displayAlert(viewController: self, title: "Success", message: "You imported a wallet, you can rename it by swiping it left and tapping edit.")
+                    
+                } else {
+                    displayAlert(viewController: self, title: "Error", message: "There was a problem importing your key, please contact us at BitSenseApp@gmail.com")
+                }
+            } else {
+                displayAlert(viewController: self, title: "Error", message: "We had an issue with your xpub, please contact us at BitSenseApp@gmail.com")
+            }
+            
+        } else if key.hasPrefix("xprv") {
+            
+            self.importView.removeFromSuperview()
+            
+            if let keychain = BTCKeychain.init(extendedKey: key) {
+                
+                let addressHD = (keychain.key(at: 0).address.string)
+                let pkHD = (keychain.key(at: 0).privateKeyAddress.string)
+                let xpub = keychain.extendedPublicKey!
+                keychain.key.isPublicKeyCompressed = true
+                let publicKey = (keychain.key(at: 0).compressedPublicKey.hex())!
+                
+                success = saveWallet(viewController: self, mnemonic: "", xpub: xpub, address: addressHD, privateKey: pkHD, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot", index: UInt32(), label: "", xpriv: key)
+                
+                if success {
+                    self.addressBook = checkAddressBook()
+                    self.getArrays()
+                    displayAlert(viewController: self, title: "Success", message: "You can rename it by swiping it left and tapping edit.")
+                    
+                } else {
+                    displayAlert(viewController: self, title: "Error", message: "There was a problem importing your key, please contact us at BitSenseApp@gmail.com")
+                }
+            } else {
+                displayAlert(viewController: self, title: "Error", message: "We had an issue with your xpub, please contact us at BitSenseApp@gmail.com")
+            }
             
         } else {
             
@@ -2134,21 +2419,23 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "LabelCell", for: indexPath)
         
+        cell.contentView.alpha = 0.8
         cell.selectionStyle = .none
+        cell.layer.cornerRadius = 10
+        
         let balanceLabel = cell.viewWithTag(1) as! UILabel
         let nameLabel = cell.viewWithTag(2) as! UILabel
         let currencyLabel = cell.viewWithTag(3) as! UILabel
         let descriptorLabel = cell.viewWithTag(4) as! UILabel
-        cell.layer.cornerRadius = 10
-                
-        nameLabel.font = UIFont.init(name: "Helvetica", size: 18)
+        
+        nameLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 18)
         nameLabel.adjustsFontSizeToFitWidth = true
         nameLabel.textColor = UIColor.white
-        balanceLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 15)
+        balanceLabel.font = UIFont.init(name: "HelveticaNeue", size: 15)
         balanceLabel.textColor = UIColor.white
-        currencyLabel.font = UIFont.init(name: "HelveticaNeue-UltraLight", size: 15)
+        currencyLabel.font = UIFont.init(name: "HelveticaNeue", size: 15)
         currencyLabel.textColor = UIColor.white
-        descriptorLabel.font = UIFont.init(name: "Helvetica", size: 10)
+        descriptorLabel.font = UIFont.init(name: "Helvetica", size: 15)
         
         let label = self.addressBook[indexPath.section]["label"] as! String
         let address = self.addressBook[indexPath.section]["address"] as! String
@@ -2199,15 +2486,25 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             descriptorLabel.text = "👀"
             
-        }  else if xpub == "" && type == "hot" && network == "mainnet" {
+        } else if xpub == "" && type == "hot" && network == "mainnet" {
             
             descriptorLabel.text = ""
             
+        } else if type.hasPrefix("multiSig") {
+            
+            let format1 = type.replacingOccurrences(of: "multiSig-", with: "")
+            let format2 = format1.replacingOccurrences(of: "of", with: "-")
+            let array = format2.split(separator: "-")
+            let m = array[0]
+            let n = array[1]
+            
+            if network == "testnet" {
+                descriptorLabel.text = "🤓 \(m) of \(n) MultiSig"
+            } else {
+               descriptorLabel.text = "\(m) of \(n) MultiSig"
+            }
+            
         }
-        
-        
-        nameLabel.adjustsFontSizeToFitWidth = true
-         balanceLabel.adjustsFontSizeToFitWidth = true
         
         return cell
         
@@ -2267,7 +2564,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     self.removeSpinner()
                     DispatchQueue.main.async {
                         self.avCaptureSession.startRunning()
-                        displayAlert(viewController: self, title: "Error", message: "Please check your interent conection.")
+                        displayAlert(viewController: self, title: "Error", message: "Please check your interent connection.")
                     }
                     
                 } else {
@@ -2358,7 +2655,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
         }
         
-        self.showKeyManagementAlert(wallet: self.addressBook[indexPath.section], cell: cell)
         self.showButtonView()
         
      }
@@ -2492,7 +2788,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                         
                     }))
                     
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
                         
                         
                     }))
@@ -2511,7 +2807,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         return [delete, edit]
     }
     
-    func processKeyAndSegue() {
+    /*func processKeyAndSegue() {
         
         //check if valid if not decrypt
         if let _ = BTCPrivateKeyAddressTestnet.init(string: self.privateKeyToExport) {
@@ -2540,13 +2836,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
             
         }
-    }
-    
-    func showKeyManagementAlert(wallet: [String: Any], cell: UITableViewCell) {
-        print("showKeyManagementAlert")
-        
-        self.tappedCell = cell
-    }
+    }*/
     
     func checkBalance(address: String, index: Int, network: String, type: String) {
         print("checkBalance")
@@ -2920,13 +3210,13 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     }
     
     
-    func authenticationWithTouchID() {
+    func authenticationWithTouchID(item: String) {
         
         let localAuthenticationContext = LAContext()
         localAuthenticationContext.localizedFallbackTitle = "Use Passcode"
         
         var authError: NSError?
-        var reasonString = "To Export a Private Key"
+        var reasonString = "To Export a Secret"
         
         if self.editWalletMode {
             
@@ -2949,7 +3239,23 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                         
                         DispatchQueue.main.async {
                             
-                            self.processKeyAndSegue()
+                            let descriptor = self.walletToExport["descriptor"] as! String
+                            
+                            func getSecret() {
+                                
+                                let decryptedItem = self.decrypt(item: item)
+                                
+                                if decryptedItem != "" {
+                                    
+                                    self.walletToExport["stringToExport"] = decryptedItem
+                                    self.performSegue(withIdentifier: "exportKeys", sender: self)
+                                }
+                            }
+                            
+                            switch descriptor {
+                            case "redemptionScript": self.performSegue(withIdentifier: "exportKeys", sender: self)
+                            default:getSecret()
+                            }
                             
                         }
                     }
@@ -3066,36 +3372,37 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             }
             
             self.transactionsButton.removeFromSuperview()
-            self.transactionsButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.maxY - (58*2), width: 85, height: 50))
+            self.transactionsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: self.bottomView.frame.minY - 55, width: 50, height: 50))
             if modelName == "iPhone X" {
-                self.transactionsButton = UIButton(frame: CGRect(x: 5, y: self.view.frame.maxY - (88*2), width: 85, height: 50))
+                self.transactionsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: self.bottomView.frame.minY - 70, width: 55, height: 50))
             }
             self.transactionsButton.showsTouchWhenHighlighted = true
             self.transactionsButton.layer.cornerRadius = 10
-            self.transactionsButton.backgroundColor = UIColor.black
+            self.transactionsButton.backgroundColor = UIColor.clear
+            self.transactionsButton.titleLabel?.textAlignment = .right
             addShadow(view:self.transactionsButton)
             self.transactionsButton.setTitle("Pay", for: .normal)
-            self.transactionsButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 18)
+            self.transactionsButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 25)
             self.transactionsButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             
             self.newAddressButton.removeFromSuperview()
-            self.newAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.view.frame.maxY - (58*2), width: 85, height: 50))
+            self.newAddressButton = UIButton(frame: CGRect(x: 5, y: self.bottomView.frame.minY - 55, width: 100, height: 50))//CGRect(x: self.view.frame.maxX - 110, y: self.view.frame.maxY - (58*2), width: 100, height: 50))
             if modelName == "iPhone X" {
-                self.newAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.view.frame.maxY - (88*2), width: 85, height: 50))
+                self.newAddressButton = UIButton(frame: CGRect(x: 5, y: self.bottomView.frame.minY - 70, width: 100, height: 50))//CGRect(x: self.view.frame.maxX - 110, y: self.bottomView.frame.minY - 70, width: 100, height: 50))
             }
             self.newAddressButton.showsTouchWhenHighlighted = true
-            self.newAddressButton.titleLabel?.textAlignment = .center
+            self.newAddressButton.titleLabel?.textAlignment = .left
             self.newAddressButton.layer.cornerRadius = 10
-            self.newAddressButton.backgroundColor = UIColor.black
+            self.newAddressButton.backgroundColor = UIColor.clear
             addShadow(view:self.newAddressButton)
             self.newAddressButton.setTitle("Receive", for: .normal)
-            self.newAddressButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 18)
+            self.newAddressButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 25)
             self.newAddressButton.addTarget(self, action: #selector(self.newAddress), for: .touchUpInside)
             
             self.settingsGenButton.removeFromSuperview()
             self.settingsGenButton = UIButton(frame: CGRect(x: 5, y: 18, width: 40, height: 40))
             if modelName == "iPhone X" {
-                self.settingsGenButton = UIButton(frame: CGRect(x: 5, y: 18, width: 40, height: 40))
+                self.settingsGenButton = UIButton(frame: CGRect(x: 5, y: 28, width: 40, height: 40))
             }
             self.settingsGenButton.showsTouchWhenHighlighted = true
             self.settingsGenButton.setImage(#imageLiteral(resourceName: "settings2.png"), for: .normal)
@@ -3146,7 +3453,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             self.infoButton.removeFromSuperview()
             self.infoButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 45, y: 18, width: 38, height: 38))
             if modelName == "iPhone X" {
-                self.infoButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 45, y: 38, width: 38, height: 38))
+                self.infoButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 45, y: 28, width: 38, height: 38))
             }
             self.infoButton.showsTouchWhenHighlighted = true
             self.infoButton.layer.cornerRadius = 28
@@ -3237,7 +3544,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     
                 }))
                 
-                confirmationAlert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+                confirmationAlert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
                     
                     
                 }))
@@ -3246,7 +3553,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 
             }))
             
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .default, handler: { (action) in
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
                 
                 
             }))

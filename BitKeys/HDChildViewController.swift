@@ -10,9 +10,13 @@ import UIKit
 import SwiftKeychainWrapper
 import AES256CBC
 import LocalAuthentication
+import CoreData
 
 class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
+    var walletToExport = [String:Any]()
+    let amountLabel = UILabel()
+    var exchangeRate = Double()
     var index = UInt32()
     var fromIndex:UInt32 = 0
     var toIndex:UInt32 = 0
@@ -40,18 +44,14 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
     var backButton = UIButton()
     var addButton = UIButton()
     var segwit = SegwitAddrCoder()
+    var backgroundColours = [UIColor()]
+    var backgroundLoop:Int = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         HDChildTable.delegate = self
         HDChildTable.dataSource = self
-        let imageView = UIImageView()
-        imageView.image = UIImage(named:"background.jpg")
-        imageView.frame = self.view.frame
-        imageView.contentMode = UIViewContentMode.scaleAspectFill
-        imageView.alpha = 0.02
-        view.addSubview(imageView)
         refresher = UIRefreshControl()
         refresher.addTarget(self, action: #selector(self.getArrays), for: UIControlEvents.valueChanged)
         HDChildTable.addSubview(refresher)
@@ -60,13 +60,31 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         
         activityIndicator = UIActivityIndicatorView(frame: CGRect(x: view.center.x - 25, y: view.center.y - 25, width: 50, height: 50))
         activityIndicator.hidesWhenStopped = true
-        activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+        activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.whiteLarge
         activityIndicator.isUserInteractionEnabled = true
         view.addSubview(self.activityIndicator)
         activityIndicator.startAnimating()
         
         print("masterWallet = \(masterWallet)")
         getArrays()
+        
+        backgroundColours = [UIColor.red, UIColor.blue, UIColor.yellow]
+        backgroundLoop = 0
+        animateBackgroundColour()
+    }
+    
+    func animateBackgroundColour () {
+        if backgroundLoop < backgroundColours.count - 1 {
+            self.backgroundLoop += 1
+        } else {
+            backgroundLoop = 0
+        }
+        UIView.animate(withDuration: 5, delay: 0, options: UIViewAnimationOptions.allowUserInteraction, animations: { () -> Void in
+            self.view.backgroundColor =  self.backgroundColours[self.backgroundLoop];
+            self.blurView.backgroundColor =  self.backgroundColours[self.backgroundLoop];
+        }) {(Bool) -> Void in
+            self.animateBackgroundColour();
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -76,34 +94,32 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         if let BTC = checkTransactionSettingsForKey(keyValue: "bitcoin") as? Bool {
             if BTC {
                 self.currency = "BTC"
-                self.amountToSend.placeholder = "Invoice amount in Bitcoin"
             }
         }
         if let SAT = checkTransactionSettingsForKey(keyValue: "satoshi") as? Bool {
             if SAT {
                 self.currency = "SAT"
-                self.amountToSend.placeholder = "Invoice amount in Satoshis"
             }
         }
         if let USD = checkTransactionSettingsForKey(keyValue: "dollar") as? Bool {
             if USD {
                 self.currency = "USD"
-                self.amountToSend.placeholder = "Invoice amount in Dollars"
             }
         }
         if let GBP = checkTransactionSettingsForKey(keyValue: "pounds") as? Bool {
             if GBP {
                 self.currency = "GBP"
-                self.amountToSend.placeholder = "Invoice amount in Pounds"
+                
             }
         }
         if let EUR = checkTransactionSettingsForKey(keyValue: "euro") as? Bool {
             if EUR {
                 self.currency = "EUR"
-                self.amountToSend.placeholder = "Invoice amount in Euros"
                 
             }
         }
+        
+        self.amountToSend.placeholder = "Optional"
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -119,6 +135,8 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
             
             if let vc = segue.destination as? TransactionBuilderViewController {
                 
+                self.wallet["label"] = ""
+                self.wallet["network"] = self.masterWallet["network"]
                 vc.walletToSpendFrom = self.wallet
                 print("vc.walletToSpendFrom = \(vc.walletToSpendFrom)")
                 vc.sendingFromAddress = self.wallet["address"] as! String
@@ -128,39 +146,63 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         } else if (segue.identifier == "checkHistoryFromHD") {
     
             if let vc = segue.destination as? TransactionHistoryViewController {
-    
+                
+                self.wallet["label"] = ""
+                self.wallet["network"] = self.masterWallet["network"]
                 vc.wallet = self.wallet
     
             }
     
         } else if (segue.identifier == "exportHD") {
             
-            if self.wallet["privateKey"] as! String != "" {
+            if let vc = segue.destination as? ViewController {
                 
-                if let vc = segue.destination as? ViewController {
-                    
-                    vc.walletName = self.masterWallet["label"] as! String
-                    vc.bitcoinAddress = self.wallet["address"] as! String
-                    vc.privateKeyWIF = self.wallet["privateKey"] as! String
-                    vc.exportPrivateKeyFromTable = true
-                    
-                }
-                
-            } else {
-                
-                if let vc = segue.destination as? ViewController {
-                    
-                    vc.walletName = self.masterWallet["label"] as! String
-                    vc.bitcoinAddress = self.wallet["address"] as! String
-                    vc.exportAddressFromTable = true
-                    
-                }
-                
+                vc.exportKeys = true
+                vc.walletToExport = self.walletToExport
             }
-            
         }
         
     }
+    
+    func convertBTCtoCurrency(btcAmount: String, exchangeRate: Double) -> String {
+        
+        var convertedAmount = ""
+        let btcDouble = Double(btcAmount)!
+        
+        func convertToFiat(currency: String) -> String {
+            
+            var sign = ""
+            switch currency {
+            case "USD": sign = "﹩"
+            case "GBP": sign = "£"
+            case "EUR": sign = "€"
+            case "BTC": sign = "﹩"
+            case "SAT": sign = "﹩"
+            default:
+                break
+            }
+            
+            let usdAmount = btcDouble * exchangeRate
+            let roundedUsdAmount = round(100 * usdAmount) / 100
+            let roundedInt = Int(roundedUsdAmount)
+            let fiat = "\(sign)\(roundedInt.withCommas()) \(currency)"
+            return fiat
+            
+        }
+        
+        switch self.currency {
+        case "USD":convertedAmount = convertToFiat(currency: "USD")
+        case "GBP":convertedAmount = convertToFiat(currency: "GBP")
+        case "EUR":convertedAmount = convertToFiat(currency: "EUR")
+        case "SAT":convertedAmount = convertToFiat(currency: "USD")
+        case "BTC":convertedAmount = convertToFiat(currency: "USD")
+        default:
+            break
+        }
+        
+        return convertedAmount
+    }
+
     
     func showButtonView() {
         print("buttonView")
@@ -172,7 +214,7 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
             self.buttonViewVisible = true
             DispatchQueue.main.async {
                 
-                self.buttonTitle.frame = CGRect(x: self.buttonView.center.x - ((self.buttonView.frame.width - 20) / 2), y: 3, width: self.buttonView.frame.width - 20, height: 20)
+                self.buttonTitle.frame = CGRect(x: 10, y: 3, width: self.buttonView.frame.width - 20, height: 20)
                 
                 var text = String()
                 
@@ -184,7 +226,7 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                 }
                 
                 self.buttonTitle.font = UIFont.init(name: "HelveticaNeue-Light", size: 15)
-                self.buttonTitle.textColor = UIColor.black
+                self.buttonTitle.textColor = UIColor.white
                 self.buttonTitle.textAlignment = .center
                 self.buttonTitle.adjustsFontSizeToFitWidth = true
                 self.buttonTitle.text = text
@@ -192,10 +234,10 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                 
                 UIView.animate(withDuration: 0.3, animations: {
                     if modelName == "iPhone X" {
-                        self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY - 155, width: self.view.frame.width, height: 150)
+                        self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY - 160, width: self.view.frame.width, height: 160)
                     } else {
                         
-                        self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY - 90, width: self.view.frame.width, height: 90)
+                        self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY - 100, width: self.view.frame.width, height: 100)
                     }
                     
                 }, completion: { _ in
@@ -208,11 +250,8 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
             
             DispatchQueue.main.async {
                 self.buttonTitle.removeFromSuperview()
-                
-                
-                
                 self.buttonTitle.font = UIFont.init(name: "HelveticaNeue-Light", size: 15)
-                self.buttonTitle.textColor = UIColor.black
+                self.buttonTitle.textColor = UIColor.white
                 self.buttonTitle.textAlignment = .center
                 self.buttonTitle.adjustsFontSizeToFitWidth = true
                 self.buttonTitle.text = self.wallet["address"] as! String
@@ -261,7 +300,7 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
             self.addButton.removeFromSuperview()
             self.addButton = UIButton(frame: CGRect(x: self.view.frame.width - 60, y: 28, width: 35, height: 35))
             self.addButton.showsTouchWhenHighlighted = true
-            self.addButton.setImage(#imageLiteral(resourceName: "add.png"), for: .normal)
+            self.addButton.setImage(#imageLiteral(resourceName: "plus.png"), for: .normal)
             self.addButton.addTarget(self, action: #selector(self.add), for: .touchUpInside)
             self.view.addSubview(self.addButton)
         }
@@ -284,66 +323,11 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
             UIImpactFeedbackGenerator().impactOccurred()
         }
         
-        DispatchQueue.main.async {
-            var firstNumber = String()
-            var secondNumber = String()
-            
-            let alert = UIAlertController(title: "Please input the \"from\" index", message: "This is the first number we will use to derive your HD keys, you will then be prompted for a second number which should be a larger number. These two numbers represent the range of keys we will produce for you, from 0 to 20 is what we produce by default.", preferredStyle: .alert)
-            
-            alert.addTextField { (textField1) in
-                
-                textField1.placeholder = "From index"
-                textField1.keyboardType = UIKeyboardType.numberPad
-                
-            }
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Next", comment: ""), style: .default, handler: { (action) in
-                
-                firstNumber = alert.textFields![0].text!
-                
-                let confirmationAlert = UIAlertController(title: "Please input the \"to\" index", message: "These two numbers represent the range of keys we will produce for you, from 0 to 20 is what we produce by default. The range must be maximum of 20", preferredStyle: .alert)
-                
-                confirmationAlert.addTextField { (textField1) in
-                    
-                    textField1.placeholder = "To index"
-                    textField1.keyboardType = UIKeyboardType.decimalPad
-                }
-                
-                confirmationAlert.addAction(UIAlertAction(title: NSLocalizedString("Next", comment: ""), style: .default, handler: { (action) in
-                    
-                    secondNumber = confirmationAlert.textFields![0].text!
-                    
-                    if Int(secondNumber)! - Int(firstNumber)! < 21 {
-                        
-                        self.fromIndex = UInt32(firstNumber)!
-                        self.toIndex = UInt32(secondNumber)!
-                        print("\(self.fromIndex) to \(self.toIndex)")
-                        self.addRange(from: self.fromIndex, to: self.toIndex)
-                        
-                    } else {
-                        
-                        displayAlert(viewController: self, title: "Error", message: "The maximumm range of keys we can display at one time is twenty.")
-                    }
-                    
-                }))
-                
-                confirmationAlert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                    
-                    
-                }))
-                
-                self.present(confirmationAlert, animated: true, completion: nil)
-                
-            }))
-            
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
-                
-                
-            }))
-            
-            self.present(alert, animated: true, completion: nil)
-        }
+        self.fromIndex = self.fromIndex + 21
+        self.toIndex = self.fromIndex + 20
+        self.addRange(from: self.fromIndex, to: self.toIndex)
         
+       
     }
     
     @objc func getArrays() {
@@ -360,7 +344,86 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
             let address = self.masterWallet["address"] as! String
             let label = self.masterWallet["label"] as! String
             
-            if let mnemonic = self.masterWallet["mnemonic"] as? String {
+            if let xpriv = self.masterWallet["xpriv"] as? String, xpriv != "" {
+                print("encrypted xpriv = \(xpriv)")
+                
+                if let decryptedXpriv = AES256CBC.decryptString(xpriv, password: aespassword) {
+                    print("decryptedXpriv = \(decryptedXpriv)")
+                    
+                    if let keychain = BTCKeychain.init(extendedKey: decryptedXpriv) {
+                        
+                        keychain.key.isPublicKeyCompressed = true
+                        
+                        for i in 0 ... 20 {
+                            
+                            let int = UInt32(i)
+                            
+                            var addressHD = String()
+                            var privateKey = String()
+                            
+                            if network == "testnet" {
+                                
+                                privateKey = (keychain.key(at: int).privateKeyAddressTestnet.string)
+                                addressHD = (keychain.key(at: int).addressTestnet.string)
+                                
+                            } else if network == "mainnet" {
+                                
+                                privateKey = (keychain.key(at: int).privateKeyAddress.string)
+                                addressHD = (keychain.key(at: int).address.string)
+                                
+                            }
+                            
+                            var bitcoinAddress = String()
+                            
+                            if address.hasPrefix("1") || address.hasPrefix("3") || address.hasPrefix("2") || address.hasPrefix("m") || address.hasPrefix("n") {
+                                
+                                bitcoinAddress = addressHD
+                                
+                            } else if address.hasPrefix("bc1") || address.hasPrefix("tb") {
+                                
+                                let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain.key(at: int).compressedPublicKey as Data!) as Data!) as Data!
+                                
+                                do {
+                                    
+                                    if network == "mainnet" {
+                                        
+                                        bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                                        
+                                    } else if network == "testnet" {
+                                        
+                                        bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
+                                        
+                                    }
+                                    
+                                } catch {
+                                    
+                                    displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                                    
+                                }
+                                
+                            }
+                            
+                            let dict = ["address":bitcoinAddress,"privateKey":privateKey,"balance":"", "network":network, "label":label, "fiatBalance":"", "index":"\(int)"]
+                            self.keyArray.append(dict)
+                            
+                        }
+                        
+                        keychain.key.clear()
+                        self.HDChildTable.reloadData()
+                        DispatchQueue.main.async {
+                            UIImpactFeedbackGenerator().impactOccurred()
+                        }
+                        
+                        for (index, key) in keyArray.enumerated() {
+                            
+                            self.checkBalance(address: key["address"] as! String, index: index, network: network, type: type)
+                        }
+                    }
+                    
+                }
+                
+                
+            } else if let mnemonic = self.masterWallet["mnemonic"] as? String {
                 
                 if mnemonic != "" {
                     
@@ -382,6 +445,12 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                             
                             let keychain = testInputMnemonic.keychain.derivedKeychain(withPath: "m/44'/0'/0'/0")
                             keychain?.key.isPublicKeyCompressed = true
+                            
+                            let xpriv = (keychain?.extendedPrivateKey)!
+                            let encryptedXpriv = AES256CBC.encryptString(xpriv, password: aespassword)!
+                            
+                            //ensures backwards compatibility
+                            self.editWallet(address: address, newValue: encryptedXpriv, oldValue: "", keyToEdit: "xpriv")
                             
                             for i in 0 ... 20 {
                                 
@@ -432,7 +501,7 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                                     
                                 }
                                 
-                                let dict = ["address":bitcoinAddress,"privateKey":privateKey,"balance":"", "network":network, "label":label]
+                                let dict = ["address":bitcoinAddress,"privateKey":privateKey,"balance":"", "network":network, "label":label, "fiatBalance":"", "index":"\(int)"]
                                 self.keyArray.append(dict)
                                 
                             }
@@ -453,7 +522,7 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                             
                             DispatchQueue.main.async {
                                 
-                                displayAlert(viewController: self, title: "Error", message: "Sorry we had a problem with your seed, please try again, you can contact us at f0nta1n3@protonmail.com if you have an issue.")
+                                displayAlert(viewController: self, title: "Error", message: "Sorry we had a problem with your seed, please try again, you can contact us at BitSenseApp@gmail.com if you have an issue.")
                             }
                         }
                     }
@@ -515,7 +584,7 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                                         
                                     }
                                     
-                                    let dict = ["address":bitcoinAddress,"privateKey":"","balance":"", "network": network, "label": label]
+                                    let dict = ["address":bitcoinAddress,"privateKey":"","balance":"", "network": network, "label": label, "fiatBalance":"", "index":"\(int)"]
                                     self.keyArray.append(dict)
                                     
                                 }
@@ -550,6 +619,80 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         
     }
     
+    func editWallet(address: String, newValue: String, oldValue: String, keyToEdit: String) {
+        
+        var appDelegate = AppDelegate()
+        
+        if let appDelegateCheck = UIApplication.shared.delegate as? AppDelegate {
+            
+            appDelegate = appDelegateCheck
+            
+        } else {
+            
+            displayAlert(viewController: self, title: "Error", message: "Something strange has happened and we do not have access to app delegate, please try again.")
+            
+        }
+        
+        let context = appDelegate.persistentContainer.viewContext
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "AddressBook")
+        fetchRequest.returnsObjectsAsFaults = false
+        
+        do {
+            
+            let results = try context.fetch(fetchRequest) as [NSManagedObject]
+            
+            if results.count > 0 {
+                
+                for data in results {
+                    
+                    if address == data.value(forKey: "address") as? String {
+                        
+                        if keyToEdit == "label" {
+                            
+                            data.setValue(newValue, forKey: keyToEdit)
+                            displayAlert(viewController: self, title: "Success", message: "You updated \"\(oldValue)\" to \"\(newValue)\". Swipe the table to refresh it.")
+                            
+                        } else if keyToEdit == "privateKey" {
+                            
+                            data.setValue(newValue, forKey: keyToEdit)
+                            data.setValue("cold", forKey: "type")
+                            displayAlert(viewController: self, title: "Success", message: "The wallet is now cold. Swipe the table to refresh it.")
+                            
+                        } else {
+                            
+                            data.setValue(newValue, forKey: keyToEdit)
+                            
+                        }
+                        
+                        print("edited succesfully")
+                        
+                        do {
+                            
+                            try context.save()
+                            
+                        } catch {
+                            
+                            print("error editing")
+                            
+                        }
+                        
+                    }
+                    
+                }
+                
+            } else {
+                
+                print("no results")
+                
+            }
+            
+        } catch {
+            
+            print("Failed")
+            
+        }
+    }
+    
     func addRange(from: UInt32, to: UInt32) {
         
         self.keyArray.removeAll()
@@ -560,7 +703,85 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         let type = self.masterWallet["type"] as! String
         let address = self.masterWallet["address"] as! String
         
-        if let mnemonic = self.masterWallet["mnemonic"] as? String {
+        
+        if let xpriv = self.masterWallet["xpriv"] as? String, xpriv != "" {
+            
+            if let decryptedXpriv = AES256CBC.decryptString(xpriv, password: aespassword) {
+                
+                if let keychain = BTCKeychain.init(extendedKey: decryptedXpriv) {
+                    
+                    keychain.key.isPublicKeyCompressed = true
+                    
+                    for i in from ... to {
+                        
+                        let int = UInt32(i)
+                        
+                        var addressHD = String()
+                        var privateKey = String()
+                        
+                        if network == "testnet" {
+                            
+                            privateKey = (keychain.key(at: int).privateKeyAddressTestnet.string)
+                            addressHD = (keychain.key(at: int).addressTestnet.string)
+                            
+                        } else if network == "mainnet" {
+                            
+                            privateKey = (keychain.key(at: int).privateKeyAddress.string)
+                            addressHD = (keychain.key(at: int).address.string)
+                            
+                        }
+                        
+                        var bitcoinAddress = String()
+                        
+                        if address.hasPrefix("1") || address.hasPrefix("3") || address.hasPrefix("2") || address.hasPrefix("m") || address.hasPrefix("n") {
+                            
+                            bitcoinAddress = addressHD
+                            
+                        } else if address.hasPrefix("bc1") || address.hasPrefix("tb") {
+                            
+                            let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain.key(at: int).compressedPublicKey as Data!) as Data!) as Data!
+                            
+                            do {
+                                
+                                if network == "mainnet" {
+                                    
+                                    bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                                    
+                                } else if network == "testnet" {
+                                    
+                                    bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
+                                    
+                                }
+                                
+                            } catch {
+                                
+                                displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                                
+                            }
+                            
+                        }
+                        
+                        let dict = ["address":bitcoinAddress,"privateKey":privateKey,"balance":"", "fiatBalance":"", "index":"\(int)"]
+                        self.keyArray.append(dict)
+                        
+                    }
+                    
+                    keychain.key.clear()
+                    self.HDChildTable.reloadData()
+                    DispatchQueue.main.async {
+                        UIImpactFeedbackGenerator().impactOccurred()
+                    }
+                    
+                    for (index, key) in keyArray.enumerated() {
+                        
+                        self.checkBalance(address: key["address"] as! String, index: index, network: network, type: type)
+                    }
+                }
+                
+            }
+            
+            
+        } else if let mnemonic = self.masterWallet["mnemonic"] as? String {
             
             if mnemonic != "" {
                 
@@ -632,7 +853,7 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                                 
                             }
                             
-                            let dict = ["address":bitcoinAddress,"privateKey":privateKey,"balance":""]
+                            let dict = ["address":bitcoinAddress,"privateKey":privateKey,"balance":"", "fiatBalance":"", "index":"\(int)"]
                             self.keyArray.append(dict)
                             
                         }
@@ -654,7 +875,7 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                         
                         DispatchQueue.main.async {
                             
-                            displayAlert(viewController: self, title: "Error", message: "Sorry we had a problem with your seed, please try again, you can contact us at f0nta1n3@protonmail.com if you have an issue.")
+                            displayAlert(viewController: self, title: "Error", message: "Sorry we had a problem with your seed, please try again, you can contact us at BitSenseApp@gmail.com if you have an issue.")
                         }
                     }
                 }
@@ -715,7 +936,7 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                                     
                                 }
                                 
-                                let dict = ["address":bitcoinAddress,"privateKey":"","balance":""]
+                                let dict = ["address":bitcoinAddress,"privateKey":"","balance":"", "fiatBalance":"", "index":"\(int)"]
                                 self.keyArray.append(dict)
                                 
                             }
@@ -767,15 +988,32 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "HDCell", for: indexPath)
-        
-        cell.textLabel?.font = UIFont.init(name: "HelveticaNeue-Light", size: 15)
         cell.layer.cornerRadius = 10
         cell.selectionStyle = .none
+        
         let balanceLabel = cell.viewWithTag(2) as! UILabel
         let nameLabel = cell.viewWithTag(1) as! UILabel
+        let fiat = cell.viewWithTag(3) as! UILabel
+        let index = cell.viewWithTag(4) as! UILabel
+        
         let dictionary = keyArray[indexPath.section]
+        
         nameLabel.text = (dictionary["address"] as! String)
+        nameLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 18)
+        nameLabel.adjustsFontSizeToFitWidth = true
+        
         balanceLabel.text = (dictionary["balance"] as! String)
+        balanceLabel.font = UIFont.init(name: "HelveticaNeue", size: 15)
+        balanceLabel.textColor = UIColor.white
+        
+        fiat.text = (dictionary["fiatBalance"] as! String)
+        fiat.font = UIFont.init(name: "HelveticaNeue", size: 15)
+        fiat.textColor = UIColor.white
+        
+        index.text = "#\((dictionary["index"] as! String))"
+        index.font = UIFont.init(name: "HelveticaNeue", size: 15)
+        index.textColor = UIColor.white
+        
         nameLabel.textColor = UIColor.white
         balanceLabel.textColor = UIColor.white
         
@@ -784,8 +1022,6 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-        //let cell = tableView.cellForRow(at: indexPath)!
         
         DispatchQueue.main.async {
             UIImpactFeedbackGenerator().impactOccurred()
@@ -801,12 +1037,12 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         let modelName = UIDevice.modelName
         
         if modelName == "iPhone X" {
-            buttonView = UIView(frame: CGRect(x: 0, y: self.view.frame.maxY + 6, width: view.frame.width, height: 150))
+            buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY + 6, width: view.frame.width, height: 160)
         } else {
-            buttonView = UIView(frame: CGRect(x: 0, y: view.frame.maxY + 6, width: view.frame.width, height: 90))
+            buttonView.frame = CGRect(x: 0, y: view.frame.maxY + 6, width: view.frame.width, height: 100)
         }
         
-        buttonView.backgroundColor = UIColor.white
+        buttonView.backgroundColor = UIColor.black
         buttonView.layer.shadowColor = UIColor.black.cgColor
         buttonView.layer.shadowOffset = CGSize(width: -2.5, height: -2.5)
         buttonView.layer.shadowRadius = 2.5
@@ -816,78 +1052,65 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         
         let createInvoiceButton =  UIButton(frame: CGRect(x: 10, y: 25, width: 35, height: 35))
         createInvoiceButton.showsTouchWhenHighlighted = true
-        createInvoiceButton.setImage(#imageLiteral(resourceName: "bill.png"), for: .normal)
+        createInvoiceButton.setImage(#imageLiteral(resourceName: "whiteInvoice.png"), for: .normal)
         createInvoiceButton.addTarget(self, action: #selector(createWalletInvoice), for: .touchUpInside)
         buttonView.addSubview(createInvoiceButton)
         
         let createInvoiceLabel = UILabel(frame: CGRect(x: createInvoiceButton.center.x - (createInvoiceButton.frame.width / 2), y: 61, width: createInvoiceButton.frame.width, height: 12))
         createInvoiceLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
-        createInvoiceLabel.textColor = UIColor.black
+        createInvoiceLabel.textColor = UIColor.white
         createInvoiceLabel.textAlignment = .center
         createInvoiceLabel.text = "Invoice"
         buttonView.addSubview(createInvoiceLabel)
         
         let spendButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) - (self.view.frame.width / 4 - (35/2)) - 5, y: 25, width: 35, height: 35))
         spendButton.showsTouchWhenHighlighted = true
-        spendButton.setImage(#imageLiteral(resourceName: "pay.png"), for: .normal)
+        spendButton.setImage(#imageLiteral(resourceName: "whitePay.png"), for: .normal)
         spendButton.addTarget(self, action: #selector(spendFromWallet), for: .touchUpInside)
         buttonView.addSubview(spendButton)
         
         let spendLabel = UILabel(frame: CGRect(x: spendButton.center.x - (spendButton.frame.width / 2), y: 61, width: spendButton.frame.width, height: 12))
         spendLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
-        spendLabel.textColor = UIColor.black
+        spendLabel.textColor = UIColor.white
         spendLabel.textAlignment = .center
         spendLabel.text = "Pay"
         buttonView.addSubview(spendLabel)
         
         let historyButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)), y: 25, width: 35, height: 35))
         historyButton.showsTouchWhenHighlighted = true
-        historyButton.setImage(#imageLiteral(resourceName: "history.png"), for: .normal)
+        historyButton.setImage(#imageLiteral(resourceName: "whiteHistory.png"), for: .normal)
         historyButton.addTarget(self, action: #selector(getHistoryWallet), for: .touchUpInside)
         buttonView.addSubview(historyButton)
         
         let historyLabel = UILabel(frame: CGRect(x: historyButton.center.x - (historyButton.frame.width / 2), y: 61, width: historyButton.frame.width, height: 12))
         historyLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
-        historyLabel.textColor = UIColor.black
+        historyLabel.textColor = UIColor.white
         historyLabel.textAlignment = .center
         historyLabel.text = "History"
         buttonView.addSubview(historyLabel)
         
         let addSaveButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 4 - (35/2)) - 5, y: 25, width: 35, height: 35))
         addSaveButton.showsTouchWhenHighlighted = true
-        addSaveButton.setImage(#imageLiteral(resourceName: "save.png"), for: .normal)
+        addSaveButton.setImage(#imageLiteral(resourceName: "whiteSave.png"), for: .normal)
         addSaveButton.addTarget(self, action: #selector(saveWallet), for: .touchUpInside)
         buttonView.addSubview(addSaveButton)
         
         let saveLabel = UILabel(frame: CGRect(x: addSaveButton.center.x - (addSaveButton.frame.width / 2), y: 61, width: addSaveButton.frame.width, height: 12))
         saveLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
-        saveLabel.textColor = UIColor.black
+        saveLabel.textColor = UIColor.white
         saveLabel.textAlignment = .center
         saveLabel.text = "Save"
         buttonView.addSubview(saveLabel)
         
-        /*let editButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 3.25 - (35/2)) - 5, y: 25, width: 35, height: 35))
-        editButton.showsTouchWhenHighlighted = true
-        editButton.setImage(#imageLiteral(resourceName: "branch.png"), for: .normal)
-        //editButton.addTarget(self, action: #selector(goToChildTable), for: .touchUpInside)
-        buttonView.addSubview(editButton)
-        
-        let editLabel = UILabel(frame: CGRect(x: editButton.center.x - ((editButton.frame.width + 5) / 2), y: 61, width: editButton.frame.width + 5, height: 12))
-        editLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
-        editLabel.textColor = UIColor.black
-        editLabel.textAlignment = .center
-        editLabel.text = "HD Keys"
-        buttonView.addSubview(editLabel)*/
-        
-        let exportButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 45, y: 25, width: 35, height: 35))
+       let exportButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 45, y: 25, width: 35, height: 35))
         exportButton.showsTouchWhenHighlighted = true
-        exportButton.setImage(#imageLiteral(resourceName: "qr.png"), for: .normal)
+        exportButton.setImage(#imageLiteral(resourceName: "whiteQR.png"), for: .normal)
         exportButton.addTarget(self, action: #selector(exportWallet), for: .touchUpInside)
         buttonView.addSubview(exportButton)
         
         let exportLabel = UILabel(frame: CGRect(x: exportButton.center.x - (exportButton.frame.width / 2), y: 61, width: exportButton.frame.width, height: 12))
         exportLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 10)
-        exportLabel.textColor = UIColor.black
+        exportLabel.textColor = UIColor.white
         exportLabel.textAlignment = .center
         exportLabel.text = "Export"
         buttonView.addSubview(exportLabel)
@@ -900,12 +1123,13 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
             UIImpactFeedbackGenerator().impactOccurred()
         }
         
-        //performSegue(withIdentifier: "exportHD", sender: self)
-        if self.wallet["privateKey"] as! String != "" {
+        
+        
+        func authorize(item: String) {
             
             if UserDefaults.standard.object(forKey: "bioMetricsEnabled") != nil {
                 
-                self.authenticationWithTouchID()
+                self.authenticationWithTouchID(item: item)
                 
             } else if let _ = KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
                 
@@ -927,10 +1151,8 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                         
                         if password == KeychainWrapper.standard.string(forKey: "unlockAESPassword") {
                             
-                            DispatchQueue.main.async {
-                                //self.addExportView()
-                                self.processKeyAndSegue()
-                            }
+                            self.walletToExport["stringToExport"] = item
+                            self.performSegue(withIdentifier: "exportHD", sender: self)
                             
                             
                         } else {
@@ -949,21 +1171,69 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                     
                 }
                 
+            }
+            
+        }
+        
+        var array = [[String:Any]]()
+        var name = self.wallet["label"] as! String
+        let privateKey = self.wallet["privateKey"] as! String
+        let address = self.wallet["address"] as! String
+        //let publicKey = self.wallet["publicKey"] as! String
+        //let mnemonic = self.wallet["mnemonic"] as! String
+        //let xpub = self.wallet["xpub"] as! String
+        //let xprv = self.wallet["xpriv"] as! String
+        //let redemptionScript = self.wallet["redemptionScript"] as! String
+        
+        if name == "" {
+            name = address
+        }
+        
+        array.append(["stringToExport":privateKey, "descriptor":"privateKey", "title":"Private Key", "label":name])
+        array.append(["stringToExport":address, "descriptor":"address", "title":"Address", "label":name])
+        //array.append(["stringToExport":publicKey, "descriptor":"publicKey", "title":"Public Key", "label":name])
+        //array.append(["stringToExport":mnemonic, "descriptor":"mnemonic", "title":"Recovery Phrase", "label":name])
+        //array.append(["stringToExport":xpub, "descriptor":"xpub", "title":"XPUB", "label":name])
+        //array.append(["stringToExport":xprv, "descriptor":"xpriv", "title":"XPRV", "label":name])
+        //array.append(["stringToExport":redemptionScript, "descriptor":"redemptionScript", "title":"Redemption Script", "label":name])
+        
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: "Select Item to Export", message: "From: \(name)", preferredStyle: .alert)
+            
+            for item in array {
                 
-            } else {
+                let title = item["title"] as! String
                 
-                self.processKeyAndSegue()
-                //self.addExportView()
+                if item["stringToExport"] as! String != "" {
+                    
+                    alert.addAction(UIAlertAction(title: NSLocalizedString(title, comment: ""), style: .default, handler: { (action) in
+                        
+                        self.walletToExport = item
+                        
+                        switch title {
+                        case "Private Key": authorize(item:item["stringToExport"] as! String)
+                        //case "Recovery Phrase": authorize(item:item["stringToExport"] as! String)
+                        //case "XPUB": authorize(item:item["stringToExport"] as! String)
+                        //case "XPRV": authorize(item:item["stringToExport"] as! String)
+                        //case "Redemption Script": authorize(item:item["stringToExport"] as! String)
+                        default: self.performSegue(withIdentifier: "exportHD", sender: self)
+                        }
+                        
+                    }))
+                    
+                }
                 
             }
             
-        } else {
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: { (action) in
+                
+                
+            }))
             
-            self.processKeyAndSegue()
-            //self.addExportView()
+            self.present(alert, animated: true, completion: nil)
             
         }
-
+        
     }
     
     @objc func spendFromWallet() {
@@ -988,7 +1258,7 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         let address = self.wallet["address"] as! String
         var pubkey = ""
         var privateKey = ""
-        let xpub = self.masterWallet["xpub"] as! String
+        //let xpub = self.masterWallet["xpub"] as! String
         
         if let pk = self.wallet["privateKey"] as? String {
             privateKey = pk
@@ -997,7 +1267,12 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
             }
         }
         
-        BitKeys.saveWallet(viewController: self, mnemonic: "", xpub: xpub, address: address, privateKey: privateKey, publicKey: pubkey, redemptionScript: "", network: network, type: type, index: self.index)
+        let success = BitKeys.saveWallet(viewController: self, mnemonic: "", xpub: "", address: address, privateKey: privateKey, publicKey: pubkey, redemptionScript: "", network: network, type: type, index: self.index, label: "", xpriv: "")
+        if success {
+            displayAlert(viewController: self, title: "Success", message: "Your new wallet was saved")
+        } else {
+            displayAlert(viewController: self, title: "Error", message: "We had an issue please contact us at BitSenseApp@gmail.com.")
+        }
     }
     
     @objc func getHistoryWallet() {
@@ -1038,6 +1313,8 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                                 if let btcAmountCheck = ((jsonAddressResult["data"] as? NSArray)?[0] as? NSDictionary)?["sum_value_unspent"] as? Double {
                                     
                                     let btcAmount = btcAmountCheck.avoidNotation
+                                    
+                                    self.keyArray[index]["fiatBalance"] = self.convertBTCtoCurrency(btcAmount: btcAmount, exchangeRate: self.exchangeRate)
                                     
                                     self.keyArray[index]["balance"] = btcAmount + " BTC"
                                     
@@ -1093,6 +1370,8 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                                     
                                     btcAmount = (finalBalanceCheck / 100000000).avoidNotation
                                     
+                                    self.keyArray[index]["fiatBalance"] = self.convertBTCtoCurrency(btcAmount: btcAmount, exchangeRate: self.exchangeRate)
+                                    
                                     self.keyArray[index]["balance"] = btcAmount + " BTC"
                                     
                                     DispatchQueue.main.async {
@@ -1144,6 +1423,8 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                                 if let finalBalanceCheck = jsonAddressResult["final_balance"] as? Double {
                                     
                                     btcAmount = (finalBalanceCheck / 100000000).avoidNotation
+                                    
+                                    self.keyArray[index]["fiatBalance"] = self.convertBTCtoCurrency(btcAmount: btcAmount, exchangeRate: self.exchangeRate)
                                     
                                     self.keyArray[index]["balance"] = btcAmount + " tBTC"
                                     
@@ -1230,7 +1511,6 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         let modelName = UIDevice.modelName
         
         self.blurView.frame = self.view.frame
-        self.blurView.backgroundColor = UIColor.white
         self.view.addSubview(self.blurView)
         
         let imageView = UIImageView()
@@ -1273,22 +1553,34 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         self.settingsButton.addTarget(self, action: #selector(self.goToSettings), for: .touchUpInside)
         self.blurView.addSubview(self.settingsButton)
         
-        self.amountToSend.frame = CGRect(x: self.view.frame.minX + 5, y: self.view.frame.minY + 150, width: self.view.frame.width - 10, height: 50)
+        self.amountToSend.frame = CGRect(x: 50, y: self.view.frame.minY + 150, width: self.view.frame.width - 100, height: 50)
         self.amountToSend.textAlignment = .center
         self.amountToSend.borderStyle = .roundedRect
         self.amountToSend.backgroundColor = UIColor.groupTableViewBackground
         self.amountToSend.keyboardType = UIKeyboardType.decimalPad
+        self.amountToSend.keyboardAppearance = UIKeyboardAppearance.dark
         self.blurView.addSubview(self.amountToSend)
+        
+        amountLabel.frame = CGRect(x: 50, y: self.amountToSend.frame.minY - 65, width: self.view.frame.width - 100, height: 55)
+        amountLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
+        amountLabel.adjustsFontSizeToFitWidth = true
+        amountLabel.textAlignment = .center
+        amountLabel.textColor = UIColor.white
+        amountLabel.text = "Amount to Receive in \(self.currency):"
+        addShadow(view: amountLabel)
         
         self.createButton = UIButton(frame: CGRect(x: self.view.center.x - 40, y: self.amountToSend.frame.maxY + 10, width: 80, height: 55))
         self.createButton.showsTouchWhenHighlighted = true
+        addShadow(view: self.createButton)
+        self.createButton.backgroundColor = UIColor.clear
         self.createButton.setTitle("Next", for: .normal)
-        self.createButton.setTitleColor(UIColor.blue, for: .normal)
+        self.createButton.setTitleColor(UIColor.white, for: .normal)
         self.createButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
         self.createButton.addTarget(self, action: #selector(self.createNow), for: .touchUpInside)
         self.blurView.addSubview(self.createButton)
         
         self.amountToSend.becomeFirstResponder()
+        self.blurView.addSubview(amountLabel)
         
     }
     
@@ -1302,6 +1594,8 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
             
             self.amountToSend.resignFirstResponder()
             self.amountToSend.removeFromSuperview()
+            self.amountLabel.removeFromSuperview()
+            self.amountLabel.removeFromSuperview()
             self.settingsButton.removeFromSuperview()
             self.createButton.removeFromSuperview()
             
@@ -1309,7 +1603,14 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
             
         } else {
             
-            shakeAlert(viewToShake: self.amountToSend)
+            self.amountToSend.resignFirstResponder()
+            self.amountToSend.removeFromSuperview()
+            self.amountLabel.removeFromSuperview()
+            self.amountLabel.removeFromSuperview()
+            self.settingsButton.removeFromSuperview()
+            self.createButton.removeFromSuperview()
+            
+            self.addInvoiceView(address: self.wallet["address"] as! String, amount: "0", currency: self.currency)
         }
         
     }
@@ -1343,7 +1644,7 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         var stringToShare = String()
         var amountToShare = amount
         
-        if currency == "SAT" || currency == "BTC" {
+        if currency == "SAT" && amount != "0" || currency == "BTC" && amount != "0" {
             
             if currency == "SAT" {
                 
@@ -1353,9 +1654,17 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
             
             stringToShare = "bitcoin:\(address)?amount=\(amountToShare)"
             
-        } else {
+        } else if self.currency != "SAT" && amount != "0" || self.currency != "BTC" && amount != "0" {
             
             stringToShare = "address:\(address)?amount:\(amountToShare)?currency:\(currency)"
+            
+        } else if currency == "SAT" && amount == "0" || currency == "BTC" && amount == "0" {
+            
+            stringToShare = "bitcoin:\(address)"
+            
+        } else if self.currency != "SAT" && amount == "0" || self.currency != "BTC" && amount == "0" {
+            
+            stringToShare = "bitcoin:\(address)"
             
         }
         
@@ -1382,10 +1691,11 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                     self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 20) / 2), y: self.privateKeyQRView.frame.minY - 80, width: self.view.frame.width - 20, height: 50))
                     self.fileName = "Invoice"
                     self.privateKeyTitle.text = "Invoice\n🤑"
+                    addShadow(view: self.privateKeyTitle)
                     self.privateKeyTitle.numberOfLines = 0
                     self.privateKeyTitle.adjustsFontSizeToFitWidth = true
-                    self.privateKeyTitle.font = UIFont.init(name: "HelveticaNeue-Light", size: 32)
-                    self.privateKeyTitle.textColor = UIColor.black
+                    self.privateKeyTitle.font = UIFont.init(name: "HelveticaNeue-Bold", size: 32)
+                    self.privateKeyTitle.textColor = UIColor.white
                     self.privateKeyTitle.textAlignment = .center
                     self.blurView.addSubview(self.privateKeyTitle)
                     
@@ -1397,8 +1707,10 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                 self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 10)/2), y: self.privateKeyQRView.frame.maxY + 10, width: self.view.frame.width - 10, height: 75))
                 self.myField.isEditable = false
                 self.myField.backgroundColor = UIColor.clear
+                self.myField.textColor = UIColor.white
+                addShadow(view: self.myField)
                 self.myField.isSelectable = true
-                self.myField.font = UIFont.init(name: "HelveticaNeue-Light", size: 15)
+                self.myField.font = UIFont.init(name: "HelveticaNeue-Bold", size: 15)
                 
                 var amountwithcommas = amount
                 
@@ -1416,14 +1728,21 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                 case "BTC": foramttedCurrency = "Bitcoin"
                 default: break
                 }
-                self.myField.text = "Invoice of \(String(describing: amountwithcommas)) \(foramttedCurrency), to be paid to \(name)"
+                if amount != "0" {
+                    self.myField.text = "Invoice of \(String(describing: amountwithcommas)) \(foramttedCurrency), to be paid to \(name)"
+                } else {
+                    self.myField.text = "Send Bitcoin to \(name)"
+                }
+                
                 self.myField.textAlignment = .center
                 self.blurView.addSubview(self.myField)
                 
                 self.backUpButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.view.frame.maxY - 60, width: 80, height: 55))
                 self.backUpButton.showsTouchWhenHighlighted = true
                 self.backUpButton.setTitle("Share", for: .normal)
-                self.backUpButton.setTitleColor(UIColor.blue, for: .normal)
+                self.backUpButton.backgroundColor = UIColor.clear
+                addShadow(view: self.backUpButton)
+                self.backUpButton.setTitleColor(UIColor.white, for: .normal)
                 self.backUpButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
                 self.backUpButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
                 self.blurView.addSubview(self.backUpButton)
@@ -1499,23 +1818,19 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         self.privateKeyQRView.removeFromSuperview()
         self.createButton.removeFromSuperview()
         self.amountToSend.removeFromSuperview()
+        self.amountLabel.removeFromSuperview()
         self.myField.removeFromSuperview()
         self.blurView.removeFromSuperview()
         
     }
     
-    func processKeyAndSegue() {
-        
-        self.performSegue(withIdentifier: "exportHD", sender: self)
-    }
-    
-    func authenticationWithTouchID() {
+    func authenticationWithTouchID(item: String) {
         
         let localAuthenticationContext = LAContext()
         localAuthenticationContext.localizedFallbackTitle = "Use Passcode"
         
         var authError: NSError?
-        let reasonString = "To Export a Private Key"
+        let reasonString = "To Export a Secret"
         
         if localAuthenticationContext.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &authError) {
             
@@ -1525,9 +1840,10 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                     
                     DispatchQueue.main.async {
                             
-                            self.processKeyAndSegue()
+                        self.walletToExport["stringToExport"] = item
+                        self.performSegue(withIdentifier: "exportHD", sender: self)
                             
-                        }
+                    }
                     
                     
                 } else {

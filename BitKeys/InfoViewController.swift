@@ -57,17 +57,61 @@ class InfoViewController: UIViewController, UITextViewDelegate {
         
         textView.text = """
         
+        Have a question, email us at BitSenseApp@gmail.com
+        
         How to Use BitSense?
         
-        Simply move the Bitcoin around until it disappears then you will be given a recovery phrase that you should write down in case you lose your device or accidentally delete the app. That way you can use your recovery phrase to recover your Bitcoin.
+        If your using BitSense for the first time you will notice it created a wallet for you. You should have saved the recovery phrase and kept it somewhere safe incase you lose this device, if you didn't please start over!
         
-        You can then tap on the Address Book button to see your wallet. It will show the balance of that wallet in Bitcoin. You have lots of options in the Address Book and you can create lots of wallets.
+        On the home screen you will see your wallets, you can tap each one to get options specific to that wallet. Tap the \"Pay\" button to pay from your wallet or the \"Receive\" button to create an invoice for your wallet.
         
-        To receive Bitcoin you can tap the receive button on the home screen and it will show you your Bitcoin Address where anyone on the world can send you Bitcoin. If you want someone to send you Bitcoin you can either show it to them in person or tap the share button and share the text of the address or QR code anyway you’d like, this is the only piece of information needed for someone to send you Bitcoin.
+        The wallet that BitSense creates for you is whats called a HD wallet (Heirarchical Determinsitic) and adheres to BIP44 standards. This means whenever you tap the "Receive" BitSense will generate an invoice for you that anyone can scan to send you Bitcoin. BitSense will never reuse the same address when creating invoices. We can do this because your wallet is an HD wallet and they are capable of deriving an infinite number of private keys and addresses from your recovery phrase which is why its so important that you write it down and save it.
         
-        To spend Bitcoin tap the Pay button. BitSense has a lot of settings that are customizable, by default we denominate your transaction in US Dollars, you can change that by tapping the settings button on the pay page.
+        Each address and private key that is derived from your recovery phrase is numbered (indexed) in order starting from 0 and goes to essentially infinity. When you tap the wallet a pop up will come up from the bottom of your screen and give you multiple options. If you tap \"HD Keys\" button which has an infinity symbol you will see the first twenty private key/address pairs that your recovery phrase produces with their index number shown too (#0, #1, #2). You can see the next twenty by tapping the plus button again and again and again, displaying in increments of twenty working our way up.
         
-        You can check any balance by tapping the Balance button, from there you can scan or input any Bitcoin address or tap the address book.
+        BitSense will check the balance of all twenty of these addresses when you tap \"HD Keys\" and whne you tap the plus sign, you can also tap each individual key for options to spend directly from that key, to create an invoice for that specific key, check transaction history for that key, save that key to your home screen wallet and finally export that key. This is a powerful tool. BitSense does not store any of these keys in anyway, we create them programmatically on demand. All we save is your master or parent wallet from which we can derive the children.
+        
+        If you do not want to use HD wallets thats fine too, you can just save one of the HD keys and it will be saved as a new wallet independent of the HD keys, meaning when you tap it you will be able to create an invoice for that same address multiple times, we only increment the invoice addresses for HD wallets, if you don't see the infinity symbol on your wallet then it will reuse your address over and over. Also you can import other wallets by scanning private keys or inputting recovery phrases. If you scan a private key that will be the only private key and address associated with that wallet.
+        
+        That brings us to they symbols BitSense uses to identify they type of wallet each one is:
+        
+        ∞
+        
+        This infinity symbol shows that the wallet is an HD wallet, you can tap \"HD Keys\" to see all the associated private keys and addresses and their balances. The private key and address on the home screen wallet is the 0 index and when you view the child keys it shows 0 to 20.
+        
+        👀
+        
+        This means your wallet is a watch only wallet and no private key is saved on the device for that wallet. You will only be able to receive Bitcoin and check the balances. You can also spend from it but you will need to manually scan or input the private key when trying to make the transaction. You can put BitSense into hot mode or cold mode in the settings and create watch only or hot wallets at your hearts desire.
+        
+        🤓
+        
+        This means that the wallet is on the \"Testnet\" and is for testing purposes only. You can put BitSense into testnet mode or mainnet mode in the settings. This is not real money and for testing purposes only. tBTC or tSAT means testnet bitcoin and testnet satoshis.
+        
+        If there is no symbol that simply means its a plain old private key and address on the Bitcoin mainnet network.
+        
+        Is BitSense secure?
+        
+        Whilst in Hot Mode the moment BitSense creates a private key it encrypts it and then saves it onto your device locally. The encryption is AES256CBC. The key that is used to encrypt the private keys is generated the first time you open the app and stored to your devices keychain which is also encrypted by Apple and is extremely secure. Even the FBI can’t access these encrypted keys on the keychain (apparently).
+        
+        BitSense creates a random Bitcoin native segwit Bech32 address and then reduces the number of characters down to 32 and uses this as your encryption key. We do this because the Bech32 format is easy to read and doesn't contain ambiguous characters like uppercase I's and lower case l's which can be easily confused (as you can see), you will appreciate that if you utilize our \"Create Back Up\" feature in the security settings which will require you to write this key down and save it as an emergency back up. This will save your private keys from your wallets on your home screen, this will NOT save your HD derived keys.
+        
+        We never upload your encrypted private keys, passwords or encryption keys to the internet in anyway. BitSense is designed to work with as little internet connectivity as possible, as far as key creation and management is concerned absolutley everything happens offline and on your device only, fully encrypted and stored on the keychain. Even when making a transaction you can turn the wifi off and put the phone in airplane mode when it comes to using your private key to sign the transaction.
+        
+        In Cold Mode you can spend your cold storage Bitcoins by inputting the debit and credit addresses and then scanning the debit private key, during the scanning of the private key your phone can be disconnected from the internet and we prompt you to do so. In hot mode the process is effortless and the decryption and signing of the the transaction by the private key all happens locally and without you even noticing. You can use BitSense in Cold Mode in which we never store any private key (encrypted or not) to your device.
+        
+        In the security settings you can choose to set a lock/unlock password which will require you to either input the password or do a biometric scan every time you want to spend Bitcoin or whenever you try to export a private key. You will also need it whenever you try and do security sensitive things like create backups and make changes to existing security settings.
+        
+        Invoices:
+        
+        If they are denominated in anything other then Bitcoin or Satoshis they will not work across other wallets and will only be usable by other BitSense users. If they are denominated in Bitcoin or Satoshis they adhere to BIP21 and will work on the majority of Bitcoin wallets. We do not support BIP70 and are not compatible with it.
+        
+        Segwit Mode:
+        
+        In Segwit mode the recovery phrase is no longer BIP44 compatible and will only work in BitSense to recover funds, therefore you can not expect to put that recovery phrase in another wallet and get a bech32 address, however it will work in BitSense as long as you are in Segwit Mode. We are working on this feature and will be upgrading our segwit compatibility in the future. For now all you can do is create bech32 addresses/private keys and check balances, you can not yet spend from them yet.
+        
+        Multi Sig:
+        
+        This is what I am working on now, the next major update will include full multi sig P2SH compatibility.
         
         
         BitSense Principles:
@@ -83,29 +127,13 @@ class InfoViewController: UIViewController, UITextViewDelegate {
         Security, ease of use and full flexibilty of all the powerful utilities Bitcoin provides are our mission to provide you as a user. This app is new and is a work in progress, we will constantly be improving it and making it as decentralized and independent as possible. For now we rely on BlockCypher's api for broadcasting transactions, in the future we hope to become fully autonomous and ideally allow users to run their own full node on the device. For now we are starting simple and ensuring we have a secure easy to use product that delivers some much needed common sense to the Bitcoin software space.
         
         
-        Is BitSense secure?
-        
-        Whilst in Hot Mode the moment BitSense creates a private key it encrypts it and then saves it onto your device locally. The encryption is AES256CBC. The key that is used to encrypt the private keys is generated the first time you open the app and stored to your devices keychain which is also encrypted by Apple and is extremely secure. Even the FBI can’t access these encrypted keys on the keychain (apparently).
-        
-        BitSense creates a random Bitcoin native segwit Bech32 address and then reduces the number of characters down to 32 and uses this as your encryption key. We do this because the Bech32 format is easy to read and doesn't contain ambiguous characters like uppercase I's and lower case l's which can be easily confused (as you can see), you will appreciate that if you utilize our \"Create Back Up\" feature in the security settings which will require you to write this key down and save it as an emergency back up.
-        
-        We never upload your encrypted private keys, passwords or encryption keys to the internet in anyway. BitSense is designed to work with as little internet connectivity as possible, as far as key creation and management is concerned absolutley everything happens offline and on your device only, fully encrypted and stored on the keychain. Even when making a transaction you can turn the wifi off and put the phone in airplane mode when it comes to using your private key to sign the transaction.
-        
-        In Cold Mode you can spend your cold storage Bitcoins by inputting the debit and credit addresses and then scanning the debit private key, during the scanning of the private key your phone can be disconnected from the internet and we prompt you to do so. In hot mode the process is effortless and the decryption and signing of the the transaction by the private key all happens locally and without you even noticing. You can use BitSense in Cold Mode in which we never store any private key (encrypted or not) to your device.
-        
-        In the security settings you can choose to set a lock/unlock password which will require you to either input the password or do a biometric scan every time you want to spend Bitcoin or whenever you try to export a private key. You will also need it whenever you try and do security sensitive things like create backups and make changes to existing security settings.
-        
-        BitSense Story:
-        
-        I am a solo independent developer and started making BitSense because I could not beleive at how complicated and confusing most Bitcoin software is to use. It is not beginner friendly, also simple apps like being able to create a private key and address on an iPhone did not exist. BitSense was inspired by www.bitaddress.org where you can create cold storage wallets offline, in BitSense's very first release that is all it did.  It still does that but in a much more secure way and also allows lots of extremely powerful options for advanced users and offers full hot wallet capabilities. It is a true tool kit for Bitcoin and I hope you enjoy using it. It is a constant work in progress and more features and improvements will be made constantly. We vow to always keep it backwards compatible so that when the app updates you won't have to do anything that would compromise your Bitcoin. I love Bitcoin and made this app primarily for myself, I hope others find it useful and it helps people to use Bitcoin more easily and securely. If you have any questions I am on twitter @f0nta1n3, please reach out with any questions, comments or concerns, I will be happy to help.
-        
         I need help! If you are a developer and want to contribute please do contact me, I am making this 100% on my own and could use some help, find me on twitter @f0nta1n3 and reach out. This app is non profit and made out of love for Bitcoin only, if you'd like to donate please feel free to do so at:
         
-        bc1q549843s7q4g4rzsxjtvyltkern5dj92lnm4vh9
+        bc1qhnwtlwpyr5l7av6kd684wyretre5s2tgdefplt
         
         or
         
-        1BDpHh9iWGSzP29pYDenhnpx8acX9SnCUL
+        17AWn578gsaXvWJAPgo7dH5ZbA6EWKDYsu
         
         
         
@@ -113,10 +141,6 @@ class InfoViewController: UIViewController, UITextViewDelegate {
         """
         
         textView.attributedText = attributedText()
-        
-        /*let normalFont = UIFont.init(name: "HelveticaNeue-Light", size: 18)
-        let boldFont = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
-        self.textView.attributedText = addBoldText(fullString: textView.text as NSString, boldPartOfString: ["How to Use BitSense?", "Why do I need to move the Bitcoin around?"], font: normalFont!, boldFont: boldFont!)*/
         
         self.view.addSubview(self.textView)
     }

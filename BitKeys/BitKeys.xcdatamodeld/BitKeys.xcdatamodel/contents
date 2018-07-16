@@ -3,7 +3,9 @@
     <entity name="AddressBook" representedClassName="AddressBook" syncable="YES" codeGenerationType="class">
         <attribute name="address" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="balance" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="index" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
         <attribute name="label" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="mnemonic" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="network" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="privateKey" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="publicKey" optional="YES" attributeType="String" syncable="YES"/>
@@ -36,9 +38,9 @@
         <attribute name="isEncrypted" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
     </entity>
     <elements>
-        <element name="AddressBook" positionX="-63" positionY="36" width="128" height="210"/>
+        <element name="AddressBook" positionX="-63" positionY="36" width="128" height="240"/>
         <element name="Settings" positionX="-63" positionY="-9" width="128" height="135"/>
-        <element name="Wallet" positionX="-63" positionY="-18" width="128" height="60"/>
         <element name="TransactionSettings" positionX="-63" positionY="90" width="128" height="180"/>
+        <element name="Wallet" positionX="-63" positionY="-18" width="128" height="60"/>
     </elements>
 </model>

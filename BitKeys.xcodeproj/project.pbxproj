@@ -25,18 +25,45 @@
 		D027521A20D1C3230025EC0E /* addressBook.png in Resources */ = {isa = PBXBuildFile; fileRef = D027521920D1C3220025EC0E /* addressBook.png */; };
 		D027522020D292B10025EC0E /* AddressBookViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D027521F20D292B10025EC0E /* AddressBookViewController.swift */; };
 		D027522220D2979E0025EC0E /* add.png in Resources */ = {isa = PBXBuildFile; fileRef = D027522120D2979E0025EC0E /* add.png */; };
-		D03114D520C90C2B005B0AE1 /* MultiSigCreatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D03114D420C90C2B005B0AE1 /* MultiSigCreatorViewController.swift */; };
+		D040853520F4F8B000C2DA2B /* unlocked.png in Resources */ = {isa = PBXBuildFile; fileRef = D040853420F4F8AF00C2DA2B /* unlocked.png */; };
+		D046FD9020F15DDE00D002AB /* save.png in Resources */ = {isa = PBXBuildFile; fileRef = D046FD8F20F15DDE00D002AB /* save.png */; };
+		D049F13220FA7BBA0073B807 /* broom.png in Resources */ = {isa = PBXBuildFile; fileRef = D049F13120FA7BBA0073B807 /* broom.png */; };
+		D049F13420FA95BA0073B807 /* whiteCheck.png in Resources */ = {isa = PBXBuildFile; fileRef = D049F13320FA95BA0073B807 /* whiteCheck.png */; };
+		D049F13620FA9F680073B807 /* plus.png in Resources */ = {isa = PBXBuildFile; fileRef = D049F13520FA9F670073B807 /* plus.png */; };
+		D049F13820FB73DF0073B807 /* blackDice.png in Resources */ = {isa = PBXBuildFile; fileRef = D049F13720FB73DF0073B807 /* blackDice.png */; };
+		D049F13E20FB786B0073B807 /* dice1.png in Resources */ = {isa = PBXBuildFile; fileRef = D049F13920FB786A0073B807 /* dice1.png */; };
+		D049F13F20FB786B0073B807 /* dice2.png in Resources */ = {isa = PBXBuildFile; fileRef = D049F13A20FB786A0073B807 /* dice2.png */; };
+		D049F14020FB786B0073B807 /* dice3.png in Resources */ = {isa = PBXBuildFile; fileRef = D049F13B20FB786A0073B807 /* dice3.png */; };
+		D049F14120FB786B0073B807 /* dice4.png in Resources */ = {isa = PBXBuildFile; fileRef = D049F13C20FB786A0073B807 /* dice4.png */; };
+		D049F14220FB786B0073B807 /* dice5.png in Resources */ = {isa = PBXBuildFile; fileRef = D049F13D20FB786B0073B807 /* dice5.png */; };
+		D049F14420FB7C710073B807 /* dice6.png in Resources */ = {isa = PBXBuildFile; fileRef = D049F14320FB7C710073B807 /* dice6.png */; };
 		D04A203320E7BDB1009038EE /* CustomPhotoAlbum.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A203220E7BDB1009038EE /* CustomPhotoAlbum.swift */; };
 		D04BAB2620CB1B3E00501B6D /* SpendMultiSigViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04BAB2520CB1B3E00501B6D /* SpendMultiSigViewController.swift */; };
 		D04BAB2C20CC2F6B00501B6D /* InfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04BAB2B20CC2F6B00501B6D /* InfoViewController.swift */; };
 		D04BAB3420CC79CF00501B6D /* img_311477.png in Resources */ = {isa = PBXBuildFile; fileRef = D04BAB3320CC79CF00501B6D /* img_311477.png */; };
+		D04EC45B20F670CD00200DB8 /* Bitsense image2.png in Resources */ = {isa = PBXBuildFile; fileRef = D04EC45A20F670CD00200DB8 /* Bitsense image2.png */; };
+		D04F692620F825D200A84E7C /* CreateMultiSigViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04F692520F825D200A84E7C /* CreateMultiSigViewController.swift */; };
+		D05007B220FCF6C400DC2A71 /* whiteInfinity.png in Resources */ = {isa = PBXBuildFile; fileRef = D05007B120FCF6C400DC2A71 /* whiteInfinity.png */; };
+		D05007B420FCF70400DC2A71 /* whiteHistory.png in Resources */ = {isa = PBXBuildFile; fileRef = D05007B320FCF70300DC2A71 /* whiteHistory.png */; };
+		D05007B620FCF78200DC2A71 /* whitePay.png in Resources */ = {isa = PBXBuildFile; fileRef = D05007B520FCF78200DC2A71 /* whitePay.png */; };
+		D05007B820FCF7F300DC2A71 /* whiteInvoice.png in Resources */ = {isa = PBXBuildFile; fileRef = D05007B720FCF7F200DC2A71 /* whiteInvoice.png */; };
+		D05007BA20FCFB1900DC2A71 /* whiteSave.png in Resources */ = {isa = PBXBuildFile; fileRef = D05007B920FCFB1800DC2A71 /* whiteSave.png */; };
+		D05007BC20FD2F8A00DC2A71 /* saveMultiSig.swift in Sources */ = {isa = PBXBuildFile; fileRef = D05007BB20FD2F8A00DC2A71 /* saveMultiSig.swift */; };
 		D055011D2094FE79001C35F0 /* BitKeysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055011C2094FE79001C35F0 /* BitKeysTests.swift */; };
 		D055012720950E9F001C35F0 /* SegwitAddrCoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055012620950E9F001C35F0 /* SegwitAddrCoder.swift */; };
 		D055012B2095134C001C35F0 /* Bech32.swift in Sources */ = {isa = PBXBuildFile; fileRef = D055012A2095134C001C35F0 /* Bech32.swift */; };
 		D057B24420D9D570006661DC /* TransactionHistoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D057B24320D9D570006661DC /* TransactionHistoryViewController.swift */; };
 		D05D158420DEE929001B209D /* AES256CBC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D05D158320DEE929001B209D /* AES256CBC.framework */; };
+		D05E52DC20F79B5900F36D63 /* Add Pin - Trip key.png in Resources */ = {isa = PBXBuildFile; fileRef = D05E52DB20F79B5900F36D63 /* Add Pin - Trip key.png */; };
+		D05E52DF20F7A25100F36D63 /* whiteLock.png in Resources */ = {isa = PBXBuildFile; fileRef = D05E52DD20F7A25100F36D63 /* whiteLock.png */; };
+		D05E52E020F7A25100F36D63 /* whiteUnlocked.png in Resources */ = {isa = PBXBuildFile; fileRef = D05E52DE20F7A25100F36D63 /* whiteUnlocked.png */; };
+		D05E52E220F7A3A000F36D63 /* whiteKey.png in Resources */ = {isa = PBXBuildFile; fileRef = D05E52E120F7A39F00F36D63 /* whiteKey.png */; };
+		D05E52E420F7A68200F36D63 /* whiteQR.png in Resources */ = {isa = PBXBuildFile; fileRef = D05E52E320F7A68100F36D63 /* whiteQR.png */; };
+		D05E52E620F7CA5200F36D63 /* diceCreator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D05E52E520F7CA5200F36D63 /* diceCreator.swift */; };
 		D06031A520E018F000609997 /* Bitsense image.png in Resources */ = {isa = PBXBuildFile; fileRef = D06031A420E018F000609997 /* Bitsense image.png */; };
-		D07638F420C5B41F009D08E5 /* SweepViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07638F320C5B41F009D08E5 /* SweepViewController.swift */; };
+		D07CCD1320F10B46001F0191 /* branch.png in Resources */ = {isa = PBXBuildFile; fileRef = D07CCD1220F10B45001F0191 /* branch.png */; };
+		D07CCD1520F10DF3001F0191 /* children.png in Resources */ = {isa = PBXBuildFile; fileRef = D07CCD1420F10DF3001F0191 /* children.png */; };
+		D07CCD1720F1130A001F0191 /* HDChildViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07CCD1620F1130A001F0191 /* HDChildViewController.swift */; };
 		D089BFA5207EBDEF0086243B /* SipHash.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D089BFA3207EBDEF0086243B /* SipHash.framework */; };
 		D089BFA6207EBDEF0086243B /* BigInt.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D089BFA4207EBDEF0086243B /* BigInt.framework */; };
 		D08F7EFE20E5BEFF00505AE8 /* LocalAuthentication.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D08F7EFD20E5BECB00505AE8 /* LocalAuthentication.framework */; };
@@ -71,6 +98,7 @@
 		D0D1A42520E66C9200B6399F /* SwiftKeychainWrapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0D1A42420E66C9200B6399F /* SwiftKeychainWrapper.framework */; };
 		D0E8115C20615E23000DBBE8 /* MayerMultipleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E8115B20615E23000DBBE8 /* MayerMultipleViewController.swift */; };
 		D0EF966B1FCC07FB004A8E4E /* ObjectiveCHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = D0EF966A1FCC07FB004A8E4E /* ObjectiveCHeader.m */; };
+		D0F161BC20F4190500B6412F /* infinity.png in Resources */ = {isa = PBXBuildFile; fileRef = D0F161BB20F4190400B6412F /* infinity.png */; };
 		D0F858A0202BD39C00560247 /* TransactionBuilderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F8589F202BD39C00560247 /* TransactionBuilderViewController.swift */; };
 /* End PBXBuildFile section */
 
@@ -105,11 +133,30 @@
 		D027521920D1C3220025EC0E /* addressBook.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = addressBook.png; sourceTree = "<group>"; };
 		D027521F20D292B10025EC0E /* AddressBookViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressBookViewController.swift; sourceTree = "<group>"; };
 		D027522120D2979E0025EC0E /* add.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = add.png; sourceTree = "<group>"; };
-		D03114D420C90C2B005B0AE1 /* MultiSigCreatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiSigCreatorViewController.swift; sourceTree = "<group>"; };
+		D040853420F4F8AF00C2DA2B /* unlocked.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = unlocked.png; sourceTree = "<group>"; };
+		D046FD8F20F15DDE00D002AB /* save.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = save.png; sourceTree = "<group>"; };
+		D049F13120FA7BBA0073B807 /* broom.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = broom.png; sourceTree = "<group>"; };
+		D049F13320FA95BA0073B807 /* whiteCheck.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whiteCheck.png; sourceTree = "<group>"; };
+		D049F13520FA9F670073B807 /* plus.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = plus.png; sourceTree = "<group>"; };
+		D049F13720FB73DF0073B807 /* blackDice.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = blackDice.png; sourceTree = "<group>"; };
+		D049F13920FB786A0073B807 /* dice1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dice1.png; sourceTree = "<group>"; };
+		D049F13A20FB786A0073B807 /* dice2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dice2.png; sourceTree = "<group>"; };
+		D049F13B20FB786A0073B807 /* dice3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dice3.png; sourceTree = "<group>"; };
+		D049F13C20FB786A0073B807 /* dice4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dice4.png; sourceTree = "<group>"; };
+		D049F13D20FB786B0073B807 /* dice5.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dice5.png; sourceTree = "<group>"; };
+		D049F14320FB7C710073B807 /* dice6.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dice6.png; sourceTree = "<group>"; };
 		D04A203220E7BDB1009038EE /* CustomPhotoAlbum.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPhotoAlbum.swift; sourceTree = "<group>"; };
 		D04BAB2520CB1B3E00501B6D /* SpendMultiSigViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendMultiSigViewController.swift; sourceTree = "<group>"; };
 		D04BAB2B20CC2F6B00501B6D /* InfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoViewController.swift; sourceTree = "<group>"; };
 		D04BAB3320CC79CF00501B6D /* img_311477.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = img_311477.png; sourceTree = "<group>"; };
+		D04EC45A20F670CD00200DB8 /* Bitsense image2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Bitsense image2.png"; sourceTree = "<group>"; };
+		D04F692520F825D200A84E7C /* CreateMultiSigViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateMultiSigViewController.swift; sourceTree = "<group>"; };
+		D05007B120FCF6C400DC2A71 /* whiteInfinity.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whiteInfinity.png; sourceTree = "<group>"; };
+		D05007B320FCF70300DC2A71 /* whiteHistory.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whiteHistory.png; sourceTree = "<group>"; };
+		D05007B520FCF78200DC2A71 /* whitePay.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whitePay.png; sourceTree = "<group>"; };
+		D05007B720FCF7F200DC2A71 /* whiteInvoice.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whiteInvoice.png; sourceTree = "<group>"; };
+		D05007B920FCFB1800DC2A71 /* whiteSave.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whiteSave.png; sourceTree = "<group>"; };
+		D05007BB20FD2F8A00DC2A71 /* saveMultiSig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = saveMultiSig.swift; sourceTree = "<group>"; };
 		D055011A2094FE79001C35F0 /* BitKeysTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BitKeysTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D055011C2094FE79001C35F0 /* BitKeysTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitKeysTests.swift; sourceTree = "<group>"; };
 		D055011E2094FE79001C35F0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -117,8 +164,16 @@
 		D055012A2095134C001C35F0 /* Bech32.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bech32.swift; sourceTree = "<group>"; };
 		D057B24320D9D570006661DC /* TransactionHistoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionHistoryViewController.swift; sourceTree = "<group>"; };
 		D05D158320DEE929001B209D /* AES256CBC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AES256CBC.framework; path = Carthage/Build/iOS/AES256CBC.framework; sourceTree = "<group>"; };
+		D05E52DB20F79B5900F36D63 /* Add Pin - Trip key.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Add Pin - Trip key.png"; sourceTree = "<group>"; };
+		D05E52DD20F7A25100F36D63 /* whiteLock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whiteLock.png; sourceTree = "<group>"; };
+		D05E52DE20F7A25100F36D63 /* whiteUnlocked.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whiteUnlocked.png; sourceTree = "<group>"; };
+		D05E52E120F7A39F00F36D63 /* whiteKey.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whiteKey.png; sourceTree = "<group>"; };
+		D05E52E320F7A68100F36D63 /* whiteQR.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whiteQR.png; sourceTree = "<group>"; };
+		D05E52E520F7CA5200F36D63 /* diceCreator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = diceCreator.swift; sourceTree = "<group>"; };
 		D06031A420E018F000609997 /* Bitsense image.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Bitsense image.png"; sourceTree = "<group>"; };
-		D07638F320C5B41F009D08E5 /* SweepViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SweepViewController.swift; sourceTree = "<group>"; };
+		D07CCD1220F10B45001F0191 /* branch.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = branch.png; sourceTree = "<group>"; };
+		D07CCD1420F10DF3001F0191 /* children.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = children.png; sourceTree = "<group>"; };
+		D07CCD1620F1130A001F0191 /* HDChildViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HDChildViewController.swift; sourceTree = "<group>"; };
 		D089BFA3207EBDEF0086243B /* SipHash.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SipHash.framework; path = Carthage/Build/iOS/SipHash.framework; sourceTree = "<group>"; };
 		D089BFA4207EBDEF0086243B /* BigInt.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BigInt.framework; path = Carthage/Build/iOS/BigInt.framework; sourceTree = "<group>"; };
 		D08F7EFD20E5BECB00505AE8 /* LocalAuthentication.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LocalAuthentication.framework; path = System/Library/Frameworks/LocalAuthentication.framework; sourceTree = SDKROOT; };
@@ -157,6 +212,7 @@
 		D0E8115B20615E23000DBBE8 /* MayerMultipleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MayerMultipleViewController.swift; sourceTree = "<group>"; };
 		D0EF96691FCC07FA004A8E4E /* BitKeys-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BitKeys-Bridging-Header.h"; sourceTree = "<group>"; };
 		D0EF966A1FCC07FB004A8E4E /* ObjectiveCHeader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ObjectiveCHeader.m; sourceTree = "<group>"; };
+		D0F161BB20F4190400B6412F /* infinity.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = infinity.png; sourceTree = "<group>"; };
 		D0F8589F202BD39C00560247 /* TransactionBuilderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionBuilderViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -203,17 +259,43 @@
 			isa = PBXGroup;
 			children = (
 				D027521720D1AF2D0025EC0E /* qr.png */,
+				D05E52E120F7A39F00F36D63 /* whiteKey.png */,
+				D05E52E320F7A68100F36D63 /* whiteQR.png */,
+				D040853420F4F8AF00C2DA2B /* unlocked.png */,
 				D0A7343320E977A700DB36DD /* binaryImage.jpg */,
+				D05E52DD20F7A25100F36D63 /* whiteLock.png */,
+				D049F13520FA9F670073B807 /* plus.png */,
+				D05E52DE20F7A25100F36D63 /* whiteUnlocked.png */,
+				D07CCD1420F10DF3001F0191 /* children.png */,
+				D05007B120FCF6C400DC2A71 /* whiteInfinity.png */,
+				D05007B320FCF70300DC2A71 /* whiteHistory.png */,
+				D049F13120FA7BBA0073B807 /* broom.png */,
+				D049F13720FB73DF0073B807 /* blackDice.png */,
 				D0C1788220DC7DC400F3D6E1 /* history.png */,
+				D049F13320FA95BA0073B807 /* whiteCheck.png */,
+				D046FD8F20F15DDE00D002AB /* save.png */,
 				D01116B420EA534D00B01E31 /* edit.jpg */,
+				D0F161BB20F4190400B6412F /* infinity.png */,
+				D049F14320FB7C710073B807 /* dice6.png */,
+				D04EC45A20F670CD00200DB8 /* Bitsense image2.png */,
 				D027522120D2979E0025EC0E /* add.png */,
+				D05E52DB20F79B5900F36D63 /* Add Pin - Trip key.png */,
 				D0B6B53B20EFA0A000A1FA43 /* success.png */,
+				D049F13920FB786A0073B807 /* dice1.png */,
+				D049F13A20FB786A0073B807 /* dice2.png */,
+				D049F13B20FB786A0073B807 /* dice3.png */,
+				D049F13C20FB786A0073B807 /* dice4.png */,
+				D049F13D20FB786B0073B807 /* dice5.png */,
+				D07CCD1220F10B45001F0191 /* branch.png */,
 				D098732020D02A6B007B8930 /* keys.png */,
 				D01116B820EA587800B01E31 /* invoice.png */,
 				D027521920D1C3220025EC0E /* addressBook.png */,
 				D01116B620EA56EE00B01E31 /* pay.png */,
 				D098731E20D021BE007B8930 /* price.png */,
+				D05007B520FCF78200DC2A71 /* whitePay.png */,
+				D05007B720FCF7F200DC2A71 /* whiteInvoice.png */,
 				D0C47DEB20CD80A10076CA3B /* clear.png */,
+				D05007B920FCFB1800DC2A71 /* whiteSave.png */,
 				D0B6B53D20EFA9F900A1FA43 /* background.jpg */,
 				D0C47DE920CD7E750076CA3B /* switch.jpg */,
 				D0C47DE720CD7D370076CA3B /* backUp.jpg */,
@@ -270,7 +352,11 @@
 		D0C56F571FCBFBC4004A5F47 /* BitKeys */ = {
 			isa = PBXGroup;
 			children = (
+				D05007BB20FD2F8A00DC2A71 /* saveMultiSig.swift */,
+				D04F692520F825D200A84E7C /* CreateMultiSigViewController.swift */,
+				D05E52E520F7CA5200F36D63 /* diceCreator.swift */,
 				D0A7342D20E93CC500DB36DD /* RawTransactionViewController.swift */,
+				D07CCD1620F1130A001F0191 /* HDChildViewController.swift */,
 				D04A203220E7BDB1009038EE /* CustomPhotoAlbum.swift */,
 				D0D1A42220E658AD00B6399F /* SecuritySettingsViewController.swift */,
 				D09A24E420E5258E00DAFDC8 /* TransactionSettingsViewController.swift */,
@@ -279,8 +365,6 @@
 				D08FA4B120D4940C00BADC3B /* keyCreatorFromEntropy.swift */,
 				D08FA4AD20D4853500BADC3B /* walletSaver.swift */,
 				D027521F20D292B10025EC0E /* AddressBookViewController.swift */,
-				D03114D420C90C2B005B0AE1 /* MultiSigCreatorViewController.swift */,
-				D07638F320C5B41F009D08E5 /* SweepViewController.swift */,
 				D003821720B24D4400BC310D /* SettingsViewController.swift */,
 				D055012620950E9F001C35F0 /* SegwitAddrCoder.swift */,
 				D0C56F581FCBFBC4004A5F47 /* AppDelegate.swift */,
@@ -409,39 +493,65 @@
 			buildActionMask = 2147483647;
 			files = (
 				D01116B920EA587800B01E31 /* invoice.png in Resources */,
+				D049F13F20FB786B0073B807 /* dice2.png in Resources */,
+				D07CCD1320F10B46001F0191 /* branch.png in Resources */,
 				D0A7343020E95C1C00DB36DD /* sweep.jpeg in Resources */,
 				D06031A520E018F000609997 /* Bitsense image.png in Resources */,
 				D01116B520EA534D00B01E31 /* edit.jpg in Resources */,
+				D05E52E220F7A3A000F36D63 /* whiteKey.png in Resources */,
 				D0A7343420E977A700DB36DD /* binaryImage.jpg in Resources */,
+				D049F14020FB786B0073B807 /* dice3.png in Resources */,
 				D00FF6A22083DA1000660D3C /* two.png in Resources */,
+				D05E52E420F7A68200F36D63 /* whiteQR.png in Resources */,
+				D049F13420FA95BA0073B807 /* whiteCheck.png in Resources */,
 				D0C47DEC20CD80A10076CA3B /* clear.png in Resources */,
+				D07CCD1520F10DF3001F0191 /* children.png in Resources */,
+				D040853520F4F8B000C2DA2B /* unlocked.png in Resources */,
 				D0C56F661FCBFBC4004A5F47 /* LaunchScreen.storyboard in Resources */,
+				D049F14220FB786B0073B807 /* dice5.png in Resources */,
 				D027522220D2979E0025EC0E /* add.png in Resources */,
 				D0C56F631FCBFBC4004A5F47 /* Assets.xcassets in Resources */,
 				D00FF6A52083DA1000660D3C /* three.png in Resources */,
 				D0B6B53E20EFA9F900A1FA43 /* background.jpg in Resources */,
 				D0C47DEE20CD81E00076CA3B /* back2.png in Resources */,
+				D04EC45B20F670CD00200DB8 /* Bitsense image2.png in Resources */,
 				D098732120D02A6B007B8930 /* keys.png in Resources */,
+				D05007BA20FCFB1900DC2A71 /* whiteSave.png in Resources */,
+				D049F14420FB7C710073B807 /* dice6.png in Resources */,
+				D05E52DC20F79B5900F36D63 /* Add Pin - Trip key.png in Resources */,
 				D0C1788320DC7DC400F3D6E1 /* history.png in Resources */,
 				D0C47DEA20CD7E750076CA3B /* switch.jpg in Resources */,
+				D049F13E20FB786B0073B807 /* dice1.png in Resources */,
 				D027521820D1AF2D0025EC0E /* qr.png in Resources */,
 				D0B6B53C20EFA0A000A1FA43 /* success.png in Resources */,
+				D05007B820FCF7F300DC2A71 /* whiteInvoice.png in Resources */,
+				D049F13220FA7BBA0073B807 /* broom.png in Resources */,
 				D00FF6A62083DA1000660D3C /* six.png in Resources */,
+				D049F13820FB73DF0073B807 /* blackDice.png in Resources */,
 				D0C56F5E1FCBFBC4004A5F47 /* Main.storyboard in Resources */,
 				D027521A20D1C3230025EC0E /* addressBook.png in Resources */,
+				D05E52E020F7A25100F36D63 /* whiteUnlocked.png in Resources */,
+				D0F161BC20F4190500B6412F /* infinity.png in Resources */,
 				D01116B720EA56EE00B01E31 /* pay.png in Resources */,
 				D0C47DE620CD4C3B0076CA3B /* help2.png in Resources */,
 				D0C47DE820CD7D370076CA3B /* backUp.jpg in Resources */,
+				D049F14120FB786B0073B807 /* dice4.png in Resources */,
 				D0C47DE220CD48A50076CA3B /* tool2.png in Resources */,
 				D098731F20D021BE007B8930 /* price.png in Resources */,
 				D098731D20D01C3D007B8930 /* lock.jpg in Resources */,
 				D04BAB3420CC79CF00501B6D /* img_311477.png in Resources */,
+				D046FD9020F15DDE00D002AB /* save.png in Resources */,
+				D05007B220FCF6C400DC2A71 /* whiteInfinity.png in Resources */,
 				D00FF6A42083DA1000660D3C /* four.png in Resources */,
+				D05E52DF20F7A25100F36D63 /* whiteLock.png in Resources */,
+				D05007B620FCF78200DC2A71 /* whitePay.png in Resources */,
 				D0C47DE420CD4BAA0076CA3B /* settings2.png in Resources */,
 				D00FF6A82083DAC900660D3C /* images-6.png in Resources */,
 				D00FF6A32083DA1000660D3C /* five.png in Resources */,
 				D01116BB20EAAF3100B01E31 /* bill.png in Resources */,
 				D00FF6A12083DA1000660D3C /* one.png in Resources */,
+				D05007B420FCF70400DC2A71 /* whiteHistory.png in Resources */,
+				D049F13620FA9F680073B807 /* plus.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -530,22 +640,24 @@
 				D08FA4AE20D4853500BADC3B /* walletSaver.swift in Sources */,
 				D0B597852013E96E000767A7 /* ViewControllerBalanceChecker.swift in Sources */,
 				D0A7342E20E93CC500DB36DD /* RawTransactionViewController.swift in Sources */,
+				D05E52E620F7CA5200F36D63 /* diceCreator.swift in Sources */,
+				D07CCD1720F1130A001F0191 /* HDChildViewController.swift in Sources */,
 				D08FA4B220D4940C00BADC3B /* keyCreatorFromEntropy.swift in Sources */,
 				D003821820B24D4400BC310D /* SettingsViewController.swift in Sources */,
 				D04BAB2C20CC2F6B00501B6D /* InfoViewController.swift in Sources */,
 				D027522020D292B10025EC0E /* AddressBookViewController.swift in Sources */,
-				D03114D520C90C2B005B0AE1 /* MultiSigCreatorViewController.swift in Sources */,
 				D0C56F5B1FCBFBC4004A5F47 /* ViewController.swift in Sources */,
 				D055012720950E9F001C35F0 /* SegwitAddrCoder.swift in Sources */,
 				D0F858A0202BD39C00560247 /* TransactionBuilderViewController.swift in Sources */,
 				D09A24E520E5258F00DAFDC8 /* TransactionSettingsViewController.swift in Sources */,
 				D04A203320E7BDB1009038EE /* CustomPhotoAlbum.swift in Sources */,
-				D07638F420C5B41F009D08E5 /* SweepViewController.swift in Sources */,
 				D0C56F611FCBFBC4004A5F47 /* BitKeys.xcdatamodeld in Sources */,
 				D055012B2095134C001C35F0 /* Bech32.swift in Sources */,
 				D0E8115C20615E23000DBBE8 /* MayerMultipleViewController.swift in Sources */,
+				D04F692620F825D200A84E7C /* CreateMultiSigViewController.swift in Sources */,
 				D08FA4B420D49A3D00BADC3B /* Utilities.swift in Sources */,
 				D057B24420D9D570006661DC /* TransactionHistoryViewController.swift in Sources */,
+				D05007BC20FD2F8A00DC2A71 /* saveMultiSig.swift in Sources */,
 				D0D1A42320E658AD00B6399F /* SecuritySettingsViewController.swift in Sources */,
 				D0C56F591FCBFBC4004A5F47 /* AppDelegate.swift in Sources */,
 			);

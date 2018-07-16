@@ -486,7 +486,7 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
         
             DispatchQueue.main.async {
                 
-                let alert = UIAlertController(title: "Back Up Created", message: "Please check your photo albums and you will see a new album called \"BitSense\".\n\nThese QR codes are your encrypted back up, each QR Code is an encrypted Private Key from your wallet.\n\nIn order to restore them you will need to tap the \"Restore From Back Up\" button in your security settings and then scan each QR Code and input the \"Back Up Password\" we just gave you.\n\nIf you are Restoring a back up from the same device and have not deleted the app since you created the back up, you will not be forced to input the password.\n\nIf you have any questions please contact us at f0nta1n3@protonmail.com", preferredStyle: UIAlertControllerStyle.alert)
+                let alert = UIAlertController(title: "Back Up Created", message: "Please check your photo albums and you will see a new album called \"BitSense\".\n\nThese QR codes are your encrypted back up, each QR Code is an encrypted Private Key from your wallet.\n\nIn order to restore them you will need to tap the \"Restore From Back Up\" button in your security settings and then scan each QR Code and input the \"Back Up Password\" we just gave you.\n\nIf you are Restoring a back up from the same device and have not deleted the app since you created the back up, you will not be forced to input the password.\n\nIf you have any questions please contact us at BitSenseApp@gmail.com", preferredStyle: UIAlertControllerStyle.alert)
                 
                 alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
                     
@@ -527,11 +527,11 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                 
                 for data in results {
                     
-                    if let privateKeyCheck = data.value(forKey: "privateKey") as? String {
+                    if let xprivCheck = data.value(forKey: "xpriv") as? String {
                         
-                        if privateKeyCheck != "" {
+                        if xprivCheck != "" {
                             
-                           keyArray.append(privateKeyCheck)
+                            keyArray.append(xprivCheck)
                             
                             if data.value(forKey: "label") as? String != "" {
                                 
@@ -542,11 +542,30 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                                 self.filenames.append(data.value(forKey: "address") as! String)
                             }
                             
+                        } else {
+                            
+                            if let privateKeyCheck = data.value(forKey: "privateKey") as? String {
+                                
+                                if privateKeyCheck != "" {
+                                    
+                                    keyArray.append(privateKeyCheck)
+                                    
+                                    if data.value(forKey: "label") as? String != "" {
+                                        
+                                        self.filenames.append(data.value(forKey: "label") as! String)
+                                        
+                                    } else {
+                                        
+                                        self.filenames.append(data.value(forKey: "address") as! String)
+                                    }
+                                    
+                                }
+                                
+                            }
+                            
                         }
                         
-                   }
-                    
-                    
+                    }
                     
                 }
                 
@@ -949,7 +968,13 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                         self.avCaptureSession.startRunning()
                     }
                     
-                    saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot", index: UInt32())
+                    let success = saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot", index: UInt32(), label: "", xpriv: "")
+                    if success {
+                        
+                        displayAlert(viewController: self, title: "Success", message: "Your new wallet was restored")
+                    } else {
+                        displayAlert(viewController: self, title: "Error", message: "We had an issue please contact us at BitSenseApp@gmail.com.")
+                    }
                     
                 }
                 
@@ -962,13 +987,11 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                 
                 if let key = BTCKey.init(privateKeyAddress: privateKey) {
                     
-                    print("privateKey = \(key.privateKeyAddress)")
                     var bitcoinAddress = String()
                     
                     let privateKeyWIF = key.privateKeyAddress.string
                     let addressHD = key.address.string
                     let publicKey = key.compressedPublicKey.hex()!
-                    print("publicKey = \(publicKey)")
                     
                     if self.legacyMode {
                         
@@ -996,12 +1019,60 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                         self.avCaptureSession.startRunning()
                     }
                     
-                    saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot", index: UInt32())
-                    
+                    let success = saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot", index: UInt32(), label: "", xpriv: "")
+                    if success {
+                        
+                        displayAlert(viewController: self, title: "Success", message: "Your new wallet was restored")
+                    } else {
+                        displayAlert(viewController: self, title: "Error", message: "We had an issue please contact us at BitSenseApp@gmail.com.")
+                    }
                 }
                 
             }
             
+        } else if decryptedKey.hasPrefix("xprv") {
+            
+            if let keychain = BTCKeychain.init(extendedKey: decryptedKey) {
+                
+                keychain.key.isPublicKeyCompressed = true
+                let privateKeyWIF = (keychain.key(at: 0).privateKeyAddress.string)
+                let addressHD = (keychain.key(at: 0).address.string)
+                let publicKey = (keychain.key(at: 0).compressedPublicKey.hex())!
+                let xpub = (keychain.extendedPublicKey)!
+                let xpriv = (keychain.extendedPrivateKey)!
+                var bitcoinAddress = String()
+                
+                if legacyMode {
+                    
+                    bitcoinAddress = addressHD
+                    
+                }
+                
+                if segwitMode {
+                    
+                    let compressedPKData = BTCRIPEMD160(BTCSHA256(keychain.key(at: 0).compressedPublicKey as Data!) as Data!) as Data!
+                    
+                    do {
+                        
+                        bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
+                        
+                    } catch {
+                        
+                        displayAlert(viewController: self, title: "Error", message: "Please try again.")
+                        
+                    }
+                    
+                }
+                
+                let success = saveWallet(viewController: self, mnemonic: "", xpub: xpub, address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot", index: 0, label: "", xpriv: xpriv)
+                
+                if success {
+                    displayAlert(viewController: self, title: "Success", message: "Your new wallet was restored")
+                } else {
+                    displayAlert(viewController: self, title: "Error", message: "We had an issue please contact us at BitSenseApp@gmail.com.")
+                }
+                
+            }
         }
     }
     

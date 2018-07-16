@@ -13,6 +13,9 @@ import SwiftKeychainWrapper
 
 class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate {
     
+    let textInputLabel = UILabel()
+    var backgroundColours = [UIColor()]
+    var backgroundLoop:Int = 0
     var activityIndicator:UIActivityIndicatorView!
     var exRate = Double()
     var currency = String()
@@ -43,7 +46,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     var stringURL = String()
     var myAddressButton = UIButton()
     var addressLabel = UILabel()
-    var addressBook: [[String: Any]] = []
+    var addressBook = [[String: Any]]()
     var addresses = String()
     var addressToShare = String()
 
@@ -113,7 +116,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         DispatchQueue.main.async {
             self.activityIndicator = UIActivityIndicatorView(frame: CGRect(x: self.view.center.x - 25, y: self.view.center.y - 25, width: 50, height: 50))
             self.activityIndicator.hidesWhenStopped = true
-            self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+            self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.whiteLarge
             self.activityIndicator.isUserInteractionEnabled = true
             self.view.addSubview(self.activityIndicator)
             self.activityIndicator.startAnimating()
@@ -145,6 +148,30 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         addQRScannerView()
         scanQRCode()
         
+        backgroundColours = [UIColor.red, UIColor.blue, UIColor.yellow]
+        backgroundLoop = 0
+        animateBackgroundColour()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard (_:)))
+        self.view.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
+        addressToDisplay.resignFirstResponder()
+        //amountToSend.resignFirstResponder()
+    }
+    
+    func animateBackgroundColour () {
+        if backgroundLoop < backgroundColours.count - 1 {
+            self.backgroundLoop += 1
+        } else {
+            backgroundLoop = 0
+        }
+        UIView.animate(withDuration: 5, delay: 0, options: UIViewAnimationOptions.allowUserInteraction, animations: { () -> Void in
+            self.view.backgroundColor =  self.backgroundColours[self.backgroundLoop];
+        }) {(Bool) -> Void in
+            self.animateBackgroundColour();
+        }
     }
     
     func addQRScannerView() {
@@ -163,10 +190,21 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         addressToDisplay.textAlignment = .center
         addressToDisplay.borderStyle = .roundedRect
         addressToDisplay.backgroundColor = UIColor.groupTableViewBackground
+        addressToDisplay.keyboardAppearance = UIKeyboardAppearance.dark
         addressToDisplay.adjustsFontSizeToFitWidth = true
         addressToDisplay.keyboardType = UIKeyboardType.default
         addressToDisplay.placeholder = "Type or Scan a Bitcoin Address"
         self.view.addSubview(self.addressToDisplay)
+        
+        textInputLabel.frame = CGRect(x: 50, y: self.addressToDisplay.frame.minY - 65, width: self.view.frame.width - 100, height: 55)
+        textInputLabel.adjustsFontSizeToFitWidth = true
+        textInputLabel.textColor = UIColor.white
+        textInputLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
+        addShadow(view: textInputLabel)
+        textInputLabel.textAlignment = .center
+        textInputLabel.numberOfLines = 0
+        textInputLabel.text = "Scan an Address To See a Balance"
+        self.view.addSubview(textInputLabel)
         
     }
     
@@ -180,7 +218,16 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             
             DispatchQueue.main.async {
                 
-                self.checkBalance(address: self.addressToDisplay.text!)
+                if self.addressToDisplay.text!.hasPrefix("bc1") {
+                    
+                    self.checkBech32Address(address: self.addressToDisplay.text!)
+                    
+                } else {
+                    
+                    self.checkBalance(address: self.addressToDisplay.text!)
+                    
+                }
+                
                 self.addressToDisplay.text = ""
                 self.avCaptureSession.stopRunning()
                 self.addBalanceView()
@@ -229,6 +276,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             print("metadataOutput")
             
             addressToDisplay.removeFromSuperview()
+            textInputLabel.removeFromSuperview()
             
             let machineReadableCode = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
             
@@ -244,7 +292,17 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 self.addresses = stringURL
                 self.addressLabel.text = self.addresses
                 self.avCaptureSession.stopRunning()
-                self.checkBalance(address: stringURL)
+                
+                if stringURL.hasPrefix("bc1") {
+                    
+                    self.checkBech32Address(address: stringURL)
+                    
+                } else {
+                    
+                    self.checkBalance(address: stringURL)
+                    
+                }
+                
                 self.addBalanceView()
                 
             }
@@ -287,6 +345,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     func checkBalance(address: String) {
         print("checkBalance")
         
+        self.addSpinner()
         self.addressToShare = address
         var url:NSURL!
         
@@ -502,8 +561,10 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         DispatchQueue.main.async {
             self.backUpButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.view.frame.maxY - 60, width: 80, height: 55))
             self.backUpButton.showsTouchWhenHighlighted = true
+            self.backUpButton.backgroundColor = UIColor.clear
             self.backUpButton.setTitle("Share", for: .normal)
-            self.backUpButton.setTitleColor(UIColor.blue, for: .normal)
+            addShadow(view: self.backUpButton)
+            self.backUpButton.setTitleColor(UIColor.white, for: .normal)
             self.backUpButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
             self.backUpButton.addTarget(self, action: #selector(self.airDropImage), for: .touchUpInside)
             self.view.addSubview(self.backUpButton)
@@ -551,8 +612,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     }
                     
                     alert.addAction(UIAlertAction(title: NSLocalizedString(walletName, comment: ""), style: .default, handler: { (action) in
-                        
-                        self.addSpinner()
                         
                         let address = wallet["address"] as! String
                         let network = wallet["network"] as! String
@@ -629,8 +688,6 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                 
             } else if self.addressBook.count == 1 {
                 
-                self.addSpinner()
-                
                 let walletName = self.addressBook[0]["label"] as! String
                 let address = self.addressBook[0]["address"] as! String
                 let network = self.addressBook[0]["network"] as! String
@@ -696,20 +753,24 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         DispatchQueue.main.async {
             self.videoPreview.removeFromSuperview()
             self.addressToDisplay.removeFromSuperview()
+            self.textInputLabel.removeFromSuperview()
             
             self.btcBalanceLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - ((self.view.frame.height / 2) + 120), width: self.view.frame.width, height: self.view.frame.height)
-            self.btcBalanceLabel.textColor = UIColor.black
+            self.btcBalanceLabel.textColor = UIColor.white
+            addShadow(view: self.btcBalanceLabel)
             self.btcBalanceLabel.textAlignment = .center
             self.btcBalanceLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 35)
             self.view.addSubview(self.btcBalanceLabel)
             
-            self.usdBalanceLabel.textColor = UIColor.black
+            self.usdBalanceLabel.textColor = UIColor.white
+            addShadow(view: self.usdBalanceLabel)
             self.usdBalanceLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 35)
             self.usdBalanceLabel.textAlignment = .center
             self.usdBalanceLabel.frame = CGRect(x: self.view.center.x - (self.view.frame.width / 2), y: self.view.center.y - ((self.view.frame.height / 2) + 60), width: self.view.frame.width, height: self.view.frame.height)
             
             self.addressLabel.adjustsFontSizeToFitWidth = true
-            self.addressLabel.textColor = UIColor.black
+            addShadow(view: self.addressLabel)
+            self.addressLabel.textColor = UIColor.white
             self.addressLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 23)
             self.addressLabel.textAlignment = .center
             self.view.addSubview(self.addressLabel)
@@ -803,8 +864,8 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         print("checkBech32Address")
         
+        self.addSpinner()
         self.addressToShare = address
-        
         var url:NSURL!
         
         func get() {
@@ -830,13 +891,16 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                                 
                                 let jsonAddressResult = try JSONSerialization.jsonObject(with: urlContent, options: JSONSerialization.ReadingOptions.mutableLeaves) as! NSDictionary
                                 
-                                if let btcAmount = ((jsonAddressResult["data"] as? NSArray)?[0] as? NSDictionary)?["sum_value_unspent"] as? Double {
+                                print("jsonAddressResult = \(jsonAddressResult)")
+                                
+                                if let btcAmount = ((jsonAddressResult["data"] as? NSArray)?[0] as? NSDictionary)?["sum_value_unspent"] as? String {
                                     
-                                    print("btcAmount = \(btcAmount)")
-                                    self.balance = btcAmount
-                                    //self.balance = finalBalanceCheck / 100000000
-                                    self.btcBalanceLabel.text = "\(self.balance.avoidNotation) BTC"
-                                    self.usdBalanceLabel.text = self.convertBTCtoCurrency(btcAmount: self.totalBTC, exchangeRate: self.exRate)
+                                    DispatchQueue.main.async {
+                                        self.balance = Double(btcAmount)!
+                                        self.btcBalanceLabel.text = "\(self.balance.avoidNotation) BTC"
+                                        self.usdBalanceLabel.text = self.convertBTCtoCurrency(btcAmount: self.totalBTC, exchangeRate: self.exRate)
+                                        self.removeSpinner()
+                                    }
                                     
                                 } else {
                                     
@@ -917,7 +981,13 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                         
                     }
                     
-                    saveWallet(viewController: self,mnemonic: "", xpub: "", address: self.addressToShare, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold", index:UInt32())
+                    let success = saveWallet(viewController: self,mnemonic: "", xpub: "", address: self.addressToShare, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold", index:UInt32(), label: "", xpriv: "")
+                    if success {
+                        
+                        displayAlert(viewController: self, title: "Success", message: "Your new wallet was saved")
+                    } else {
+                        displayAlert(viewController: self, title: "Error", message: "We had an issue please contact us at BitSenseApp@gmail.com.")
+                    }
                     
                 }))
                 
@@ -954,7 +1024,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
                     
                 }))
                 
-            alert.popoverPresentationController?.sourceView = self.view // works for both iPhone & iPad
+            alert.popoverPresentationController?.sourceView = self.view
             
             self.present(alert, animated: true) {
                 print("option menu presented")

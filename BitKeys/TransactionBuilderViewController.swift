@@ -16,6 +16,7 @@ import SwiftKeychainWrapper
 
 class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
     
+    let amountLabel = UILabel()
     var activityIndicator:UIActivityIndicatorView!
     var index = Int()
     var HDMode = Bool()
@@ -82,6 +83,8 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
     var EUR = Bool()
     var SAT = Bool()
     var GBP = Bool()
+    var backgroundColours = [UIColor()]
+    var backgroundLoop:Int = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -161,15 +164,35 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         addressToDisplay.delegate = self
         amountToSend.delegate = self
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard (_:)))
+        tapGesture.numberOfTapsRequired = 1
         self.view.addGestureRecognizer(tapGesture)
         
+        backgroundColours = [UIColor.red, UIColor.blue, UIColor.yellow]
+        backgroundLoop = 0
+        animateBackgroundColour()
         
+    }
+    
+    func animateBackgroundColour () {
+        
+        
+            if backgroundLoop < backgroundColours.count - 1 {
+                self.backgroundLoop += 1
+            } else {
+                backgroundLoop = 0
+            }
+            UIView.animate(withDuration: 5, delay: 0, options: UIViewAnimationOptions.allowUserInteraction, animations: { () -> Void in
+                self.view.backgroundColor =  self.backgroundColours[self.backgroundLoop];
+            }) {(Bool) -> Void in
+                self.animateBackgroundColour();
+            }
+            
         
     }
     
     @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
         addressToDisplay.resignFirstResponder()
-        //amountToSend.resignFirstResponder()
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -269,7 +292,10 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             
             if check == "" {
                 
-               displayAlert(viewController: self, title: "FYI", message: "The wallet you would like to spend from is a cold wallet meaning you will have to scan the private key or type it in to spend from it.")
+                self.coldMode = true
+                self.hotMode = false
+                
+               //displayAlert(viewController: self, title: "FYI", message: "The wallet you would like to spend from is a cold wallet meaning you will have to scan the private key or type it in to spend from it.")
                 
             }
        }
@@ -670,7 +696,8 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             self.uploadButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 140, y: self.view.frame.maxY - 60, width: 130, height: 55))
             self.uploadButton.showsTouchWhenHighlighted = true
             self.uploadButton.setTitle("From Photos", for: .normal)
-            self.uploadButton.setTitleColor(UIColor.blue, for: .normal)
+            addShadow(view: self.uploadButton)
+            self.uploadButton.setTitleColor(UIColor.white, for: .normal)
             self.uploadButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
             self.uploadButton.addTarget(self, action: #selector(self.chooseQRCodeFromLibrary), for: .touchUpInside)
             self.view.addSubview(self.uploadButton)
@@ -992,7 +1019,7 @@ func addChooseOptionButton() {
     
     self.sweepButton.removeFromSuperview()
     self.sweepButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 45, y: self.view.frame.maxY - 45, width: 35, height: 35))
-    self.sweepButton.setImage(#imageLiteral(resourceName: "sweep.jpeg"), for: .normal)
+    self.sweepButton.setImage(#imageLiteral(resourceName: "broom.png"), for: .normal)
     self.sweepButton.showsTouchWhenHighlighted = true
     self.sweepButton.addTarget(self, action: #selector(sweep), for: .touchUpInside)
     self.view.addSubview(self.sweepButton)
@@ -1044,6 +1071,7 @@ func addChooseOptionButton() {
         self.payInvoiceMode = true
         self.amountToSend.resignFirstResponder()
         self.amountToSend.removeFromSuperview()
+        self.amountLabel.removeFromSuperview()
         self.getReceivingAddressMode = true
         self.optionsButton.removeFromSuperview()
         self.moreOptionsButton.removeFromSuperview()
@@ -1144,9 +1172,12 @@ func addChooseOptionButton() {
             
             self.videoPreview.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.view.center.y - ((self.view.frame.width - 50)/2), width: self.view.frame.width - 50, height: self.view.frame.width - 50)
             
-            scanLabel = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 10) / 2), y: self.videoPreview.frame.minY - 40, width: self.view.frame.width - 10, height: 20))
-            scanLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 18)
-            scanLabel.textColor = UIColor.black
+            scanLabel = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 10) / 2), y: self.videoPreview.frame.minY - 60, width: self.view.frame.width - 10, height: 55))
+            scanLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
+            scanLabel.numberOfLines = 0
+            scanLabel.adjustsFontSizeToFitWidth = true
+            addShadow(view: scanLabel)
+            scanLabel.textColor = UIColor.white
             scanLabel.text = "Scan the Invoice"
             scanLabel.textAlignment = .center
             self.view.addSubview(scanLabel)
@@ -1165,6 +1196,16 @@ func addChooseOptionButton() {
         self.amountToSend.borderStyle = .roundedRect
         self.amountToSend.backgroundColor = UIColor.groupTableViewBackground
         self.amountToSend.keyboardType = UIKeyboardType.decimalPad
+        self.amountToSend.keyboardAppearance = UIKeyboardAppearance.dark
+        
+        
+        amountLabel.frame = CGRect(x: 50 , y: self.amountToSend.frame.minY - 65, width: self.view.frame.width - 100, height: 55)
+        amountLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
+        addShadow(view: amountLabel)
+        amountLabel.text = "Amount to Send:"
+        amountLabel.textAlignment = .center
+        amountLabel.textColor = UIColor.white
+        
         
         if BTC {
             currency = "BTC"
@@ -1189,6 +1230,7 @@ func addChooseOptionButton() {
         }
         
         self.view.addSubview(self.amountToSend)
+        self.view.addSubview(amountLabel)
         
     }
     
@@ -1210,6 +1252,7 @@ func addChooseOptionButton() {
             self.amountToSend.text = ""
             self.amountToSend.resignFirstResponder()
             self.amountToSend.removeFromSuperview()
+            self.amountLabel.removeFromSuperview()
             
             if self.currency != "BTC" && self.currency != "SAT" {
                     
@@ -1234,7 +1277,7 @@ func addChooseOptionButton() {
         DispatchQueue.main.async {
             self.activityIndicator = UIActivityIndicatorView(frame: CGRect(x: self.view.center.x - 25, y: self.view.center.y - 25, width: 50, height: 50))
             self.activityIndicator.hidesWhenStopped = true
-            self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+            self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.whiteLarge
             self.activityIndicator.isUserInteractionEnabled = true
             self.view.addSubview(self.activityIndicator)
             self.activityIndicator.startAnimating()
@@ -1260,22 +1303,33 @@ func addChooseOptionButton() {
         self.addressToDisplay.autocapitalizationType = .none
         self.addressToDisplay.backgroundColor = UIColor.groupTableViewBackground
         self.addressToDisplay.returnKeyType = UIReturnKeyType.go
+        self.addressToDisplay.keyboardAppearance = UIKeyboardAppearance.dark
+        
+        amountLabel.frame = CGRect(x: 50 , y: self.addressToDisplay.frame.minY - 65, width: self.view.frame.width - 100, height: 55)
+        amountLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
+        addShadow(view: amountLabel)
+        amountLabel.textAlignment = .center
+        amountLabel.textColor = UIColor.white
         
         if getReceivingAddressMode {
           
             self.addressToDisplay.placeholder = "Scan or Type Receiving Address"
+            amountLabel.text = "Receiver:"
             
         } else if getPayerAddressMode {
             
             self.addressToDisplay.placeholder = "Scan or Type Debit Address"
+            amountLabel.text = "Sender:"
             
         } else if getSignatureMode {
             
             self.addressToDisplay.placeholder = "Scan or Type Private Key to debit"
+            amountLabel.text = "Sign Transaction:"
             
         }
         
         self.view.addSubview(self.addressToDisplay)
+        self.view.addSubview(self.amountLabel)
         
     }
     
@@ -1311,7 +1365,14 @@ func addChooseOptionButton() {
                             
                             alert.addAction(UIAlertAction(title: NSLocalizedString("Yes", comment: ""), style: .default, handler: { (action) in
                                 
-                                saveWallet(viewController: self, mnemonic: "", xpub: "", address: key, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold", index:UInt32())
+                                let success = saveWallet(viewController: self, mnemonic: "", xpub: "", address: key, privateKey: "", publicKey: "", redemptionScript: "", network: network, type: "cold", index:UInt32(), label: "", xpriv: "")
+                                
+                                if success {
+                                    
+                                    displayAlert(viewController: self, title: "Success", message: "Your new wallet was saved")
+                                } else {
+                                    displayAlert(viewController: self, title: "Error", message: "We had an issue please contact us at BitSenseApp@gmail.com.")
+                                }
                                 
                                 self.recievingAddress = key
                                 self.getReceivingAddressMode = false
@@ -1469,7 +1530,8 @@ func addChooseOptionButton() {
                 self.nextButton = UIButton(frame: CGRect(x: self.view.center.x - 40, y: self.amountToSend.frame.maxY + 10, width: 80, height: 55))
                 self.nextButton.showsTouchWhenHighlighted = true
                 self.nextButton.setTitle("Next", for: .normal)
-                self.nextButton.setTitleColor(UIColor.blue, for: .normal)
+                addShadow(view: self.nextButton)
+                self.nextButton.setTitleColor(UIColor.white, for: .normal)
                 self.nextButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
                 self.nextButton.addTarget(self, action: #selector(self.saveAmountInSatoshis), for: .touchUpInside)
                 self.view.addSubview(self.nextButton)
@@ -1564,6 +1626,7 @@ func addChooseOptionButton() {
         if self.amount == "-1" {
                 
             self.amountToSend.removeFromSuperview()
+            self.amountLabel.removeFromSuperview()
             self.addScanner()
                 
         } else if self.currency == "BTC" && self.amount != "-1" {
@@ -1663,6 +1726,7 @@ func addChooseOptionButton() {
                                                 
                                             self.removeSpinner()
                                             self.amountToSend.removeFromSuperview()
+                                                self.amountLabel.removeFromSuperview()
                                             self.addScanner()
                                                 
                                             }
@@ -1782,6 +1846,7 @@ func addChooseOptionButton() {
             self.addressBookButton.removeFromSuperview()
             self.uploadButton.removeFromSuperview()
             self.addressToDisplay.removeFromSuperview()
+            self.amountLabel.removeFromSuperview()
             self.videoPreview.removeFromSuperview()
             
         }
@@ -2160,33 +2225,38 @@ func addChooseOptionButton() {
                             self.sendButton = UIButton(frame: CGRect(x: 20, y: self.view.frame.maxY - 60, width: self.view.frame.width - 40, height: 50))
                             self.sendButton.showsTouchWhenHighlighted = true
                             self.sendButton.layer.cornerRadius = 10
-                            self.sendButton.backgroundColor = UIColor.black
+                            self.sendButton.backgroundColor = UIColor.clear
                             addShadow(view:self.sendButton)
+                            self.sendButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
                             self.sendButton.addTarget(self, action: #selector(self.postTransaction), for: .touchUpInside)
                             self.sendButton.setTitle("Send", for: .normal)
                             self.view.addSubview(self.sendButton)
                             
-                            self.titleLable.frame = CGRect(x: 10, y: 60, width: self.view.frame.width - 20, height: 60)
+                            /*self.titleLable.frame = CGRect(x: 10, y: 60, width: self.view.frame.width - 20, height: 60)
                             self.titleLable.textAlignment = .center
-                            self.titleLable.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
+                            self.titleLable.font = UIFont.init(name: "HelveticaNeue-Bold", size: 50)
                             self.titleLable.adjustsFontSizeToFitWidth = true
+                            self.titleLable.textColor = UIColor.white
+                            addShadow(view: self.titleLable)
                             self.titleLable.numberOfLines = 2
-                            self.titleLable.text = "Confirm before sending"
-                            self.view.addSubview(self.titleLable)
+                            self.titleLable.text = "Confirm"
+                            //self.view.addSubview(self.titleLable)*/
                             
                             
-                            self.textView.frame = CGRect(x: 10, y: self.titleLable.frame.maxY + 20, width: self.view.frame.width - 20, height: 350)
+                            self.textView.frame = CGRect(x: 10, y: 80, width: self.view.frame.width - 20, height: 350)
                             //self.textView.font = .systemFont(ofSize: 18)
                             self.textView.adjustsFontSizeToFitWidth = true
+                            addShadow(view: self.textView)
                             self.textView.numberOfLines = 20
+                            self.textView.textColor = UIColor.white
                             self.textView.text = "\(message)"
                             
                             
                             func attributedText()-> NSAttributedString {
                                 
                                 let string = message as NSString
-                                let attributedString = NSMutableAttributedString(string: string as String, attributes: [NSAttributedStringKey.font:UIFont.init(name: "HelveticaNeue-Light", size: 18)!])
-                                let boldFontAttribute = [NSAttributedStringKey.font: UIFont.init(name: "HelveticaNeue-Bold", size: 18)]
+                                let attributedString = NSMutableAttributedString(string: string as String, attributes: [NSAttributedStringKey.font:UIFont.init(name: "HelveticaNeue-Bold", size: 18)!])
+                                let boldFontAttribute = [NSAttributedStringKey.font: UIFont.init(name: "HelveticaNeue-Bold", size: 30)]
                                 
                                 attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "From:"))
                                 attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "To:"))
@@ -2218,23 +2288,25 @@ func addChooseOptionButton() {
                         
                         let feeInFiat = self.exchangeRate * (Double(self.fees) / 100000000)
                         let roundedFiatFeeAmount = round(100 * feeInFiat) / 100
-                        let roundedFiatToSendAmount = (round(100 * Double(self.amount)!) / 100).withCommas()
+                        print("amount = \(self.amount)")
+                        
+                        
                         
                         if receiveAddress != "" && sendAddress != "" {
                             
-                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
                             
                         } else if receiveAddress != "" {
                             
-                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\"\(receiveAddress)\"\n\(self.recievingAddress)\n\n\nAmount:\n\n\(self.amount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
                             
                         } else if sendAddress != "" {
                             
-                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                            message = "From:\n\n\"\(sendAddress)\"\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\n\nAmount:\n\n\(self.amount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
                             
                         } else if receiveAddress == "" && sendAddress == "" {
                             
-                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\n\nAmount:\n\n\(roundedFiatToSendAmount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
+                            message = "From:\n\n\(self.sendingFromAddress)\n\n\nTo:\n\n\(self.recievingAddress)\n\n\n\nAmount:\n\n\(self.amount) \(self.currency) plus a miner fee of \(self.fees.withCommas()) Satoshis or \(roundedFiatFeeAmount) \(self.currency)"
                             
                         }
                         
@@ -2687,9 +2759,10 @@ func addChooseOptionButton() {
                                                     }
                                                     
                                                     let imageView = UIImageView()
-                                                    imageView.image = UIImage(named: "success.png")
+                                                    imageView.image = UIImage(named: "whiteCheck")
                                                     imageView.frame = CGRect(x: self.view.center.x - 95, y: (self.view.center.y - 95) - (self.view.frame.height / 5), width: 190, height: 190)
                                                     imageView.alpha = 0
+                                                    addShadow(view: imageView)
                                                     self.view.addSubview(imageView)
                                                     
                                                     imageView.transform = CGAffineTransform(scaleX: 0.6, y: 0.6)
