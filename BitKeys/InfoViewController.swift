@@ -53,7 +53,6 @@ class InfoViewController: UIViewController, UITextViewDelegate {
         textView.isSelectable = true
         textView.isScrollEnabled = true
         textView.backgroundColor = UIColor.clear
-        //textView.font = UIFont.init(name: "HelveticaNeue-Light", size: 18)
         
         textView.text = """
         
@@ -65,15 +64,15 @@ class InfoViewController: UIViewController, UITextViewDelegate {
         
         On the home screen you will see your wallets, you can tap each one to get options specific to that wallet. Tap the \"Pay\" button to pay from your wallet or the \"Receive\" button to create an invoice for your wallet.
         
-        The wallet that BitSense creates for you is whats called a HD wallet (Heirarchical Determinsitic) and adheres to BIP44 standards. This means whenever you tap the "Receive" BitSense will generate an invoice for you that anyone can scan to send you Bitcoin. BitSense will never reuse the same address when creating invoices. We can do this because your wallet is an HD wallet and they are capable of deriving an infinite number of private keys and addresses from your recovery phrase which is why its so important that you write it down and save it.
+        The wallet that BitSense creates for you is whats called a HD wallet (Heirarchical Determinsitic) and adheres to BIP44 standards. This means whenever you tap the "Receive" button BitSense will generate an invoice for you that utilizes a new address which anyone can scan to send you Bitcoin. BitSense will never reuse the same address when creating invoices. We can do this because your wallet is an HD wallet and they are capable of deriving an infinite number of private keys and addresses from your recovery phrase which is why its so important that you write it down and save it.
         
-        Each address and private key that is derived from your recovery phrase is numbered (indexed) in order starting from 0 and goes to essentially infinity. When you tap the wallet a pop up will come up from the bottom of your screen and give you multiple options. If you tap \"HD Keys\" button which has an infinity symbol you will see the first twenty private key/address pairs that your recovery phrase produces with their index number shown too (#0, #1, #2). You can see the next twenty by tapping the plus button again and again and again, displaying in increments of twenty working our way up.
+        Each address and private key that is derived from your recovery phrase is numbered (indexed) in order starting from 0 and goes to essentially infinity. When you tap the wallet a pop up will come up from the bottom of your screen and give you multiple options. If you tap the \"HD Keys\" button which has an infinity symbol you will see the first twenty private key/address pairs that your recovery phrase produces with their index number shown too (#0, #1, #2). You can see the next twenty by tapping the plus button again and again and again, displaying in increments of twenty working our way up.
         
-        BitSense will check the balance of all twenty of these addresses when you tap \"HD Keys\" and whne you tap the plus sign, you can also tap each individual key for options to spend directly from that key, to create an invoice for that specific key, check transaction history for that key, save that key to your home screen wallet and finally export that key. This is a powerful tool. BitSense does not store any of these keys in anyway, we create them programmatically on demand. All we save is your master or parent wallet from which we can derive the children.
+        BitSense will check the balance of all twenty of these addresses when you tap \"HD Keys\" and when you tap the plus sign, you can also tap each individual key for options to spend directly from that key, to create an invoice for that specific key, check transaction history for that key, save that key to your home screen wallet and finally to export that key. This is a powerful tool. BitSense does not store any of these keys in anyway, we create them programmatically on demand. All we save is your master or parent wallet from which we can derive the children.
         
         If you do not want to use HD wallets thats fine too, you can just save one of the HD keys and it will be saved as a new wallet independent of the HD keys, meaning when you tap it you will be able to create an invoice for that same address multiple times, we only increment the invoice addresses for HD wallets, if you don't see the infinity symbol on your wallet then it will reuse your address over and over. Also you can import other wallets by scanning private keys or inputting recovery phrases. If you scan a private key that will be the only private key and address associated with that wallet.
         
-        That brings us to they symbols BitSense uses to identify they type of wallet each one is:
+        That brings us to the symbols BitSense uses to identify the type of wallet each one is:
         
         ∞
         
@@ -93,7 +92,7 @@ class InfoViewController: UIViewController, UITextViewDelegate {
         
         Whilst in Hot Mode the moment BitSense creates a private key it encrypts it and then saves it onto your device locally. The encryption is AES256CBC. The key that is used to encrypt the private keys is generated the first time you open the app and stored to your devices keychain which is also encrypted by Apple and is extremely secure. Even the FBI can’t access these encrypted keys on the keychain (apparently).
         
-        BitSense creates a random Bitcoin native segwit Bech32 address and then reduces the number of characters down to 32 and uses this as your encryption key. We do this because the Bech32 format is easy to read and doesn't contain ambiguous characters like uppercase I's and lower case l's which can be easily confused (as you can see), you will appreciate that if you utilize our \"Create Back Up\" feature in the security settings which will require you to write this key down and save it as an emergency back up. This will save your private keys from your wallets on your home screen, this will NOT save your HD derived keys.
+        BitSense creates a random Bitcoin native segwit Bech32 address and then reduces the number of characters down to 32 and uses this as your encryption key. We do this because the Bech32 format is easy to read and doesn't contain ambiguous characters like uppercase I's and lower case l's which can be easily confused (as you can see), you will appreciate that if you utilize our \"Create Back Up\" feature in the security settings which will require you to write this key down and save it as an emergency back up. This will save your private keys and xprv's from your wallets on your home screen, this will NOT save your HD derived keys, those are recreated programitcally when you tap \"HD Keys\".
         
         We never upload your encrypted private keys, passwords or encryption keys to the internet in anyway. BitSense is designed to work with as little internet connectivity as possible, as far as key creation and management is concerned absolutley everything happens offline and on your device only, fully encrypted and stored on the keychain. Even when making a transaction you can turn the wifi off and put the phone in airplane mode when it comes to using your private key to sign the transaction.
         
@@ -107,7 +106,7 @@ class InfoViewController: UIViewController, UITextViewDelegate {
         
         Segwit Mode:
         
-        In Segwit mode the recovery phrase is no longer BIP44 compatible and will only work in BitSense to recover funds, therefore you can not expect to put that recovery phrase in another wallet and get a bech32 address, however it will work in BitSense as long as you are in Segwit Mode. We are working on this feature and will be upgrading our segwit compatibility in the future. For now all you can do is create bech32 addresses/private keys and check balances, you can not yet spend from them yet.
+        In Segwit mode the recovery phrase is no longer BIP44 compatible and will only work in BitSense to recover funds, therefore you can not expect to put that recovery phrase in another wallet and get a bech32 address, however it will work in BitSense as long as you are in Segwit Mode when you import your recovery phrase. We are working on this feature and will be upgrading our segwit compatibility in the future. For now all you can do is create bech32 addresses/private keys and check balances, you can not yet spend from them yet.
         
         Multi Sig:
         
@@ -129,7 +128,7 @@ class InfoViewController: UIViewController, UITextViewDelegate {
         
         I need help! If you are a developer and want to contribute please do contact me, I am making this 100% on my own and could use some help, find me on twitter @f0nta1n3 and reach out. This app is non profit and made out of love for Bitcoin only, if you'd like to donate please feel free to do so at:
         
-        bc1qhnwtlwpyr5l7av6kd684wyretre5s2tgdefplt
+        bc1qm3a5f6f5axkw68js283h87k34hhkkhd8jshpdr
         
         or
         
@@ -145,24 +144,23 @@ class InfoViewController: UIViewController, UITextViewDelegate {
         self.view.addSubview(self.textView)
     }
     
-    func attributedText()-> NSAttributedString
-    {
+    func attributedText()-> NSAttributedString {
         let string = textView.text as NSString
         
         let attributedString = NSMutableAttributedString(string: string as String, attributes: [NSAttributedStringKey.font:UIFont.init(name: "HelveticaNeue-Light", size: 18)])
         
         let boldFontAttribute = [NSAttributedStringKey.font: UIFont.init(name: "HelveticaNeue-Bold", size: 20)]
-        
-        // Part of string to be bold
+        attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "Have a question, email us at BitSenseApp@gmail.com"))
+        attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "Invoices:"))
+        attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "Segwit Mode:"))
+        attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "Multi Sig:"))
         attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "How to Use BitSense?"))
         attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "Why do I need to move the Bitcoin around?"))
         attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "BitSense Principles:"))
         attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "Is BitSense secure?"))
         attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "BitSense Story:"))
-        attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "bc1q549843s7q4g4rzsxjtvyltkern5dj92lnm4vh9"))
-        attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "1BDpHh9iWGSzP29pYDenhnpx8acX9SnCUL"))
-        
-        // 4
+        attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "bc1qm3a5f6f5axkw68js283h87k34hhkkhd8jshpdr"))
+        attributedString.addAttributes(boldFontAttribute as [NSAttributedStringKey : Any], range: string.range(of: "17AWn578gsaXvWJAPgo7dH5ZbA6EWKDYsu"))
         return attributedString
     }
     

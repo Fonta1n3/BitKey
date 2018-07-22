@@ -50,6 +50,9 @@ class CreateMultiSigViewController: UIViewController, UITextFieldDelegate, AVCap
     var addressBook = [[String: Any]]()
     var addressBookButton = UIButton()
     
+    var backgroundColours = [UIColor()]
+    var backgroundLoop:Int = 0
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -120,7 +123,7 @@ class CreateMultiSigViewController: UIViewController, UITextFieldDelegate, AVCap
             
             if self.addressBook.count > 0 {
                 
-                let alert = UIAlertController(title: "Which Wallet?", message: "Please select which wallet you'd like to check the balance for", preferredStyle: UIAlertControllerStyle.actionSheet)
+                let alert = UIAlertController(title: "Which Wallet?", message: "Please select which wallet you'd like to use to create a multi sig with", preferredStyle: UIAlertControllerStyle.actionSheet)
                 
                 for wallet in self.addressBook {
                     
@@ -476,7 +479,17 @@ class CreateMultiSigViewController: UIViewController, UITextFieldDelegate, AVCap
                     let success = saveMultiSigWallet(viewController: self, mnemonic: "", xpub: "", address: self.multiSigAddress, privateKeys: joinedPrivateKeyArray, publicKeys: joinedPubKeyArray, redemptionScript: self.redemptionScript, network: network, type: "multiSig-\(self.numberOfSignatures)of\(self.numberOfPrivateKeys)", index: 0, label: "", xpriv: "")
                     
                     if success {
-                        displayAlert(viewController: self, title: "Success", message: "You created a \(self.numberOfSignatures) of \(self.numberOfPrivateKeys) MultiSig Wallet. Go back to the home screen to view it.")
+                        
+                        let alert = UIAlertController(title: "Success", message: "You created a \(self.numberOfSignatures) of \(self.numberOfPrivateKeys) Multi-Sig Wallet. Go back to the home screen to view it.", preferredStyle: .alert)
+                        
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { (action) in
+                            
+                            self.dismiss(animated: true, completion: nil)
+                            
+                        }))
+                        
+                        self.present(alert, animated: true, completion: nil)
+                        
                     } else {
                         
                         displayAlert(viewController: self, title: "Error", message: "We had an issue saving your MultiSig wallet, please email us at BitSenseApp@gmail.com to get it fixed.")

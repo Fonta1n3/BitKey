@@ -16,6 +16,7 @@ import SwiftKeychainWrapper
 
 class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate, AVCaptureMetadataOutputObjectsDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
     
+    var infoView = UIView()
     var walletToExport = [String:Any]()
     var stopColorChange = Bool()
     let noButton = UIButton()
@@ -127,11 +128,9 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         tapGesture.numberOfTapsRequired = 1
         self.view.addGestureRecognizer(tapGesture)
         
-        
-
-        
         if createAccount {
             
+            self.view.backgroundColor = UIColor.black
             createNewAccount()
         }
         
@@ -149,10 +148,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             
             exportWallet(wallet: self.walletToExport)
         }
-        
-        backgroundColours = [UIColor.red, UIColor.blue, UIColor.green]
-        backgroundLoop = 0
-        animateBackgroundColour()
         
         yesButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
         yesButton.titleLabel?.textAlignment = .right
@@ -173,26 +168,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         addShadow(view: percentageLabel)
         percentageLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
         percentageLabel.textAlignment = .center
-        
-    }
-    
-    func animateBackgroundColour () {
-        
-        if !stopColorChange {
-            
-            if backgroundLoop < backgroundColours.count - 1 {
-                self.backgroundLoop += 1
-            } else {
-                backgroundLoop = 0
-            }
-            UIView.animate(withDuration: 5, delay: 0, options: UIViewAnimationOptions.allowUserInteraction, animations: { () -> Void in
-                self.alertView.backgroundColor =  self.backgroundColours[self.backgroundLoop];
-                self.view.backgroundColor =  self.backgroundColours[self.backgroundLoop];
-            }) {(Bool) -> Void in
-                self.animateBackgroundColour();
-            }
-            
-        }
         
     }
     
@@ -223,72 +198,25 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     
     override func viewDidAppear(_ animated: Bool) {
         
-        
-        
         if UserDefaults.standard.object(forKey: "hideExplanation") != nil {
-            
             self.hideExplanation = UserDefaults.standard.bool(forKey: "hideExplanation")
-            
         } else {
-            
             self.hideExplanation = false
-            
         }
-        
         addressBook = checkAddressBook()
-        print("addressBook = \(addressBook)")
-        
         hotMode = checkSettingsForKey(keyValue: "hotMode")
         coldMode = checkSettingsForKey(keyValue: "coldMode")
         legacyMode = checkSettingsForKey(keyValue: "legacyMode")
         segwitMode = checkSettingsForKey(keyValue: "segwitMode")
         mainnetMode = checkSettingsForKey(keyValue: "mainnetMode")
         testnetMode = checkSettingsForKey(keyValue: "testnetMode")
-        
-       
-       words = ""
-        
-        /*if exportPrivateKeyFromTable {
-            
-            self.showPrivateKeyAndAddressQRCodes()
-            self.exportPrivateKeyFromTable = false
-            
-        } else if exportAddressFromTable {
-            
-            print("exportAddressFromTable")
-            
-            self.watchOnlyMode = true
-            
-            for key in self.addressBook {
-                
-                if key["address"] as! String == self.bitcoinAddress {
-                    
-                    let walletName = key["label"] as! String
-                    self.showAddressQRCodes(walletName: walletName)
-                    
-                } else if key["redemptionScript"] as! String == self.bitcoinAddress {
-                    
-                    let walletName = key["label"] as! String
-                    self.showAddressQRCodes(walletName: walletName)
-                    
-                }
-                
-            }
-            
-            self.exportAddressFromTable = false
-            
-        }*/
-        
   }
     
     
     func textFieldDidEndEditing(_ textField: UITextField) {
         
         if textField == self.inputPassword {
-            
             self.password = self.inputPassword.text!
-            print("self.password = \(self.password)")
-            
         }
     }
     
@@ -330,13 +258,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         self.inputMnemonic.spellCheckingType = .no
         self.view.addSubview(self.inputMnemonic)
         self.inputMnemonic.becomeFirstResponder()
-        
-        let imageView = UIImageView()
-        imageView.image = UIImage(named:"background.jpg")
-        imageView.frame = self.view.frame
-        imageView.contentMode = UIViewContentMode.scaleAspectFill
-        imageView.alpha = 0.05
-        view.addSubview(imageView)
         
         self.outputMnemonic.frame = CGRect(x: self.view.frame.minX + 5, y: self.inputMnemonic.frame.maxY + 100, width: self.view.frame.width - 10, height: 200)
         self.outputMnemonic.textAlignment = .left
@@ -407,8 +328,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         alertView.alpha = 0
         self.view.addSubview(alertView)
         
-        
-        
         labelTitle.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 100) / 2), y: self.view.frame.maxY / 5, width: self.view.frame.width - 100, height: 50)
         labelTitle.font = UIFont.init(name: "HelveticaNeue-Light", size: 20)
         labelTitle.textColor = UIColor.white
@@ -424,14 +343,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         nameInput.layer.cornerRadius = 10
         nameInput.backgroundColor = UIColor.white
         nameInput.textColor = UIColor.black
-        //addShadow(view: nameInput)
-        //nameInput.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
         nameInput.textAlignment = .center
         nameInput.keyboardAppearance = UIKeyboardAppearance.dark
         nameInput.alpha = 0
         alertView.addSubview(self.nameInput)
         
-        yesButton.frame = CGRect(x: self.view.center.x - 40, y: nameInput.frame.maxY + 60, width: 80, height: 50)
+        yesButton.frame = CGRect(x: self.view.center.x - 40, y: nameInput.frame.maxY + 30, width: 80, height: 50)
         yesButton.setTitle("Next", for: .normal)
         yesButton.addTarget(self, action: #selector(self.dismissNameInput), for: .touchUpInside)
         alertView.addSubview(yesButton)
@@ -445,6 +362,35 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         }) { _ in
             self.nameInput.becomeFirstResponder()
         }
+        
+        let retrievedPassword:String? = KeychainWrapper.standard.string(forKey: "BIP39Password")
+        
+        if retrievedPassword == nil || retrievedPassword == "" {
+            
+            DispatchQueue.main.async {
+                
+                let alert = UIAlertController(title: "Warning! You have not yet set a Dual Factor password", message: "Before you make your first wallet it is strongly recommended that you set a Dual Factor password as this helps protect your Bitcoin from being stolen.", preferredStyle: UIAlertControllerStyle.actionSheet)
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("Set Dual Factor Password", comment: ""), style: .default, handler: { (action) in
+                    
+                    self.performSegue(withIdentifier: "setBIP39", sender: self)
+                    
+                }))
+                
+                alert.addAction(UIAlertAction(title: NSLocalizedString("No Password Needed", comment: ""), style: .cancel, handler: { (action) in
+                    
+                }))
+                
+                alert.popoverPresentationController?.sourceView = self.view
+                
+                self.present(alert, animated: true) {
+                    print("option menu presented")
+                }
+            }
+            
+        }
+        
+        
     }
     
     @objc func dismissNameInput() {
@@ -455,14 +401,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
            
             UIView.animate(withDuration: 0.2, animations: {
                 
-                //self.alertView.alpha = 0
                 self.nameInput.alpha = 0
                 self.labelTitle.alpha = 0
                 self.yesButton.alpha = 0
                 
             }) { _ in
                 
-                //self.alertView.removeFromSuperview()
                 self.nameInput.removeFromSuperview()
                 self.labelTitle.removeFromSuperview()
                 self.yesButton.removeFromSuperview()
@@ -579,79 +523,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
     }
     
-    /*func showAddressQRCodes(walletName: String) {
-        print("addQRCodesAndLabels")
-        
-        diceMode = false
-        self.importAction.removeFromSuperview()
-        self.outputMnemonic.removeFromSuperview()
-        
-        let imageView = UIImageView()
-        imageView.image = UIImage(named:"background.jpg")
-        imageView.frame = self.view.frame
-        imageView.contentMode = UIViewContentMode.scaleAspectFill
-        imageView.alpha = 0.05
-        self.view.addSubview(imageView)
-            
-        self.privateKeyQRCode = self.generateQrCode(key: self.bitcoinAddress)
-        self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
-        self.privateKeyQRView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 70) / 2), y: self.view.center.y - ((self.view.frame.width - 70) / 2), width: self.view.frame.width - 70, height: self.view.frame.width - 70)
-        self.privateKeyQRView.alpha = 0
-        addShadow(view: self.privateKeyQRView)
-        self.view.addSubview(self.privateKeyQRView)
-            
-        UIView.animate(withDuration: 0.5, animations: {
-            
-            self.privateKeyQRView.alpha = 1
-            
-        }, completion: { _ in
-            
-            DispatchQueue.main.async {
-                UIImpactFeedbackGenerator().impactOccurred()
-                self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 20) / 2), y: self.privateKeyQRView.frame.minY - 60, width: self.view.frame.width - 20, height: 50))
-                
-                if self.bitcoinAddress.count > 45 {
-                    
-                    self.privateKeyTitle.text = "Redemption Script"
-                    self.filename = "redemptionScript"
-                    
-                } else {
-                    
-                    self.privateKeyTitle.text = "Send Bitcoin to \"\(walletName)\""
-                    self.filename = "bitcoinAddress"
-                    
-                }
-                
-                self.textToShare = self.bitcoinAddress
-                
-                self.privateKeyTitle.adjustsFontSizeToFitWidth = true
-                self.privateKeyTitle.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
-                self.privateKeyTitle.textColor = UIColor.white
-                addShadow(view: self.privateKeyTitle)
-                self.privateKeyTitle.textAlignment = .center
-                self.view.addSubview(self.privateKeyTitle)
-                
-            }
-            
-            self.myLabel = UILabel (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 20)/2), y: self.privateKeyQRView.frame.maxY, width: self.view.frame.width - 20, height: 50))
-            self.myLabel.textAlignment = .center
-            addShadow(view: self.myLabel)
-            self.myLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 18)
-            self.myLabel.textColor = UIColor.white
-            self.myLabel.text = self.bitcoinAddress
-            self.myLabel.adjustsFontSizeToFitWidth = true
-            self.view.addSubview(self.myLabel)
-            
-            self.addHomeButton()
-            self.addBackUpButton()
-            //self.zero = 0
-            //self.bitArray.removeAll()
-            
-        })
-
-    }*/
-    
-    
     func getImportWalletName() {
         
         alertView.frame = self.view.frame
@@ -682,7 +553,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         yesButton.setTitle("Next", for: .normal)
         yesButton.addTarget(self, action: #selector(self.importNow), for: .touchUpInside)
         alertView.addSubview(yesButton)
-        
         
         UIView.animate(withDuration: 0.2, animations: {
             self.alertView.alpha = 1
@@ -939,13 +809,10 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
             
-            let detector:CIDetector=CIDetector(ofType: CIDetectorTypeQRCode, context: nil, options: [CIDetectorAccuracy:CIDetectorAccuracyHigh])!
-            
+            let detector:CIDetector = CIDetector(ofType: CIDetectorTypeQRCode, context: nil, options: [CIDetectorAccuracy:CIDetectorAccuracyHigh])!
             let ciImage:CIImage = CIImage(image:pickedImage)!
-            
             var qrCodeLink = ""
-            
-            let features=detector.features(in: ciImage)
+            let features = detector.features(in: ciImage)
             
             for feature in features as! [CIQRCodeFeature] {
                 
@@ -1082,7 +949,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             if machineReadableCode.type == AVMetadataObject.ObjectType.qr {
                 
                 stringURL = machineReadableCode.stringValue!
-                print("stringURL = \(stringURL)")
                 
                 DispatchQueue.main.async {
                     
@@ -1325,117 +1191,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
     }
     
-    /*func showPrivateKeyAndAddressQRCodes() {
-        print("showPrivateKeyAndAddressQRCodes")
-        
-        self.outputMnemonic.removeFromSuperview()
-        self.inputMnemonic.removeFromSuperview()
-        self.inputPassword.removeFromSuperview()
-        self.clearMnemonicButton.removeFromSuperview()
-        self.button.removeFromSuperview()
-        self.importAction.removeFromSuperview()
-        
-        let imageView = UIImageView()
-        imageView.image = UIImage(named:"background.jpg")
-        imageView.frame = self.view.frame
-        imageView.contentMode = UIViewContentMode.scaleAspectFill
-        imageView.alpha = 0.05
-        self.view.addSubview(imageView)
-        
-        
-        func addButtons() {
-            
-            self.button.removeFromSuperview()
-            self.button = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
-            self.button.showsTouchWhenHighlighted = true
-            self.button.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
-            self.button.addTarget(self, action: #selector(self.home), for: .touchUpInside)
-            self.view.addSubview(self.button)
-            
-            self.bitcoinAddressButton.removeFromSuperview()
-            self.bitcoinAddressButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: 20, width: 80, height: 55))
-            self.bitcoinAddressButton.setTitle("Next", for: .normal)
-            addShadow(view: self.bitcoinAddressButton)
-            self.bitcoinAddressButton.showsTouchWhenHighlighted = true
-            self.bitcoinAddressButton.setTitleColor(UIColor.white, for: .normal)
-            self.bitcoinAddressButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
-            self.bitcoinAddressButton.addTarget(self, action: #selector(self.getAddress), for: .touchUpInside)
-            self.view.addSubview(self.bitcoinAddressButton)
-            
-        }
-        
-        if self.diceMode != true {
-            
-            self.privateKeyMode = true
-            
-        } else if self.diceMode {
-            
-            self.recoveryMode = true
-            
-        }
-        
-        self.privateKeyText = self.privateKeyWIF
-        self.privateKeyQRCode = self.generateQrCode(key: self.privateKeyWIF)
-        self.privateKeyQRView = UIImageView(image: self.privateKeyQRCode!)
-        self.privateKeyQRView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 70) / 2), y: self.view.center.y - ((self.view.frame.width - 70) / 2), width: self.view.frame.width - 70, height: self.view.frame.width - 70)
-        addShadow(view: self.privateKeyQRView)
-        self.privateKeyQRView.alpha = 0
-        self.view.addSubview(self.privateKeyQRView)
-        
-        self.textToShare = self.privateKeyWIF
-        self.filename = "privateKey"
-        
-        UIView.animate(withDuration: 0.5, animations: {
-            
-            self.privateKeyQRView.alpha = 1
-            
-        }, completion: { _ in
-            DispatchQueue.main.async {
-                UIImpactFeedbackGenerator().impactOccurred()
-            }
-            //self.WIFprivateKeyFieldLabel.text = ""
-            
-            self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 20) / 2), y: self.privateKeyQRView.frame.minY - 60, width: self.view.frame.width - 20, height: 50))
-            self.privateKeyTitle.text = "Private Key"
-            
-            if self.walletName != "" {
-                
-                self.privateKeyTitle.text = "\"" + self.walletName + "\"" + " " + "Private Key"
-                
-            }
-            
-            self.privateKeyTitle.adjustsFontSizeToFitWidth = true
-            self.privateKeyTitle.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
-            self.privateKeyTitle.textColor = UIColor.white
-            addShadow(view: self.privateKeyTitle)
-            self.privateKeyTitle.textAlignment = .center
-            self.view.addSubview(self.privateKeyTitle)
-            
-            self.myLabel = UILabel (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 20)/2), y: self.privateKeyQRView.frame.maxY, width: self.view.frame.width - 20, height: 50))
-            
-            self.myLabel.textAlignment = .center
-            self.myLabel.textColor = UIColor.white
-            addShadow(view: self.myLabel)
-            self.myLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 18)
-            self.myLabel.text = self.privateKeyWIF
-            self.myLabel.adjustsFontSizeToFitWidth = true
-            self.view.addSubview(self.myLabel)
-            
-            addButtons()
-            self.addBackUpButton()
-            //self.zero = 0
-            //self.bitArray.removeAll()
-            
-        })
-
-        
-    }*/
-    
     func success() {
         print("success")
         
-        labelTitle.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 100) / 2), y: 50, width: self.view.frame.width - 100, height: 80)
-        labelTitle.font = UIFont.init(name: "HelveticaNeue-Bold", size: 25)
+        labelTitle.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 100) / 2), y: 25, width: self.view.frame.width - 100, height: 150)
+        labelTitle.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
         labelTitle.textColor = UIColor.white
         labelTitle.backgroundColor = UIColor.clear
         addShadow(view: labelTitle)
@@ -1480,19 +1240,27 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     @objc func dismissSuccess() {
         print("dismisssuccess")
         
-        UIView.animate(withDuration: 0.2, animations: {
-            self.imageViewSuccess.alpha = 0
-            self.alertView.alpha = 0
-            self.labelTitle.alpha = 0
-            self.yesButton.alpha = 0
-        }) { _ in
-            self.alertView.removeFromSuperview()
-            self.imageViewSuccess.removeFromSuperview()
-            self.labelTitle.removeFromSuperview()
-            self.yesButton.removeFromSuperview()
-            self.showRecoveryPhraseAndQRCode()
+        if !isInternetAvailable() {
             
+            UIView.animate(withDuration: 0.2, animations: {
+                self.imageViewSuccess.alpha = 0
+                self.alertView.alpha = 0
+                self.labelTitle.alpha = 0
+                self.yesButton.alpha = 0
+            }) { _ in
+                self.alertView.removeFromSuperview()
+                self.imageViewSuccess.removeFromSuperview()
+                self.labelTitle.removeFromSuperview()
+                self.yesButton.removeFromSuperview()
+                self.showRecoveryPhraseAndQRCode()
+            }
+            
+        } else {
+            
+            displayAlert(viewController: self, title: "Security Alert!", message: "You must put your device into airplane mode and turn your wifi off to continue, we are about to display your recovery phrase and for security reasons you should not be connected to the internet when displaying it.")
         }
+        
+        
         
     }
     
@@ -1500,6 +1268,8 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     func showRecoveryPhraseAndQRCode() {
         
         print("showPrivateKeyAndAddressQRCodes")
+        
+        self.view.backgroundColor = UIColor.black
         
         let imageView = UIImageView()
         imageView.image = UIImage(named:"background.jpg")
@@ -1537,54 +1307,53 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         
         diceMode = false
         
-        /*self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 20) / 2), y: 25, width: self.view.frame.width - 20, height: 50))
-        self.privateKeyTitle.text = "Recovery Phrase"
-        self.privateKeyTitle.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
-        self.privateKeyTitle.textColor = UIColor.black
-        self.privateKeyTitle.textAlignment = .center
-        self.privateKeyTitle.alpha = 0
-        self.view.addSubview(self.privateKeyTitle)*/
-        
-        self.mnemonicLabel.frame = CGRect(x: 5, y: 25, width: self.view.frame.width - 10, height: 50)
-        self.mnemonicLabel.text = "You must save this phrase in order to recover lost funds!"
-        addShadow(view: self.mnemonicLabel)
+        self.mnemonicLabel.frame = CGRect(x: 5, y: 25, width: self.view.frame.width - 10, height: 60)
+        self.mnemonicLabel.text = "You must save the green phrase to recover lost funds!"
         self.mnemonicLabel.adjustsFontSizeToFitWidth = true
-        self.mnemonicLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
+        self.mnemonicLabel.numberOfLines = 0
+        self.mnemonicLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
         self.mnemonicLabel.textColor = UIColor.red
         self.mnemonicLabel.textAlignment = .center
         self.mnemonicLabel.alpha = 0
         self.view.addSubview(self.mnemonicLabel)
         
-        myField = UILabel (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 10) / 2), y: self.mnemonicLabel.frame.maxY + 1, width: self.view.frame.width - 10, height: 130))
-        myField.text = self.words
-        myField.backgroundColor = UIColor.clear
-        myField.adjustsFontSizeToFitWidth = true
-        addShadow(view: myField)
-        myField.textColor = UIColor.white
-        myField.numberOfLines = 0
-        myField.textAlignment = .natural
-        myField.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
-        myField.alpha = 0
-        self.view.addSubview(self.myField)
-        
         self.recoveryPhraseImage = self.generateQrCode(key: self.words)
         self.recoveryPhraseQRView = UIImageView(image: self.recoveryPhraseImage!)
-        self.recoveryPhraseQRView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 70) / 2), y: self.myField.frame.maxY + 10, width: self.view.frame.width - 70, height: self.view.frame.width - 70)
+        self.recoveryPhraseQRView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 70) / 2), y: self.view.center.y / 2.5, width: self.view.frame.width - 70, height: self.view.frame.width - 70)
         self.recoveryPhraseQRView.alpha = 0
-        addShadow(view: self.recoveryPhraseQRView)
         self.view.addSubview(self.recoveryPhraseQRView)
         
         let infoButton = UIButton()
-        infoButton.frame = CGRect(x: 50, y: self.recoveryPhraseQRView.frame.maxY + 10, width: self.view.frame.width - 100, height: 30)
+        infoButton.frame = CGRect(x: 50, y: self.recoveryPhraseQRView.frame.minY - 25, width: self.view.frame.width - 100, height: 20)
         infoButton.setTitle("What's this?", for: .normal)
         infoButton.titleLabel?.textAlignment = .center
         infoButton.setTitleColor(UIColor.white, for: .normal)
-        addShadow(view: infoButton)
         infoButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
         infoButton.addTarget(self, action: #selector(self.showInfo), for: .touchUpInside)
         infoButton.backgroundColor = UIColor.clear
         self.view.addSubview(infoButton)
         
+        let label = UILabel()
+        label.frame = CGRect(x: 10, y: self.recoveryPhraseQRView.frame.maxY + 5, width: self.view.frame.width - 20, height: 10)
+        label.text = "Your Recovery Phrase:"
+        label.textColor = UIColor.white
+        label.textAlignment = .left
+        label.adjustsFontSizeToFitWidth = true
+        label.font = UIFont.init(name: "HelveticaNeue-Bold", size: 8)
+        self.view.addSubview(label)
+        
+        myField.frame = CGRect(x: 5, y: label.frame.maxY, width: self.view.frame.width - 20, height: 110)
+        myField.text = self.words
+        myField.backgroundColor = UIColor.black
+        myField.clipsToBounds = true
+        myField.layer.cornerRadius = 10
+        myField.adjustsFontSizeToFitWidth = true
+        myField.textColor = UIColor.green
+        myField.numberOfLines = 0
+        myField.textAlignment = .center
+        myField.font = UIFont.init(name: "HelveticaNeue-Bold", size: 18)
+        myField.alpha = 0
+        self.view.addSubview(self.myField)
         
         self.textToShare = self.words
         self.filename = "recoveryPhrase"
@@ -1595,7 +1364,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             self.recoveryPhraseLabel.alpha = 1
             self.mnemonicLabel.alpha = 1
             self.myField.alpha = 1
-            //self.privateKeyTitle.alpha = 1
             
         }, completion: { _ in
             DispatchQueue.main.async {
@@ -1607,9 +1375,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             DispatchQueue.main.async {
                 self.backUpButton.setTitle("Save", for: .normal)
             }
-            //self.zero = 0
-            //self.bitArray.removeAll()
-            
         })
         
     }
@@ -1617,31 +1382,29 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     @objc func showInfo() {
         
         
-        alertView.frame = self.view.frame
-        alertView.backgroundColor = UIColor.black
-        alertView.alpha = 0
-        self.view.addSubview(alertView)
-        
-        self.stopColorChange = true
+        self.infoView.frame = self.view.frame
+        self.infoView.backgroundColor = UIColor.black
+        self.infoView.alpha = 0
+        self.view.addSubview(self.infoView)
         
         labelTitle.frame = CGRect(x: 25, y: 40, width: self.view.frame.width - 50, height: self.view.frame.height - 110)
         labelTitle.font = UIFont.init(name: "HelveticaNeue-Light", size: 18)
         labelTitle.textColor = UIColor.white
         labelTitle.numberOfLines = 0
-        labelTitle.text = "A recovery phrase is also known as a seed. It is an extremely powerful set of words that you can use to recover your lost funds if you were to lose this device. It will work on most popular Bitcoin wallets such as: blockchain.info, Coinomi, Samaurai, Mycelium, Electrum, Ledger, Trezor, CoinVault, CoPay, KeepKey (according to the official BIP44 website). You can also use it and other recovery phrases to import wallets into BitSense.\n\nThe recovery phrase is created using BIP39 and the derived child keys are created using BIP44. This is the industry standard, you can also test it yourself at https://iancoleman.io/bip39/ which you should only do for testing purposes.\n\nWARNING: If you have not set a BIP39 password in the security settings then anybody who gets a hold of this recovery phrase can steal all your Bitcoin. We recommend you go to the home screen, delete this wallet that is not password protected then tap the lock button, and set a BIP39 password, then create a new wallet by tapping the plus sign. That way even if someone gets access to your recovery phrase they will not be able to steal your Bitcoin unless they also know your password."
+        labelTitle.text = "You must save the green words in the order they appear. You will be able to use that phrase to recover your Bitcoin if you lose this device. We provide you with a QR code which you can simply scan with any device to import or save the phrase easily. If anyone finds your recovery phrase they can steal all your Bitcoin unless you have also set a Dual Factor password.\n\nThis phrase will allow you to import your BitSense wallet into most popular Bitcoin wallets such as: blockchain.info, Coinomi, Samaurai, Mycelium, Electrum, Ledger, Trezor, CoinVault, CoPay, KeepKey (according to the official BIP44 website)\n\nThe recovery phrase is created using BIP39 and BIP44. This is the industry standard, you can test it yourself at https://iancoleman.io/bip39/ which you should only do for testing purposes."
         labelTitle.textAlignment = .natural
         labelTitle.alpha = 0
-        alertView.addSubview(labelTitle)
+        self.infoView.addSubview(labelTitle)
         
         yesButton.frame = CGRect(x: 10, y: self.view.frame.maxY - 60, width: 80, height: 50)
         yesButton.setTitle("Got it", for: .normal)
         yesButton.titleLabel?.textAlignment = .right
         yesButton.removeTarget(self, action: #selector(self.dismissSuccess), for: .touchUpInside)
         yesButton.addTarget(self, action: #selector(self.dimsissExplainer), for: .touchUpInside)
-        alertView.addSubview(yesButton)
+        self.infoView.addSubview(yesButton)
         
        UIView.animate(withDuration: 0.2, animations: {
-            self.alertView.alpha = 1
+            self.infoView.alpha = 1
             self.labelTitle.alpha = 1
             self.yesButton.alpha = 1
             self.noButton.alpha = 1
@@ -1652,17 +1415,13 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     @objc func dimsissExplainer() {
         
         UIView.animate(withDuration: 0.2, animations: {
-            self.alertView.alpha = 0
+            self.infoView.alpha = 0
             self.labelTitle.alpha = 0
             self.yesButton.alpha = 0
         }) { _ in
             self.labelTitle.removeFromSuperview()
             self.yesButton.removeFromSuperview()
             self.alertView.removeFromSuperview()
-            self.stopColorChange = false
-            self.backgroundColours.removeAll()
-            self.backgroundColours = [UIColor.red, UIColor.blue, UIColor.green]
-            self.animateBackgroundColour()
         }
     }
     
@@ -1712,8 +1471,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
                 self.noButton.alpha = 1
             })
             
-            
-            
         } else {
            
             self.goBack()
@@ -1732,55 +1489,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
     
     @objc func goBack() {
         
-        
         DispatchQueue.main.async {
-            
-            /*UIView.animate(withDuration: 0.2, animations: {
-                self.alertView.alpha = 0
-                self.yesButton.alpha = 0
-                self.noButton.alpha = 0
-                self.labelTitle.alpha = 0
-            }) { _ in
-                self.yesButton.removeFromSuperview()
-                self.noButton.removeFromSuperview()
-                self.labelTitle.removeFromSuperview()
-                self.alertView.removeFromSuperview()
-                self.myLabel.removeFromSuperview()
-                self.walletName = ""
-                self.mnemonicLabel.removeFromSuperview()
-                self.recoveryPhraseLabel.removeFromSuperview()
-                if self.recoveryPhraseQRView != nil {
-                    self.recoveryPhraseQRView.removeFromSuperview()
-                }
-                if self.mnemonicView != nil {
-                    self.mnemonicView.removeFromSuperview()
-                }
-                self.words = ""
-                self.watchOnlyMode = false
-                self.bitcoinAddressButton.removeFromSuperview()
-                
-                if self.privateKeyQRView != nil {
-                    
-                    self.privateKeyQRView.image = nil
-                    self.privateKeyQRCode = nil
-                    self.privateKeyImage = nil
-                    self.privateKeyQRView.image = nil
-                    self.myField.text = ""
-                    
-                    
-                }
-                
-                self.privateKeyTitle.text = ""
-                self.button.removeFromSuperview()
-                self.backUpButton.removeFromSuperview()
-                self.privateKeyText = ""
-                self.WIFprivateKeyFieldLabel.removeFromSuperview()*/
-                self.dismiss(animated: true, completion: nil)
-            //}
+            self.dismiss(animated: true, completion: nil)
         }
     }
 
-    
     func generateQrCode(key: String) -> UIImage? {
         print("generateQrCode")
         let ciContext = CIContext()
@@ -1825,7 +1538,29 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
             DispatchQueue.main.async {
                 UIImpactFeedbackGenerator().impactOccurred()
             }
-            self.addAlertForShare(textToShare: self.textToShare, filename: self.filename)
+            
+            print("words = \(self.words)")
+            
+            if self.words != "" {
+                
+                let retrievedPassword:String? = KeychainWrapper.standard.string(forKey: "BIP39Password")
+                //print("BIP39Password is: \(retrievedPassword!)")
+                
+                if retrievedPassword == "" || retrievedPassword == nil {
+                    
+                    displayAlert(viewController: self, title: "Security Alert!", message: "You can only use this option if your recovery phrase is protected with a Dual Factor Password, if you have not created a Dual factor Password you can only save this by writing it down. To create a Dual Factor Password go to the home screen and tap the Lock button.")
+                    
+                } else {
+                    
+                    self.addAlertForShare(textToShare: self.textToShare, filename: self.filename)
+                    
+                }
+                
+            } else {
+                
+                self.addAlertForShare(textToShare: self.textToShare, filename: self.filename)
+            }
+            
             
         
             
@@ -2208,7 +1943,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizer
         view.addSubview(percentageLabel)
         
         DispatchQueue.main.async {
-            displayAlert(viewController: self, title: "FYI", message: "The purpose of creating a seed with dice is for long term secure storage.\nIf you have not created a BIP39 passphrase go back to the home screen tap the lock and do that now.\nWhen you have input enough dice rolls (around 140) we will give you the seed you created (the recovery phrase) and we will encrypt and save your XPUB onto BitSense so that you can create infinite addresses for that seed with BitSense. We will not save your seed or your XPRV, this means it will be a cold watch only wallet. We do this because you shouldn't store private keys that you use for long term storage on a device that is connected to the internet. If you want this to be a hot wallet you will need to manually import your recovery phrase in hot mode.")
+            displayAlert(viewController: self, title: "FYI", message: "The purpose of creating a seed with dice is for long term secure storage.\nWhen you have input enough dice rolls (around 140) we will give you the seed you created (the recovery phrase) and we will encrypt and save your XPUB onto BitSense so that you can create infinite addresses for that seed with BitSense. It will be a \"watch only\" wallet. If you want this to be a hot wallet you will need to manually import your recovery phrase in hot mode.")
         }
         
         for _ in 0..<40 {

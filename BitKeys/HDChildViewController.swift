@@ -20,18 +20,8 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
     var index = UInt32()
     var fromIndex:UInt32 = 0
     var toIndex:UInt32 = 0
-    let blurView = UIView()
-    var textToShare = String()
-    var fileName = String()
-    var backUpButton = UIButton()
-    var settingsButton = UIButton()
-    var privateKeyQRView = UIImageView()
-    var privateKeyQRCode = UIImage()
-    var privateKeyTitle = UILabel()
-    var myField = UITextView()
     var currency = String()
     var createButton = UIButton()
-    var amountToSend = UITextField()
     var wallet = [String:Any]()
     var buttonTitle = UILabel()
     var buttonViewVisible = Bool()
@@ -44,8 +34,6 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
     var backButton = UIButton()
     var addButton = UIButton()
     var segwit = SegwitAddrCoder()
-    var backgroundColours = [UIColor()]
-    var backgroundLoop:Int = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -57,39 +45,18 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         HDChildTable.addSubview(refresher)
         addBackButton()
         addPlusButton()
-        
         activityIndicator = UIActivityIndicatorView(frame: CGRect(x: view.center.x - 25, y: view.center.y - 25, width: 50, height: 50))
         activityIndicator.hidesWhenStopped = true
         activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.whiteLarge
         activityIndicator.isUserInteractionEnabled = true
         view.addSubview(self.activityIndicator)
         activityIndicator.startAnimating()
-        
-        print("masterWallet = \(masterWallet)")
         getArrays()
         
-        backgroundColours = [UIColor.red, UIColor.blue, UIColor.yellow]
-        backgroundLoop = 0
-        animateBackgroundColour()
-    }
-    
-    func animateBackgroundColour () {
-        if backgroundLoop < backgroundColours.count - 1 {
-            self.backgroundLoop += 1
-        } else {
-            backgroundLoop = 0
-        }
-        UIView.animate(withDuration: 5, delay: 0, options: UIViewAnimationOptions.allowUserInteraction, animations: { () -> Void in
-            self.view.backgroundColor =  self.backgroundColours[self.backgroundLoop];
-            self.blurView.backgroundColor =  self.backgroundColours[self.backgroundLoop];
-        }) {(Bool) -> Void in
-            self.animateBackgroundColour();
-        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
         addButtonView()
-        
         
         if let BTC = checkTransactionSettingsForKey(keyValue: "bitcoin") as? Bool {
             if BTC {
@@ -118,8 +85,6 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                 
             }
         }
-        
-        self.amountToSend.placeholder = "Optional"
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -159,6 +124,13 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                 
                 vc.exportKeys = true
                 vc.walletToExport = self.walletToExport
+            }
+        } else if (segue.identifier == "createChildInvoice") {
+            
+            if let vc = segue.destination as? CreateInvoiceViewController {
+                
+                vc.wallet = self.wallet
+                
             }
         }
         
@@ -975,13 +947,13 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
 
     func numberOfSections(in tableView: UITableView) -> Int {
         
-        return keyArray.count//1
+        return keyArray.count
         
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return 1//keyArray.count
+        return 1
         
     }
     
@@ -990,30 +962,24 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         let cell = tableView.dequeueReusableCell(withIdentifier: "HDCell", for: indexPath)
         cell.layer.cornerRadius = 10
         cell.selectionStyle = .none
-        
+        cell.contentView.alpha = 0.8
         let balanceLabel = cell.viewWithTag(2) as! UILabel
         let nameLabel = cell.viewWithTag(1) as! UILabel
         let fiat = cell.viewWithTag(3) as! UILabel
         let index = cell.viewWithTag(4) as! UILabel
-        
         let dictionary = keyArray[indexPath.section]
-        
         nameLabel.text = (dictionary["address"] as! String)
         nameLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 18)
         nameLabel.adjustsFontSizeToFitWidth = true
-        
         balanceLabel.text = (dictionary["balance"] as! String)
         balanceLabel.font = UIFont.init(name: "HelveticaNeue", size: 15)
         balanceLabel.textColor = UIColor.white
-        
         fiat.text = (dictionary["fiatBalance"] as! String)
         fiat.font = UIFont.init(name: "HelveticaNeue", size: 15)
         fiat.textColor = UIColor.white
-        
         index.text = "#\((dictionary["index"] as! String))"
         index.font = UIFont.init(name: "HelveticaNeue", size: 15)
         index.textColor = UIColor.white
-        
         nameLabel.textColor = UIColor.white
         balanceLabel.textColor = UIColor.white
         
@@ -1176,29 +1142,15 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
         }
         
         var array = [[String:Any]]()
-        var name = self.wallet["label"] as! String
         let privateKey = self.wallet["privateKey"] as! String
         let address = self.wallet["address"] as! String
-        //let publicKey = self.wallet["publicKey"] as! String
-        //let mnemonic = self.wallet["mnemonic"] as! String
-        //let xpub = self.wallet["xpub"] as! String
-        //let xprv = self.wallet["xpriv"] as! String
-        //let redemptionScript = self.wallet["redemptionScript"] as! String
-        
-        if name == "" {
-            name = address
-        }
+        let name = address
         
         array.append(["stringToExport":privateKey, "descriptor":"privateKey", "title":"Private Key", "label":name])
         array.append(["stringToExport":address, "descriptor":"address", "title":"Address", "label":name])
-        //array.append(["stringToExport":publicKey, "descriptor":"publicKey", "title":"Public Key", "label":name])
-        //array.append(["stringToExport":mnemonic, "descriptor":"mnemonic", "title":"Recovery Phrase", "label":name])
-        //array.append(["stringToExport":xpub, "descriptor":"xpub", "title":"XPUB", "label":name])
-        //array.append(["stringToExport":xprv, "descriptor":"xpriv", "title":"XPRV", "label":name])
-        //array.append(["stringToExport":redemptionScript, "descriptor":"redemptionScript", "title":"Redemption Script", "label":name])
         
         DispatchQueue.main.async {
-            let alert = UIAlertController(title: "Select Item to Export", message: "From: \(name)", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Select Item to Export", message: "From: \(name)", preferredStyle: .actionSheet)
             
             for item in array {
                 
@@ -1211,11 +1163,17 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                         self.walletToExport = item
                         
                         switch title {
-                        case "Private Key": authorize(item:item["stringToExport"] as! String)
-                        //case "Recovery Phrase": authorize(item:item["stringToExport"] as! String)
-                        //case "XPUB": authorize(item:item["stringToExport"] as! String)
-                        //case "XPRV": authorize(item:item["stringToExport"] as! String)
-                        //case "Redemption Script": authorize(item:item["stringToExport"] as! String)
+                        case "Private Key":
+                            
+                            if !isInternetAvailable() {
+                                
+                              authorize(item:item["stringToExport"] as! String)
+                                
+                            } else {
+                                
+                                displayAlert(viewController: self, title: "Security Alert!", message: "You must put your device into airplane mode and turn off wifi in order to do that.")
+                            }
+                            
                         default: self.performSegue(withIdentifier: "exportHD", sender: self)
                         }
                         
@@ -1230,7 +1188,11 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                 
             }))
             
-            self.present(alert, animated: true, completion: nil)
+            alert.popoverPresentationController?.sourceView = self.view
+            
+            self.present(alert, animated: true) {
+                print("option menu presented")
+            }
             
         }
         
@@ -1318,12 +1280,10 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                                     
                                     self.keyArray[index]["balance"] = btcAmount + " BTC"
                                     
-                                    
+                                    let indexPath = IndexPath(item: 0, section: index)
                                     DispatchQueue.main.async {
-                                        
-                                        self.HDChildTable.reloadData()
+                                        self.HDChildTable.reloadRows(at: [indexPath], with: .none)
                                         self.removeSpinner()
-                                        
                                     }
                                     
                                 } else {
@@ -1374,11 +1334,10 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                                     
                                     self.keyArray[index]["balance"] = btcAmount + " BTC"
                                     
+                                    let indexPath = IndexPath(item: 0, section: index)
                                     DispatchQueue.main.async {
-                                        
-                                        self.HDChildTable.reloadData()
+                                        self.HDChildTable.reloadRows(at: [indexPath], with: .none)
                                         self.removeSpinner()
-                                        
                                     }
                                     
                                 } else {
@@ -1428,11 +1387,10 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
                                     
                                     self.keyArray[index]["balance"] = btcAmount + " tBTC"
                                     
+                                    let indexPath = IndexPath(item: 0, section: index)
                                     DispatchQueue.main.async {
-                                        
-                                        self.HDChildTable.reloadData()
+                                        self.HDChildTable.reloadRows(at: [indexPath], with: .none)
                                         self.removeSpinner()
-                                        
                                     }
                                     
                                 } else {
@@ -1506,323 +1464,11 @@ class HDChildViewController: UIViewController, UITableViewDelegate, UITableViewD
             UIImpactFeedbackGenerator().impactOccurred()
         }
         
-        showButtonView()
-        
-        let modelName = UIDevice.modelName
-        
-        self.blurView.frame = self.view.frame
-        self.view.addSubview(self.blurView)
-        
-        let imageView = UIImageView()
-        imageView.image = UIImage(named:"background.jpg")
-        imageView.frame = self.view.frame
-        imageView.contentMode = UIViewContentMode.scaleAspectFill
-        imageView.alpha = 0.05
-        self.blurView.addSubview(imageView)
-        
-        if modelName == "iPhone X" {
-            
-            self.backButton = UIButton(frame: CGRect(x: 5, y: 30, width: 55, height: 55))
-            
-            
-        } else {
-            
-            self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
-            
-        }
-        
-        self.backButton.showsTouchWhenHighlighted = true
-        self.backButton.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
-        self.backButton.addTarget(self, action: #selector(self.dismissInvoiceView), for: .touchUpInside)
-        self.blurView.addSubview(self.backButton)
-        
-        self.settingsButton.removeFromSuperview()
-        
-        if modelName == "iPhone X" {
-            
-            self.settingsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 50, y: 30, width: 45, height: 45))
-            
-        } else {
-            
-            self.settingsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 50, y: 20, width: 45, height: 45))
-            
-        }
-        
-        self.settingsButton.showsTouchWhenHighlighted = true
-        self.settingsButton.setImage(#imageLiteral(resourceName: "settings2.png"), for: .normal)
-        self.settingsButton.addTarget(self, action: #selector(self.goToSettings), for: .touchUpInside)
-        self.blurView.addSubview(self.settingsButton)
-        
-        self.amountToSend.frame = CGRect(x: 50, y: self.view.frame.minY + 150, width: self.view.frame.width - 100, height: 50)
-        self.amountToSend.textAlignment = .center
-        self.amountToSend.borderStyle = .roundedRect
-        self.amountToSend.backgroundColor = UIColor.groupTableViewBackground
-        self.amountToSend.keyboardType = UIKeyboardType.decimalPad
-        self.amountToSend.keyboardAppearance = UIKeyboardAppearance.dark
-        self.blurView.addSubview(self.amountToSend)
-        
-        amountLabel.frame = CGRect(x: 50, y: self.amountToSend.frame.minY - 65, width: self.view.frame.width - 100, height: 55)
-        amountLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
-        amountLabel.adjustsFontSizeToFitWidth = true
-        amountLabel.textAlignment = .center
-        amountLabel.textColor = UIColor.white
-        amountLabel.text = "Amount to Receive in \(self.currency):"
-        addShadow(view: amountLabel)
-        
-        self.createButton = UIButton(frame: CGRect(x: self.view.center.x - 40, y: self.amountToSend.frame.maxY + 10, width: 80, height: 55))
-        self.createButton.showsTouchWhenHighlighted = true
-        addShadow(view: self.createButton)
-        self.createButton.backgroundColor = UIColor.clear
-        self.createButton.setTitle("Next", for: .normal)
-        self.createButton.setTitleColor(UIColor.white, for: .normal)
-        self.createButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
-        self.createButton.addTarget(self, action: #selector(self.createNow), for: .touchUpInside)
-        self.blurView.addSubview(self.createButton)
-        
-        self.amountToSend.becomeFirstResponder()
-        self.blurView.addSubview(amountLabel)
-        
+        self.performSegue(withIdentifier: "createChildInvoice", sender: self)
+       
     }
     
-    @objc func createNow() {
-        
-        DispatchQueue.main.async {
-            UIImpactFeedbackGenerator().impactOccurred()
-        }
-        
-        if self.amountToSend.text != "" {
-            
-            self.amountToSend.resignFirstResponder()
-            self.amountToSend.removeFromSuperview()
-            self.amountLabel.removeFromSuperview()
-            self.amountLabel.removeFromSuperview()
-            self.settingsButton.removeFromSuperview()
-            self.createButton.removeFromSuperview()
-            
-            self.addInvoiceView(address: self.wallet["address"] as! String, amount: self.amountToSend.text!, currency: self.currency)
-            
-        } else {
-            
-            self.amountToSend.resignFirstResponder()
-            self.amountToSend.removeFromSuperview()
-            self.amountLabel.removeFromSuperview()
-            self.amountLabel.removeFromSuperview()
-            self.settingsButton.removeFromSuperview()
-            self.createButton.removeFromSuperview()
-            
-            self.addInvoiceView(address: self.wallet["address"] as! String, amount: "0", currency: self.currency)
-        }
-        
-    }
     
-    func generateQrCode(key: String) -> UIImage? {
-        print("generateQrCode")
-        let ciContext = CIContext()
-        let data = key.data(using: String.Encoding.ascii)
-        if let filter = CIFilter(name: "CIQRCodeGenerator") {
-            filter.setValue(data, forKey: "inputMessage")
-            let transform = CGAffineTransform(scaleX: 10, y: 10)
-            let upScaledImage = filter.outputImage?.transformed(by: transform)
-            let cgImage = ciContext.createCGImage(upScaledImage!, from: upScaledImage!.extent)
-            let qrCode = UIImage(cgImage: cgImage!)
-            return qrCode
-        }
-        
-        return nil
-        
-    }
-    
-    func addInvoiceView(address: String, amount: String, currency: String) {
-        
-        print("amount = \(amount)")
-        
-        if currency != "BTC" && currency != "SAT" {
-            
-            displayAlert(viewController: self, title: "FYI", message: "This invoice is denominated in \(currency) and not Bitcoin, therefore this invoice will only work for someone who is using BitSense.\n\nInvoices denominated in Bitcoin or Satoshis will work with any wallet that is BIP21 compatible.")
-        }
-        
-        var stringToShare = String()
-        var amountToShare = amount
-        
-        if currency == "SAT" && amount != "0" || currency == "BTC" && amount != "0" {
-            
-            if currency == "SAT" {
-                
-                amountToShare = (Double(amount)! / 100000000).avoidNotation
-                
-            }
-            
-            stringToShare = "bitcoin:\(address)?amount=\(amountToShare)"
-            
-        } else if self.currency != "SAT" && amount != "0" || self.currency != "BTC" && amount != "0" {
-            
-            stringToShare = "address:\(address)?amount:\(amountToShare)?currency:\(currency)"
-            
-        } else if currency == "SAT" && amount == "0" || currency == "BTC" && amount == "0" {
-            
-            stringToShare = "bitcoin:\(address)"
-            
-        } else if self.currency != "SAT" && amount == "0" || self.currency != "BTC" && amount == "0" {
-            
-            stringToShare = "bitcoin:\(address)"
-            
-        }
-        
-        self.privateKeyQRCode = self.generateQrCode(key: stringToShare)!
-        self.textToShare = stringToShare
-        self.privateKeyQRView = UIImageView(image: privateKeyQRCode)
-        privateKeyQRView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 70) / 2), y: self.view.center.y - ((self.view.frame.width - 70) / 2), width: self.view.frame.width - 70, height: self.view.frame.width - 70)
-        privateKeyQRView.alpha = 0
-        addShadow(view: privateKeyQRView)
-        self.blurView.addSubview(privateKeyQRView)
-        
-        UIView.animate(withDuration: 0.5, animations: {
-            
-        }, completion: { _ in
-            
-            UIView.animate(withDuration: 0.5, animations: {
-                
-                self.privateKeyQRView.alpha = 1
-                
-            }, completion: { _ in
-                
-                DispatchQueue.main.async {
-                    
-                    self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 20) / 2), y: self.privateKeyQRView.frame.minY - 80, width: self.view.frame.width - 20, height: 50))
-                    self.fileName = "Invoice"
-                    self.privateKeyTitle.text = "Invoice\n🤑"
-                    addShadow(view: self.privateKeyTitle)
-                    self.privateKeyTitle.numberOfLines = 0
-                    self.privateKeyTitle.adjustsFontSizeToFitWidth = true
-                    self.privateKeyTitle.font = UIFont.init(name: "HelveticaNeue-Bold", size: 32)
-                    self.privateKeyTitle.textColor = UIColor.white
-                    self.privateKeyTitle.textAlignment = .center
-                    self.blurView.addSubview(self.privateKeyTitle)
-                    
-                }
-                
-                let name = self.wallet["address"] as! String
-                
-                var foramttedCurrency = String()
-                self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 10)/2), y: self.privateKeyQRView.frame.maxY + 10, width: self.view.frame.width - 10, height: 75))
-                self.myField.isEditable = false
-                self.myField.backgroundColor = UIColor.clear
-                self.myField.textColor = UIColor.white
-                addShadow(view: self.myField)
-                self.myField.isSelectable = true
-                self.myField.font = UIFont.init(name: "HelveticaNeue-Bold", size: 15)
-                
-                var amountwithcommas = amount
-                
-                if Double(amount)! > 100.0 {
-                    
-                    amountwithcommas = (Double(amount)?.withCommas())!
-                    
-                }
-                
-                switch (self.currency) {
-                case "USD": foramttedCurrency = "US Dollars"
-                case "GBP": foramttedCurrency = "British Pounds"
-                case "EUR": foramttedCurrency = "Euros"
-                case "SAT": foramttedCurrency = "Satoshis"
-                case "BTC": foramttedCurrency = "Bitcoin"
-                default: break
-                }
-                if amount != "0" {
-                    self.myField.text = "Invoice of \(String(describing: amountwithcommas)) \(foramttedCurrency), to be paid to \(name)"
-                } else {
-                    self.myField.text = "Send Bitcoin to \(name)"
-                }
-                
-                self.myField.textAlignment = .center
-                self.blurView.addSubview(self.myField)
-                
-                self.backUpButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.view.frame.maxY - 60, width: 80, height: 55))
-                self.backUpButton.showsTouchWhenHighlighted = true
-                self.backUpButton.setTitle("Share", for: .normal)
-                self.backUpButton.backgroundColor = UIColor.clear
-                addShadow(view: self.backUpButton)
-                self.backUpButton.setTitleColor(UIColor.white, for: .normal)
-                self.backUpButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
-                self.backUpButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
-                self.blurView.addSubview(self.backUpButton)
-                
-            })
-            
-        })
-        
-    }
-    
-    func share(textToShare: String, filename: String) {
-        
-        DispatchQueue.main.async {
-            
-            let ciContext = CIContext()
-            let data = textToShare.data(using: String.Encoding.ascii)
-            var qrCodeImage = UIImage()
-            
-            if let filter = CIFilter(name: "CIQRCodeGenerator") {
-                
-                filter.setValue(data, forKey: "inputMessage")
-                let transform = CGAffineTransform(scaleX: 10, y: 10)
-                let upScaledImage = filter.outputImage?.transformed(by: transform)
-                let cgImage = ciContext.createCGImage(upScaledImage!, from: upScaledImage!.extent)
-                qrCodeImage = UIImage(cgImage: cgImage!)
-                
-            }
-            
-            if let data = UIImagePNGRepresentation(qrCodeImage) {
-                
-                let fileName = getDocumentsDirectory().appendingPathComponent(filename + ".png")
-                
-                try? data.write(to: fileName)
-                
-                let objectsToShare = [fileName]
-                
-                DispatchQueue.main.async {
-                    
-                    let activityController = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
-                    self.present(activityController, animated: true, completion: nil)
-                    
-                }
-                
-            }
-            
-        }
-        
-    }
-    
-    @objc func goTo(sender: UIButton) {
-        
-        DispatchQueue.main.async {
-            UIImpactFeedbackGenerator().impactOccurred()
-        }
-        
-        self.share(textToShare: self.textToShare, filename: self.fileName)
-        
-    }
-    
-    @objc func dismissInvoiceView() {
-        
-        DispatchQueue.main.async {
-            UIImpactFeedbackGenerator().impactOccurred()
-        }
-        
-        self.backUpButton.removeFromSuperview()
-        self.amountToSend.text = ""
-        self.privateKeyTitle.text = ""
-        self.privateKeyTitle.removeFromSuperview()
-        self.textToShare = ""
-        self.fileName = ""
-        self.settingsButton.removeFromSuperview()
-        self.privateKeyQRView.removeFromSuperview()
-        self.createButton.removeFromSuperview()
-        self.amountToSend.removeFromSuperview()
-        self.amountLabel.removeFromSuperview()
-        self.myField.removeFromSuperview()
-        self.blurView.removeFromSuperview()
-        
-    }
     
     func authenticationWithTouchID(item: String) {
         

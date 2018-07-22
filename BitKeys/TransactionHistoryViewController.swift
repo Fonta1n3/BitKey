@@ -64,7 +64,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         
         backgroundColours = [UIColor.red, UIColor.blue, UIColor.yellow]
         backgroundLoop = 0
-        animateBackgroundColour()
+        //animateBackgroundColour()
         
     }
     
@@ -141,10 +141,14 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "CustomCell", for: indexPath)
         cell.layer.cornerRadius = 10
+        cell.contentView.alpha = 0.8
+        cell.alpha = 0.8
+        
         let titleLabel = cell.viewWithTag(1) as! UILabel
         let subTitleLabel1 = cell.viewWithTag(2) as! UILabel
         let subTitleLabel2 = cell.viewWithTag(3) as! UILabel
         let subTitleLabel3 = cell.viewWithTag(4) as! UILabel
+        
         subTitleLabel1.textColor = UIColor.white
         subTitleLabel2.textColor = UIColor.white
         subTitleLabel3.textColor = UIColor.white
@@ -228,7 +232,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
             
         }
         
-        if confirmations < 6 && confirmations > 0 {
+        /*if confirmations < 6 && confirmations > 0 {
             
             cell.backgroundColor = UIColor.yellow
             
@@ -239,7 +243,7 @@ class TransactionHistoryViewController: UIViewController, UITableViewDelegate, U
         } else {
             
             cell.backgroundColor = UIColor.black
-        }
+        }*/
         
         return cell
         

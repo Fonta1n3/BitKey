@@ -21,11 +21,15 @@
 		D01116B720EA56EE00B01E31 /* pay.png in Resources */ = {isa = PBXBuildFile; fileRef = D01116B620EA56EE00B01E31 /* pay.png */; };
 		D01116B920EA587800B01E31 /* invoice.png in Resources */ = {isa = PBXBuildFile; fileRef = D01116B820EA587800B01E31 /* invoice.png */; };
 		D01116BB20EAAF3100B01E31 /* bill.png in Resources */ = {isa = PBXBuildFile; fileRef = D01116BA20EAAF3000B01E31 /* bill.png */; };
+		D0207CA92102425A007A5346 /* greenFingerPrint.png in Resources */ = {isa = PBXBuildFile; fileRef = D0207CA82102425A007A5346 /* greenFingerPrint.png */; };
 		D027521820D1AF2D0025EC0E /* qr.png in Resources */ = {isa = PBXBuildFile; fileRef = D027521720D1AF2D0025EC0E /* qr.png */; };
 		D027521A20D1C3230025EC0E /* addressBook.png in Resources */ = {isa = PBXBuildFile; fileRef = D027521920D1C3220025EC0E /* addressBook.png */; };
 		D027522020D292B10025EC0E /* AddressBookViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D027521F20D292B10025EC0E /* AddressBookViewController.swift */; };
 		D027522220D2979E0025EC0E /* add.png in Resources */ = {isa = PBXBuildFile; fileRef = D027522120D2979E0025EC0E /* add.png */; };
 		D040853520F4F8B000C2DA2B /* unlocked.png in Resources */ = {isa = PBXBuildFile; fileRef = D040853420F4F8AF00C2DA2B /* unlocked.png */; };
+		D04213E421039C48003B03DA /* ImportViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04213E321039C48003B03DA /* ImportViewController.swift */; };
+		D04213E62103C720003B03DA /* CreateInvoiceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04213E52103C720003B03DA /* CreateInvoiceViewController.swift */; };
+		D04213E82103D7CD003B03DA /* blackPayMe.png in Resources */ = {isa = PBXBuildFile; fileRef = D04213E72103D7CD003B03DA /* blackPayMe.png */; };
 		D046FD9020F15DDE00D002AB /* save.png in Resources */ = {isa = PBXBuildFile; fileRef = D046FD8F20F15DDE00D002AB /* save.png */; };
 		D049F13220FA7BBA0073B807 /* broom.png in Resources */ = {isa = PBXBuildFile; fileRef = D049F13120FA7BBA0073B807 /* broom.png */; };
 		D049F13420FA95BA0073B807 /* whiteCheck.png in Resources */ = {isa = PBXBuildFile; fileRef = D049F13320FA95BA0073B807 /* whiteCheck.png */; };
@@ -70,6 +74,8 @@
 		D08FA4AE20D4853500BADC3B /* walletSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08FA4AD20D4853500BADC3B /* walletSaver.swift */; };
 		D08FA4B220D4940C00BADC3B /* keyCreatorFromEntropy.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08FA4B120D4940C00BADC3B /* keyCreatorFromEntropy.swift */; };
 		D08FA4B420D49A3D00BADC3B /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08FA4B320D49A3D00BADC3B /* Utilities.swift */; };
+		D09603E020FF62CC00A7D1EE /* whiteFingerPrint.png in Resources */ = {isa = PBXBuildFile; fileRef = D09603DF20FF62CC00A7D1EE /* whiteFingerPrint.png */; };
+		D09603E220FFDA1C00A7D1EE /* BuildTransactionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D09603E120FFDA1C00A7D1EE /* BuildTransactionViewController.swift */; };
 		D098731D20D01C3D007B8930 /* lock.jpg in Resources */ = {isa = PBXBuildFile; fileRef = D098731C20D01C3D007B8930 /* lock.jpg */; };
 		D098731F20D021BE007B8930 /* price.png in Resources */ = {isa = PBXBuildFile; fileRef = D098731E20D021BE007B8930 /* price.png */; };
 		D098732120D02A6B007B8930 /* keys.png in Resources */ = {isa = PBXBuildFile; fileRef = D098732020D02A6B007B8930 /* keys.png */; };
@@ -77,6 +83,8 @@
 		D0A7342E20E93CC500DB36DD /* RawTransactionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A7342D20E93CC500DB36DD /* RawTransactionViewController.swift */; };
 		D0A7343020E95C1C00DB36DD /* sweep.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = D0A7342F20E95C1C00DB36DD /* sweep.jpeg */; };
 		D0A7343420E977A700DB36DD /* binaryImage.jpg in Resources */ = {isa = PBXBuildFile; fileRef = D0A7343320E977A700DB36DD /* binaryImage.jpg */; };
+		D0AF8D1F20FEBBC6003D2596 /* LogInViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AF8D1E20FEBBC6003D2596 /* LogInViewController.swift */; };
+		D0B13A6821025087001EFCB0 /* blackPay.png in Resources */ = {isa = PBXBuildFile; fileRef = D0B13A6721025087001EFCB0 /* blackPay.png */; };
 		D0B597852013E96E000767A7 /* ViewControllerBalanceChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B597842013E96E000767A7 /* ViewControllerBalanceChecker.swift */; };
 		D0B6B53C20EFA0A000A1FA43 /* success.png in Resources */ = {isa = PBXBuildFile; fileRef = D0B6B53B20EFA0A000A1FA43 /* success.png */; };
 		D0B6B53E20EFA9F900A1FA43 /* background.jpg in Resources */ = {isa = PBXBuildFile; fileRef = D0B6B53D20EFA9F900A1FA43 /* background.jpg */; };
@@ -129,11 +137,15 @@
 		D01116B620EA56EE00B01E31 /* pay.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pay.png; sourceTree = "<group>"; };
 		D01116B820EA587800B01E31 /* invoice.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = invoice.png; sourceTree = "<group>"; };
 		D01116BA20EAAF3000B01E31 /* bill.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bill.png; sourceTree = "<group>"; };
+		D0207CA82102425A007A5346 /* greenFingerPrint.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = greenFingerPrint.png; sourceTree = "<group>"; };
 		D027521720D1AF2D0025EC0E /* qr.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = qr.png; sourceTree = "<group>"; };
 		D027521920D1C3220025EC0E /* addressBook.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = addressBook.png; sourceTree = "<group>"; };
 		D027521F20D292B10025EC0E /* AddressBookViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressBookViewController.swift; sourceTree = "<group>"; };
 		D027522120D2979E0025EC0E /* add.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = add.png; sourceTree = "<group>"; };
 		D040853420F4F8AF00C2DA2B /* unlocked.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = unlocked.png; sourceTree = "<group>"; };
+		D04213E321039C48003B03DA /* ImportViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportViewController.swift; sourceTree = "<group>"; };
+		D04213E52103C720003B03DA /* CreateInvoiceViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateInvoiceViewController.swift; sourceTree = "<group>"; };
+		D04213E72103D7CD003B03DA /* blackPayMe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = blackPayMe.png; sourceTree = "<group>"; };
 		D046FD8F20F15DDE00D002AB /* save.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = save.png; sourceTree = "<group>"; };
 		D049F13120FA7BBA0073B807 /* broom.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = broom.png; sourceTree = "<group>"; };
 		D049F13320FA95BA0073B807 /* whiteCheck.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whiteCheck.png; sourceTree = "<group>"; };
@@ -180,6 +192,8 @@
 		D08FA4AD20D4853500BADC3B /* walletSaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = walletSaver.swift; sourceTree = "<group>"; };
 		D08FA4B120D4940C00BADC3B /* keyCreatorFromEntropy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = keyCreatorFromEntropy.swift; sourceTree = "<group>"; };
 		D08FA4B320D49A3D00BADC3B /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		D09603DF20FF62CC00A7D1EE /* whiteFingerPrint.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whiteFingerPrint.png; sourceTree = "<group>"; };
+		D09603E120FFDA1C00A7D1EE /* BuildTransactionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildTransactionViewController.swift; sourceTree = "<group>"; };
 		D098731C20D01C3D007B8930 /* lock.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = lock.jpg; sourceTree = "<group>"; };
 		D098731E20D021BE007B8930 /* price.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = price.png; sourceTree = "<group>"; };
 		D098732020D02A6B007B8930 /* keys.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = keys.png; sourceTree = "<group>"; };
@@ -188,6 +202,8 @@
 		D0A7342D20E93CC500DB36DD /* RawTransactionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawTransactionViewController.swift; sourceTree = "<group>"; };
 		D0A7342F20E95C1C00DB36DD /* sweep.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = sweep.jpeg; sourceTree = "<group>"; };
 		D0A7343320E977A700DB36DD /* binaryImage.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = binaryImage.jpg; sourceTree = "<group>"; };
+		D0AF8D1E20FEBBC6003D2596 /* LogInViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogInViewController.swift; sourceTree = "<group>"; };
+		D0B13A6721025087001EFCB0 /* blackPay.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = blackPay.png; sourceTree = "<group>"; };
 		D0B597842013E96E000767A7 /* ViewControllerBalanceChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerBalanceChecker.swift; sourceTree = "<group>"; };
 		D0B6B53B20EFA0A000A1FA43 /* success.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = success.png; sourceTree = "<group>"; };
 		D0B6B53D20EFA9F900A1FA43 /* background.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = background.jpg; sourceTree = "<group>"; };
@@ -260,6 +276,9 @@
 			children = (
 				D027521720D1AF2D0025EC0E /* qr.png */,
 				D05E52E120F7A39F00F36D63 /* whiteKey.png */,
+				D0207CA82102425A007A5346 /* greenFingerPrint.png */,
+				D09603DF20FF62CC00A7D1EE /* whiteFingerPrint.png */,
+				D04213E72103D7CD003B03DA /* blackPayMe.png */,
 				D05E52E320F7A68100F36D63 /* whiteQR.png */,
 				D040853420F4F8AF00C2DA2B /* unlocked.png */,
 				D0A7343320E977A700DB36DD /* binaryImage.jpg */,
@@ -269,6 +288,7 @@
 				D07CCD1420F10DF3001F0191 /* children.png */,
 				D05007B120FCF6C400DC2A71 /* whiteInfinity.png */,
 				D05007B320FCF70300DC2A71 /* whiteHistory.png */,
+				D0B13A6721025087001EFCB0 /* blackPay.png */,
 				D049F13120FA7BBA0073B807 /* broom.png */,
 				D049F13720FB73DF0073B807 /* blackDice.png */,
 				D0C1788220DC7DC400F3D6E1 /* history.png */,
@@ -352,6 +372,9 @@
 		D0C56F571FCBFBC4004A5F47 /* BitKeys */ = {
 			isa = PBXGroup;
 			children = (
+				D04213E52103C720003B03DA /* CreateInvoiceViewController.swift */,
+				D04213E321039C48003B03DA /* ImportViewController.swift */,
+				D0AF8D1E20FEBBC6003D2596 /* LogInViewController.swift */,
 				D05007BB20FD2F8A00DC2A71 /* saveMultiSig.swift */,
 				D04F692520F825D200A84E7C /* CreateMultiSigViewController.swift */,
 				D05E52E520F7CA5200F36D63 /* diceCreator.swift */,
@@ -371,6 +394,7 @@
 				D0C56F5A1FCBFBC4004A5F47 /* ViewController.swift */,
 				D055012A2095134C001C35F0 /* Bech32.swift */,
 				D0C56F5C1FCBFBC4004A5F47 /* Main.storyboard */,
+				D09603E120FFDA1C00A7D1EE /* BuildTransactionViewController.swift */,
 				D04BAB2520CB1B3E00501B6D /* SpendMultiSigViewController.swift */,
 				D04BAB2B20CC2F6B00501B6D /* InfoViewController.swift */,
 				D0F8589F202BD39C00560247 /* TransactionBuilderViewController.swift */,
@@ -494,6 +518,7 @@
 			files = (
 				D01116B920EA587800B01E31 /* invoice.png in Resources */,
 				D049F13F20FB786B0073B807 /* dice2.png in Resources */,
+				D09603E020FF62CC00A7D1EE /* whiteFingerPrint.png in Resources */,
 				D07CCD1320F10B46001F0191 /* branch.png in Resources */,
 				D0A7343020E95C1C00DB36DD /* sweep.jpeg in Resources */,
 				D06031A520E018F000609997 /* Bitsense image.png in Resources */,
@@ -516,6 +541,8 @@
 				D0C47DEE20CD81E00076CA3B /* back2.png in Resources */,
 				D04EC45B20F670CD00200DB8 /* Bitsense image2.png in Resources */,
 				D098732120D02A6B007B8930 /* keys.png in Resources */,
+				D0B13A6821025087001EFCB0 /* blackPay.png in Resources */,
+				D04213E82103D7CD003B03DA /* blackPayMe.png in Resources */,
 				D05007BA20FCFB1900DC2A71 /* whiteSave.png in Resources */,
 				D049F14420FB7C710073B807 /* dice6.png in Resources */,
 				D05E52DC20F79B5900F36D63 /* Add Pin - Trip key.png in Resources */,
@@ -539,6 +566,7 @@
 				D0C47DE220CD48A50076CA3B /* tool2.png in Resources */,
 				D098731F20D021BE007B8930 /* price.png in Resources */,
 				D098731D20D01C3D007B8930 /* lock.jpg in Resources */,
+				D0207CA92102425A007A5346 /* greenFingerPrint.png in Resources */,
 				D04BAB3420CC79CF00501B6D /* img_311477.png in Resources */,
 				D046FD9020F15DDE00D002AB /* save.png in Resources */,
 				D05007B220FCF6C400DC2A71 /* whiteInfinity.png in Resources */,
@@ -638,9 +666,11 @@
 				D0EF966B1FCC07FB004A8E4E /* ObjectiveCHeader.m in Sources */,
 				D04BAB2620CB1B3E00501B6D /* SpendMultiSigViewController.swift in Sources */,
 				D08FA4AE20D4853500BADC3B /* walletSaver.swift in Sources */,
+				D04213E62103C720003B03DA /* CreateInvoiceViewController.swift in Sources */,
 				D0B597852013E96E000767A7 /* ViewControllerBalanceChecker.swift in Sources */,
 				D0A7342E20E93CC500DB36DD /* RawTransactionViewController.swift in Sources */,
 				D05E52E620F7CA5200F36D63 /* diceCreator.swift in Sources */,
+				D0AF8D1F20FEBBC6003D2596 /* LogInViewController.swift in Sources */,
 				D07CCD1720F1130A001F0191 /* HDChildViewController.swift in Sources */,
 				D08FA4B220D4940C00BADC3B /* keyCreatorFromEntropy.swift in Sources */,
 				D003821820B24D4400BC310D /* SettingsViewController.swift in Sources */,
@@ -659,7 +689,9 @@
 				D057B24420D9D570006661DC /* TransactionHistoryViewController.swift in Sources */,
 				D05007BC20FD2F8A00DC2A71 /* saveMultiSig.swift in Sources */,
 				D0D1A42320E658AD00B6399F /* SecuritySettingsViewController.swift in Sources */,
+				D09603E220FFDA1C00A7D1EE /* BuildTransactionViewController.swift in Sources */,
 				D0C56F591FCBFBC4004A5F47 /* AppDelegate.swift in Sources */,
+				D04213E421039C48003B03DA /* ImportViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

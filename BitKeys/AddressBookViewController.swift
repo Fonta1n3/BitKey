@@ -7,21 +7,19 @@
 //
 
 import UIKit
-import AVFoundation
 import CoreData
 import LocalAuthentication
 import SwiftKeychainWrapper
 import AES256CBC
 
-class AddressBookViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIGestureRecognizerDelegate {
+class AddressBookViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIGestureRecognizerDelegate {
     
+    let passwordInput = UITextField()
+    let labelTitle = UILabel()
+    let lockView = UIView()
     var descriptor = String()
     var stringToExport = String()
-    var stopColorChange = Bool()
-    let amountLabel = UILabel()
     @IBOutlet var bottomView: UIView!
-    let blur = UIVisualEffectView(effect: UIBlurEffect(style: UIBlurEffectStyle.regular))
-    let imageImportView = UIImageView()
     var tapGesture = UITapGestureRecognizer()
     var words = ""
     var testnetMode = Bool()
@@ -39,32 +37,13 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     var balance = Double()
     var totalBTC = Double()
     var exchangeRate = Double()
-    var HDAddress = String()
-    var uploadButton = UIButton()
-    let imagePicker = UIImagePickerController()
     var buttonTitle = UILabel()
     var activityIndicator:UIActivityIndicatorView!
-    var backUpButton = UIButton()
-    var settingsButton = UIButton()
-    var privateKeyQRView = UIImageView()
-    var privateKeyQRCode = UIImage()
-    var privateKeyTitle = UILabel()
-    var myField = UITextView()
     var currency = String()
-    var createButton = UIButton()
-    var amountToSend = UITextField()
-    var textToShare = String()
-    var fileName = String()
     var editWalletMode = Bool()
-    let blurView = UIView()
     var buttonViewVisible = Bool()
     var buttonView = UIView()
-    var textInput = UITextField()
-    var qrImageView = UIView()
     @IBOutlet var addressBookTable: UITableView!
-    var stringURL = String()
-    let avCaptureSession = AVCaptureSession()
-    let importView = UIView()
     var walletNameToExport = String()
     var backButton = UIButton()
     var addButton = UIButton()
@@ -80,41 +59,49 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     var segwitMode = Bool()
     var legacyMode = Bool()
     var segwit = SegwitAddrCoder()
-    var backgroundColours = [UIColor()]
-    var backgroundLoop:Int = 0    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         print("AddressBookViewController")
         
-        imagePicker.delegate = self
-        imagePicker.allowsEditing = false
-        imagePicker.sourceType = .photoLibrary
+        if KeychainWrapper.standard.string(forKey: "unlockAESPassword") != nil {
+            DispatchQueue.main.async {
+                self.performSegue(withIdentifier: "login", sender: self)
+            }
+        }
+        
         addressBookTable.delegate = self
         addressBookTable.dataSource = self
         addressBookTable.layer.cornerRadius = 10
-        textInput.delegate = self
+        passwordInput.delegate = self
         refresher = UIRefreshControl()
+        refresher.tintColor = UIColor.white
         refresher.addTarget(self, action: #selector(self.getArrays), for: UIControlEvents.valueChanged)
         addressBookTable.addSubview(refresher)
-        addHomeScreen()
         bottomView.layer.shadowColor = UIColor.black.cgColor
         bottomView.layer.shadowOffset = CGSize(width: -2.5, height: -2.5)
         bottomView.layer.shadowRadius = 2.5
         bottomView.layer.shadowOpacity = 0.5
         
-        
-        
         if UserDefaults.standard.object(forKey: "firstTimeHere") != nil {
+            
+            if KeychainWrapper.standard.string(forKey: "unlockAESPassword") != nil {
+                
+            } else {
+                
+                self.getLockingPassword()
+                self.addHomeScreen()
+                self.addButtonView()
+                if UserDefaults.standard.object(forKey: "wif") != nil {
+                    self.ensureBackwardsCompatibility()
+                }
+                
+            }
             
         } else {
             
-            UserDefaults.standard.set(true, forKey: "firstTimeHere")
-            
             guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-                
                 return
-                
             }
             
             let context = appDelegate.persistentContainer.viewContext
@@ -125,7 +112,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 let results = try context.fetch(fetchRequest) as [NSManagedObject]
                 
                 if results.count > 0 {
-                    
                     
                 } else {
                     
@@ -142,24 +128,16 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     mySettings.setValue(false, forKey: "medium")
                     
                     do {
-                        
                         try context.save()
-                        
                     } catch {
-                        
                         print("Failed saving")
-                        
                     }
-                    
                 }
-                
             } catch {
-                
                 print("Failed")
-                
             }
             
-        }
+       }
         
         self.activityIndicator = UIActivityIndicatorView(frame: CGRect(x: self.view.center.x - 25, y: self.view.center.y - 25, width: 50, height: 50))
         self.activityIndicator.hidesWhenStopped = true
@@ -167,60 +145,31 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         self.activityIndicator.isUserInteractionEnabled = true
         self.view.addSubview(self.activityIndicator)
         self.activityIndicator.startAnimating()
-        
         tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissButtonView))
         tapGesture.delegate = self
         tapGesture.numberOfTapsRequired = 1
         tapGesture.cancelsTouchesInView = false
         self.view.addGestureRecognizer(tapGesture)
-        
-        addButtonView()
         addressBook = checkAddressBook()
-        
-        for (index, _) in addressBook.enumerated() {
-            
-            addressBook[index]["fiatBalance"] = "loading..."
+        for (index, _) in self.addressBook.enumerated() {
+            self.addressBook[index]["fiatBalance"] = "loading..."
         }
-        
-        backgroundColours = [UIColor.red, UIColor.blue, UIColor.green]
-        backgroundLoop = 0
-        animateBackgroundColour()
+        self.addHomeScreen()
+        self.addButtonView()
+        if UserDefaults.standard.object(forKey: "wif") != nil {
+            self.ensureBackwardsCompatibility()
+        }
     }
     
-   func animateBackgroundColour () {
+   func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         
-        if !stopColorChange {
-            
-            if backgroundLoop < backgroundColours.count - 1 {
-                self.backgroundLoop += 1
-            } else {
-                backgroundLoop = 0
-            }
-            UIView.animate(withDuration: 5, delay: 0, options: UIViewAnimationOptions.allowUserInteraction, animations: { () -> Void in
-                self.view.backgroundColor =  self.backgroundColours[self.backgroundLoop];
-                self.blurView.backgroundColor =  self.backgroundColours[self.backgroundLoop];
-                self.importView.backgroundColor =  self.backgroundColours[self.backgroundLoop];
-            }) {(Bool) -> Void in
-                self.animateBackgroundColour();
-            }
-            
-        }
-        
-    }
-    
-    
-    
-    
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-        
-        if touch.view == self.importView {
-            
-            return false
-            
-        } else if touch.view == self.addressBookTable {
+        if touch.view == self.addressBookTable {
             
            return !(touch.view is UITableViewCell)
             
+        } else if touch.view == self.lockView {
+            
+            return false
         }
         
         return !(touch.view is UIButton)
@@ -229,10 +178,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     override func viewDidAppear(_ animated: Bool) {
         print("viewdidappear")
         
-        
-        
         getArrays()
-        
         words = ""
         
         if let password = UserDefaults.standard.object(forKey: "password") as? String {
@@ -247,14 +193,10 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             
         }
         
-        if KeychainWrapper.standard.object(forKey: "firstTime") != nil {
-            
-            
-        } else {
+        if KeychainWrapper.standard.object(forKey: "firstTime") == nil {
             
             let key = BTCKey.init()
             var password = ""
-            
             let compressedPKData = BTCRIPEMD160(BTCSHA256(key?.compressedPublicKey as Data!) as Data!) as Data!
             
             do {
@@ -274,8 +216,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 let saveSuccessful:Bool = KeychainWrapper.standard.set(password, forKey: "AESPassword")
                 print("Save was successful: \(saveSuccessful)")
                 
-                
-                
             } catch {
                 
                 print("error")
@@ -285,9 +225,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             KeychainWrapper.standard.set(true, forKey: "firstTime")
             
             guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-                
                 return
-                
             }
             
             let context = appDelegate.persistentContainer.viewContext
@@ -298,7 +236,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 let results = try context.fetch(fetchRequest) as [NSManagedObject]
                 
                 if results.count > 0 {
-                    
                     
                 } else {
                     
@@ -313,25 +250,23 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     mySettings.setValue(false, forKey: "testnetMode")
                     
                     do {
-                        
                         try context.save()
-                        
                     } catch {
-                        
                         print("Failed saving")
-                        
                     }
-                    
                 }
                 
             } catch {
-                
                 print("Failed")
-                
             }
             
             self.createNewAccount()
+            self.addHomeScreen()
+            self.addButtonView()
             
+            if UserDefaults.standard.object(forKey: "wif") != nil {
+                self.ensureBackwardsCompatibility()
+            }
         }
         
         ableToDelete = false
@@ -345,9 +280,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         if hotMode == false && coldMode == false && legacyMode == false && segwitMode == false && mainnetMode == false && testnetMode == false {
             
             guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-                
                 return
-                
             }
             
             let context = appDelegate.persistentContainer.viewContext
@@ -358,7 +291,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 let results = try context.fetch(fetchRequest) as [NSManagedObject]
                 
                 if results.count > 0 {
-                    
                     
                 } else {
                     
@@ -373,38 +305,22 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     mySettings.setValue(false, forKey: "testnetMode")
                     
                     do {
-                        
                         try context.save()
-                        
                     } catch {
-                        
                         print("Failed saving")
-                        
                     }
-                    
                 }
-                
             } catch {
-                
                 print("Failed")
-                
             }
             
         }
         
-        
-         if KeychainWrapper.standard.string(forKey: "unlockAESPassword") != nil {
+        if KeychainWrapper.standard.string(forKey: "unlockAESPassword") != nil {
             self.lockButton.setImage(#imageLiteral(resourceName: "whiteLock.png"), for: .normal)
         } else {
             self.lockButton.setImage(#imageLiteral(resourceName: "whiteUnlocked.png"), for: .normal)
         }
-        
-        if UserDefaults.standard.object(forKey: "wif") != nil {
-            
-            ensureBackwardsCompatibility()
-            
-        }
-
         
         if let BTC = checkTransactionSettingsForKey(keyValue: "bitcoin") as? Bool {
             if BTC {
@@ -424,18 +340,13 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         if let GBP = checkTransactionSettingsForKey(keyValue: "pounds") as? Bool {
             if GBP {
                 self.currency = "GBP"
-                
             }
         }
         if let EUR = checkTransactionSettingsForKey(keyValue: "euro") as? Bool {
             if EUR {
                 self.currency = "EUR"
-                
             }
         }
-        
-        self.amountToSend.placeholder = "Optional"
-        
     }
     
     func createNewAccount() {
@@ -488,12 +399,15 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                 
                             }
                             
-                            //saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot", index:UInt32())
+                            let success = saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot", index:UInt32(), label: "", xpriv: "")
                             
-                            //self.addressBook = checkAddressBook()
-                            
-                        }
-                        
+                            if success {
+                                self.addressBook = checkAddressBook()
+                                displayAlert(viewController: self, title: "Success", message: "You have saved the wallet to your addess book.")
+                            } else {
+                                displayAlert(viewController: self, title: "Error", message: "We had a problem, please email us at BitSenseApp@gmail.com to fix the issue.")
+                            }
+                       }
                     }
                     
                 } else if wif.hasPrefix("9") || wif.hasPrefix("c") {
@@ -530,112 +444,105 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                 
                             }
                             
-                            //saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot", index:UInt32())
+                            let success = saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot", index:UInt32(), label: "", xpriv: "")
                             
-                            //self.addressBook = checkAddressBook()
-                            
+                            if success {
+                                self.addressBook = checkAddressBook()
+                                displayAlert(viewController: self, title: "Success", message: "You have saved the wallet to your addess book.")
+                            } else {
+                                displayAlert(viewController: self, title: "Error", message: "We had a problem, please email us at BitSenseApp@gmail.com to fix the issue.")
+                            }
                         }
-                        
                     }
-                    
                 }
-                
             }))
             
             self.present(alert, animated: true, completion: nil)
             
         }
-        
-        
-        
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
-        if (segue.identifier == "exportKeys") {
+        if segue.identifier != "" {
             
-            if let vc = segue.destination as? ViewController {
+            switch segue.identifier! {
                 
-                vc.exportKeys = true
-                vc.walletToExport = self.walletToExport
-            }
-            
-            /*if self.privateKeyToExport != "" {
+            case "exportKeys":
                 
                 if let vc = segue.destination as? ViewController {
                     
-                    vc.walletName = self.walletNameToExport
-                    vc.bitcoinAddress = addressToExport
-                    vc.privateKeyWIF = privateKeyToExport
-                    vc.exportPrivateKeyFromTable = true
                     vc.exportKeys = true
+                    vc.walletToExport = self.walletToExport
                 }
                 
-            } else {
+            case "showHistory":
+                
+                if let vc = segue.destination as? TransactionHistoryViewController {
+                    
+                    vc.wallet = self.wallet
+                    
+                }
+                
+            case "goToTransactions":
+                
+                DispatchQueue.main.async {
+                    
+                    if let vc = segue.destination as? TransactionBuilderViewController {
+                        
+                        vc.walletToSpendFrom = self.wallet
+                        print("vc.walletToSpendFrom = \(vc.walletToSpendFrom)")
+                        vc.sendingFromAddress = self.wallet["address"] as! String
+                        
+                    }
+                    
+                }
+                
+            case "goToChild":
+                
+                if let vc = segue.destination as? HDChildViewController {
+                    
+                    vc.masterWallet = self.wallet
+                    vc.exchangeRate = self.exchangeRate
+                    print("masterWallet = \(vc.masterWallet)")
+                    
+                }
+                
+            case "createAccount":
                 
                 if let vc = segue.destination as? ViewController {
                     
-                    vc.walletName = self.walletNameToExport
-                    vc.bitcoinAddress = addressToExport
-                    vc.exportAddressFromTable = true
-                    vc.exportKeys = true
-                }
-                
-            }*/
-            
-        } else if (segue.identifier == "showHistory") {
-            
-            if let vc = segue.destination as? TransactionHistoryViewController {
-                
-               vc.wallet = self.wallet
-                
-            }
-            
-            
-        } else if (segue.identifier == "goToTransactions") {
-            
-            DispatchQueue.main.async {
-                
-                if let vc = segue.destination as? TransactionBuilderViewController {
-                    
-                    vc.walletToSpendFrom = self.wallet
-                    print("vc.walletToSpendFrom = \(vc.walletToSpendFrom)")
-                    vc.sendingFromAddress = self.wallet["address"] as! String
+                    vc.createAccount = true
                     
                 }
                 
+            case "createDice":
+                
+                if let vc = segue.destination as? ViewController {
+                    
+                    vc.createDiceKey = true
+                    
+                }
+                
+            case "importRecoveryPhrase":
+                
+                if let vc = segue.destination as? ViewController {
+                    
+                    vc.importSeed = true
+                    
+                }
+                
+            case "createInvoice":
+                
+                if let vc = segue.destination as? CreateInvoiceViewController {
+                    
+                    vc.wallet = self.wallet
+                }
+                
+            default:
+                break
             }
             
-        } else if (segue.identifier == "goToChild") {
-            
-            if let vc = segue.destination as? HDChildViewController {
-                
-                vc.masterWallet = self.wallet
-                vc.exchangeRate = self.exchangeRate
-                print("masterWallet = \(vc.masterWallet)")
-                
-            }
-        } else if (segue.identifier == "createAccount") {
-            
-            if let vc = segue.destination as? ViewController {
-                
-                vc.createAccount = true
-                
-            }
-        } else if (segue.identifier == "createDice") {
-            
-            if let vc = segue.destination as? ViewController {
-                
-                vc.createDiceKey = true
-                
-            }
-        } else if (segue.identifier == "importRecoveryPhrase") {
-            
-            if let vc = segue.destination as? ViewController {
-                
-                vc.importSeed = true
-                
-            }
         }
         
     }
@@ -669,51 +576,11 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         self.view.addSubview(priceLabel)
     }
     
-    func share(textToShare: String, filename: String) {
-        
-        DispatchQueue.main.async {
-            
-            let ciContext = CIContext()
-            let data = textToShare.data(using: String.Encoding.ascii)
-            var qrCodeImage = UIImage()
-            
-            if let filter = CIFilter(name: "CIQRCodeGenerator") {
-                
-                filter.setValue(data, forKey: "inputMessage")
-                let transform = CGAffineTransform(scaleX: 10, y: 10)
-                let upScaledImage = filter.outputImage?.transformed(by: transform)
-                let cgImage = ciContext.createCGImage(upScaledImage!, from: upScaledImage!.extent)
-                qrCodeImage = UIImage(cgImage: cgImage!)
-                
-            }
-            
-            if let data = UIImagePNGRepresentation(qrCodeImage) {
-                
-                let fileName = getDocumentsDirectory().appendingPathComponent(filename + ".png")
-                
-                try? data.write(to: fileName)
-                
-                let objectsToShare = [fileName]
-                
-                DispatchQueue.main.async {
-                    
-                    let activityController = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
-                    self.present(activityController, animated: true, completion: nil)
-                    
-                }
-                
-            }
-            
-        }
-        
-    }
-    
-    
     func addButtonView() {
         
         let modelName = UIDevice.modelName
         
-        if modelName == "Simulator iPhone X" {
+        if modelName == "iPhone X" {
             buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY + 6, width: view.frame.width, height: 160)
         } else {
            buttonView.frame = CGRect(x: 0, y: view.frame.maxY + 6, width: view.frame.width, height: 100)
@@ -796,59 +663,11 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     
     @objc func checkforHD() {
         
-        addressBook = checkAddressBook()
+        self.performSegue(withIdentifier: "createInvoice", sender: self)
         
-        for (index, address) in addressBook.enumerated() {
+     }
             
-            if address["address"] as! String == self.wallet["address"] as! String {
-                
-                self.wallet = self.addressBook[index]
-            }
-        }
-        
-        let address = self.wallet["address"] as! String
-        let network = self.wallet["network"] as! String
-        var aesPassword = String()
-        
-        if let aespasswordCheck = KeychainWrapper.standard.string(forKey: "AESPassword") {
-            
-            aesPassword = aespasswordCheck
-            
-            if let xpub = self.wallet["xpub"] as? String {
-                
-                if xpub != "" {
-                    
-                    if let decryptedXpub = AES256CBC.decryptString(xpub, password: aesPassword) {
-                        
-                        if let index = self.wallet["index"] as? UInt32 {
-                            
-                            self.createInvoiceforHD(network: network, address: address, index: index + 1, xpub: decryptedXpub)
-                            
-                        }
-                        
-                    } else {
-                        
-                        displayAlert(viewController: self, title: "Error", message: "Error decrypting your xpub.")
-                    }
-                    
-                } else {
-                    
-                    self.HDAddress = address
-                    self.createWalletInvoice()
-                    
-                }
-                
-            }
-
-        }
-        
-    }
-            
-    override func viewWillDisappear(_ animated: Bool) {
-        
-    }
-    
-    @objc func goToChildTable() {
+   @objc func goToChildTable() {
         
         if let mnemonic = self.wallet["mnemonic"] as? String {
             
@@ -1064,275 +883,9 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         self.performSegue(withIdentifier: "showHistory", sender: self)
     }
     
-    @objc func goToSettings() {
-        
-        DispatchQueue.main.async {
-            UIImpactFeedbackGenerator().impactOccurred()
-        }
-        
-        self.performSegue(withIdentifier: "goToSettings", sender: self)
-        
-    }
-    
-    @objc func createWalletInvoice() {
-        
-        DispatchQueue.main.async {
-            UIImpactFeedbackGenerator().impactOccurred()
-        }
-        
-        let modelName = UIDevice.modelName
-
-        self.blurView.frame = self.view.frame
-        //self.blurView.backgroundColor = UIColor.white
-        self.view.addSubview(self.blurView)
-        
-        let imageView = UIImageView()
-        imageView.image = UIImage(named:"background.jpg")
-        imageView.frame = self.view.frame
-        imageView.contentMode = UIViewContentMode.scaleAspectFill
-        imageView.alpha = 0.05
-        self.blurView.addSubview(imageView)
-        
-        if modelName == "Simulator iPhone X" {
-            
-            self.backButton = UIButton(frame: CGRect(x: 5, y: 30, width: 55, height: 55))
-            
-            
-        } else {
-            
-            self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
-            
-        }
-        
-        self.backButton.showsTouchWhenHighlighted = true
-        self.backButton.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
-        self.backButton.addTarget(self, action: #selector(self.dismissInvoiceView), for: .touchUpInside)
-        self.blurView.addSubview(self.backButton)
-        
-        self.settingsButton.removeFromSuperview()
-        
-        if modelName == "Simulator iPhone X" {
-            
-            self.settingsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 50, y: 30, width: 45, height: 45))
-            
-        } else {
-            
-            self.settingsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 50, y: 20, width: 45, height: 45))
-            
-        }
-        
-        self.settingsButton.showsTouchWhenHighlighted = true
-        self.settingsButton.setImage(#imageLiteral(resourceName: "settings2.png"), for: .normal)
-        self.settingsButton.addTarget(self, action: #selector(self.goToSettings), for: .touchUpInside)
-        self.blurView.addSubview(self.settingsButton)
-        
-        self.amountToSend.frame = CGRect(x: 50, y: self.view.frame.minY + 150, width: self.view.frame.width - 100, height: 50)
-        self.amountToSend.textAlignment = .center
-        self.amountToSend.borderStyle = .roundedRect
-        self.amountToSend.backgroundColor = UIColor.groupTableViewBackground
-        self.amountToSend.keyboardType = UIKeyboardType.decimalPad
-        self.amountToSend.keyboardAppearance = UIKeyboardAppearance.dark
-        self.blurView.addSubview(self.amountToSend)
-        
-        amountLabel.frame = CGRect(x: 50, y: self.amountToSend.frame.minY - 65, width: self.view.frame.width - 100, height: 55)
-        amountLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
-        amountLabel.adjustsFontSizeToFitWidth = true
-        amountLabel.textAlignment = .center
-        amountLabel.textColor = UIColor.white
-        amountLabel.text = "Amount to Receive in \(self.currency):"
-        addShadow(view: amountLabel)
-        
-        self.createButton = UIButton(frame: CGRect(x: self.view.center.x - 40, y: self.amountToSend.frame.maxY + 10, width: 80, height: 55))
-        self.createButton.showsTouchWhenHighlighted = true
-        addShadow(view: self.createButton)
-        self.createButton.backgroundColor = UIColor.clear
-        self.createButton.setTitle("Next", for: .normal)
-        self.createButton.setTitleColor(UIColor.white, for: .normal)
-        self.createButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
-        self.createButton.addTarget(self, action: #selector(self.createNow), for: .touchUpInside)
-        self.blurView.addSubview(self.createButton)
-        
-        self.amountToSend.becomeFirstResponder()
-        self.blurView.addSubview(amountLabel)
-        
-    }
-    
-    @objc func createNow() {
-        
-        DispatchQueue.main.async {
-            UIImpactFeedbackGenerator().impactOccurred()
-        }
-        
-        if self.amountToSend.text != "" {
-            
-            self.amountToSend.resignFirstResponder()
-            self.amountToSend.removeFromSuperview()
-            self.amountLabel.removeFromSuperview()
-            self.settingsButton.removeFromSuperview()
-            self.createButton.removeFromSuperview()
-            self.addInvoiceView(address: self.HDAddress, amount: self.amountToSend.text!, currency: self.currency)
-            
-        } else {
-            
-            self.amountToSend.resignFirstResponder()
-            self.amountToSend.removeFromSuperview()
-            self.amountLabel.removeFromSuperview()
-            self.settingsButton.removeFromSuperview()
-            self.createButton.removeFromSuperview()
-            self.addInvoiceView(address: self.HDAddress, amount: "0", currency: self.currency)
-        }
-        
-    }
-    
-    func generateQrCode(key: String) -> UIImage? {
-        print("generateQrCode")
-        let ciContext = CIContext()
-        let data = key.data(using: String.Encoding.ascii)
-        if let filter = CIFilter(name: "CIQRCodeGenerator") {
-            filter.setValue(data, forKey: "inputMessage")
-            let transform = CGAffineTransform(scaleX: 10, y: 10)
-            let upScaledImage = filter.outputImage?.transformed(by: transform)
-            let cgImage = ciContext.createCGImage(upScaledImage!, from: upScaledImage!.extent)
-            let qrCode = UIImage(cgImage: cgImage!)
-            return qrCode
-        }
-        
-        return nil
-        
-    }
-    
-    func addInvoiceView(address: String, amount: String, currency: String) {
-        
-        print("amount = \(amount)")
-        
-        if currency != "BTC" && currency != "SAT" && amount != "0" {
-            
-            displayAlert(viewController: self, title: "FYI", message: "This invoice is denominated in \(currency) and not Bitcoin, therefore this invoice will only work for someone who is using BitSense.\n\nInvoices denominated in Bitcoin or Satoshis will work with any wallet that is BIP21 compatible.")
-        }
-        
-        var stringToShare = String()
-        var amountToShare = amount
-        
-        if currency == "SAT" && amount != "0" || currency == "BTC" && amount != "0" {
-            
-            if currency == "SAT" {
-                
-                amountToShare = (Double(amount)! / 100000000).avoidNotation
-                
-            }
-            
-            stringToShare = "bitcoin:\(self.HDAddress)?amount=\(amountToShare)"
-            
-        } else if self.currency != "SAT" && amount != "0" || self.currency != "BTC" && amount != "0" {
-            
-            stringToShare = "address:\(address)?amount:\(amountToShare)?currency:\(currency)"
-            
-        } else if currency == "SAT" && amount == "0" || currency == "BTC" && amount == "0" {
-            
-            stringToShare = "bitcoin:\(address)"
-            
-        } else if self.currency != "SAT" && amount == "0" || self.currency != "BTC" && amount == "0" {
-            
-            stringToShare = "bitcoin:\(address)"
-            
-        }
-        
-        self.privateKeyQRCode = self.generateQrCode(key: stringToShare)!
-        self.textToShare = stringToShare
-        self.privateKeyQRView = UIImageView(image: privateKeyQRCode)
-        privateKeyQRView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 70) / 2), y: self.view.center.y - ((self.view.frame.width - 70) / 2), width: self.view.frame.width - 70, height: self.view.frame.width - 70)
-        privateKeyQRView.alpha = 0
-        addShadow(view: privateKeyQRView)
-        self.blurView.addSubview(privateKeyQRView)
-        
-        UIView.animate(withDuration: 0.5, animations: {
-            
-        }, completion: { _ in
-            
-            UIView.animate(withDuration: 0.5, animations: {
-                
-                self.privateKeyQRView.alpha = 1
-                
-            }, completion: { _ in
-                
-                DispatchQueue.main.async {
-                    
-                    self.privateKeyTitle = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 20) / 2), y: self.privateKeyQRView.frame.minY - 80, width: self.view.frame.width - 20, height: 50))
-                    self.fileName = "Invoice"
-                    self.privateKeyTitle.text = "Invoice\n🤑"
-                    addShadow(view: self.privateKeyTitle)
-                    self.privateKeyTitle.numberOfLines = 0
-                    self.privateKeyTitle.adjustsFontSizeToFitWidth = true
-                    self.privateKeyTitle.font = UIFont.init(name: "HelveticaNeue-Bold", size: 32)
-                    self.privateKeyTitle.textColor = UIColor.white
-                    self.privateKeyTitle.textAlignment = .center
-                    self.blurView.addSubview(self.privateKeyTitle)
-                    
-                }
-                
-                var name = self.wallet["label"] as! String
-                if name == "" {
-                    name = self.HDAddress
-                }
-                
-                var foramttedCurrency = String()
-                self.myField = UITextView (frame:CGRect(x: self.view.center.x - ((self.view.frame.width - 10)/2), y: self.privateKeyQRView.frame.maxY + 10, width: self.view.frame.width - 10, height: 75))
-                self.myField.isEditable = false
-                self.myField.backgroundColor = UIColor.clear
-                self.myField.textColor = UIColor.white
-                addShadow(view: self.myField)
-                self.myField.isSelectable = true
-                self.myField.font = UIFont.init(name: "HelveticaNeue-Bold", size: 15)
-                
-                var amountwithcommas = amount
-                
-                if Double(amount)! > 100.0 {
-                    
-                    amountwithcommas = (Double(amount)?.withCommas())!
-                    
-                }
-                
-                switch (self.currency) {
-                case "USD": foramttedCurrency = "US Dollars"
-                case "GBP": foramttedCurrency = "British Pounds"
-                case "EUR": foramttedCurrency = "Euros"
-                case "SAT": foramttedCurrency = "Satoshis"
-                case "BTC": foramttedCurrency = "Bitcoin"
-                default: break
-                }
-                if amount != "0" {
-                    self.myField.text = "Invoice of \(String(describing: amountwithcommas)) \(foramttedCurrency), to be paid to \(name)"
-                } else {
-                    self.myField.text = "Send Bitcoin to \(name)"
-                }
-                self.myField.textAlignment = .center
-                self.blurView.addSubview(self.myField)
-                
-                self.backUpButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 90, y: self.view.frame.maxY - 60, width: 80, height: 55))
-                self.backUpButton.showsTouchWhenHighlighted = true
-                self.backUpButton.setTitle("Share", for: .normal)
-                self.backUpButton.backgroundColor = UIColor.clear
-                addShadow(view: self.backUpButton)
-                self.backUpButton.setTitleColor(UIColor.white, for: .normal)
-                self.backUpButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
-                self.backUpButton.addTarget(self, action: #selector(self.goTo(sender:)), for: .touchUpInside)
-                self.blurView.addSubview(self.backUpButton)
-                
-            })
-            
-        })
-        
-    }
-    
     @objc func goTo(sender: UIButton) {
         
         switch sender {
-            
-        case self.backUpButton:
-            DispatchQueue.main.async {
-                UIImpactFeedbackGenerator().impactOccurred()
-            }
-            self.share(textToShare: self.textToShare, filename: self.fileName)
             
         case self.infoButton:
             DispatchQueue.main.async {
@@ -1364,9 +917,12 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
         addressBook = checkAddressBook()
         
-        if self.hotMode {
+        for (index, _) in self.addressBook.enumerated() {
             
-            print("hotmode  = \(self.hotMode)")
+            self.addressBook[index]["fiatBalance"] = "loading..."
+        }
+        
+        if self.hotMode {
             
             if addressBook.count == 1 {
                 
@@ -1468,83 +1024,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         }
     }
     
-    @objc func dismissInvoiceView() {
-        
-        DispatchQueue.main.async {
-            UIImpactFeedbackGenerator().impactOccurred()
-        }
-        
-        self.backUpButton.removeFromSuperview()
-        self.amountToSend.text = ""
-        self.privateKeyTitle.text = ""
-        self.privateKeyTitle.removeFromSuperview()
-        self.textToShare = ""
-        self.fileName = ""
-        self.settingsButton.removeFromSuperview()
-        self.privateKeyQRView.removeFromSuperview()
-        self.createButton.removeFromSuperview()
-        self.amountToSend.removeFromSuperview()
-        self.amountLabel.removeFromSuperview()
-        self.myField.removeFromSuperview()
-        self.blurView.removeFromSuperview()
-    
-    }
-    
-    func createInvoiceforHD(network: String, address: String, index: UInt32, xpub: String) {
-        
-        print("createInvoiceforHD")
-        print("xpub = \(xpub)")
-        
-        if let watchOnlyTestKey = BTCKeychain.init(extendedKey: xpub) {
-            
-            print("watchOnlyTestKey = \(watchOnlyTestKey)")
-            
-            if network == "testnet" {
-                
-                self.HDAddress = (watchOnlyTestKey.key(at: index).addressTestnet.string)
-                
-            } else if network == "mainnet" {
-                
-                self.HDAddress = (watchOnlyTestKey.key(at: index).address.string)
-                
-            }
-            
-            if address.hasPrefix("1") || address.hasPrefix("3") || address.hasPrefix("2") || address.hasPrefix("m") || address.hasPrefix("n") {
-                
-                self.createWalletInvoice()
-                self.editHDWallet(address: address, newValue: UInt32(index), oldValue: index, keyToEdit: "index")
-                
-            } else if address.hasPrefix("bc1") || address.hasPrefix("tb") {
-                
-                let compressedPKData = BTCRIPEMD160(BTCSHA256(watchOnlyTestKey.key(at: index).compressedPublicKey as Data!) as Data!) as Data!
-                
-                do {
-                    
-                    if network == "mainnet" {
-                        
-                        self.HDAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
-                        self.createWalletInvoice()
-                        self.editHDWallet(address: address, newValue: UInt32(index), oldValue: index, keyToEdit: "index")
-                        
-                    } else if network == "testnet" {
-                        
-                        self.HDAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
-                        self.createWalletInvoice()
-                        self.editHDWallet(address: address, newValue: UInt32(index), oldValue: index, keyToEdit: "index")
-                        
-                    }
-                    
-                    
-                } catch {
-                    
-                    displayAlert(viewController: self, title: "Error", message: "Please try again.")
-                    
-                }
-                
-            }
-        }
-    }
-    
     func editHDWallet(address: String, newValue: UInt32, oldValue: UInt32, keyToEdit: String) {
         
         var appDelegate = AppDelegate()
@@ -1609,14 +1088,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     
     @objc func dismissButtonView() {
         
-        if self.stopColorChange {
-            
-            
-        } else {
-            
-            self.stopColorChange = true
-        }
-        
         let modelName = UIDevice.modelName
         
         DispatchQueue.main.async {
@@ -1632,23 +1103,18 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     self.transactionsButton.alpha = 1
                     self.newAddressButton.alpha = 1
                     
-                    if modelName == "Simulator iPhone X" {
-                        //add pricelabel
+                    if modelName == "iPhone X" {
                         self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY + 6, width: self.view.frame.width, height: 160)
-                        self.transactionsButton.frame = CGRect(x: 5, y: self.bottomView.frame.minY - 70, width: 85, height: 50)
-                        self.newAddressButton.frame = CGRect(x: self.view.frame.maxX - 110, y: self.bottomView.frame.minY - 70, width: 100, height: 50)
+                        self.transactionsButton.frame = CGRect(x: self.view.frame.maxX - 70, y: self.bottomView.frame.minY - 85, width: 60, height: 60)
+                        self.newAddressButton.frame = CGRect(x: 10, y: self.bottomView.frame.minY - 80, width: 50, height: 50)
                     } else {
                         self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY + 6, width: self.view.frame.width, height: 100)
-                        self.transactionsButton.frame = CGRect(x: self.view.frame.maxX - 60, y: self.bottomView.frame.minY - 55, width: 50, height: 50)
-                        self.newAddressButton.frame = CGRect(x: 5, y: self.bottomView.frame.minY - 55, width: 100, height: 50)
+                        self.transactionsButton.frame = CGRect(x: self.view.frame.maxX - 70, y: self.bottomView.frame.minY - 70, width: 60, height: 60)
+                        self.newAddressButton.frame = CGRect(x: 10, y: self.bottomView.frame.minY - 65, width: 50, height: 50)
                     }
-                    
                 })
-                
-                
             }
         }
-        
     }
     
     func decrypt(item: String) -> String {
@@ -1674,8 +1140,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         DispatchQueue.main.async {
             UIImpactFeedbackGenerator().impactOccurred()
         }
-        
-        
         
         func authorize(item: String) {
             
@@ -1813,10 +1277,50 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                         self.walletToExport = item
                         
                         switch descriptor {
-                        case "privateKey": authorize(item:item["stringToExport"] as! String)
-                        case "mnemonic": authorize(item:item["stringToExport"] as! String)
-                        case "xpub": authorize(item:item["stringToExport"] as! String)
-                        case "xpriv": authorize(item:item["stringToExport"] as! String)
+                        case "privateKey":
+                            
+                            if !isInternetAvailable() {
+                                
+                                authorize(item:item["stringToExport"] as! String)
+                                
+                            } else {
+                                
+                                displayAlert(viewController: self, title: "Security Alert!", message: "Put your device into airplane mode and turn off wifi in order to proceed.")
+                            }
+                            
+                        case "mnemonic":
+                            
+                            if !isInternetAvailable() {
+                                
+                                authorize(item:item["stringToExport"] as! String)
+                                
+                            } else {
+                                
+                                displayAlert(viewController: self, title: "Security Alert!", message: "Put your device into airplane mode and turn off wifi in order to proceed.")
+                            }
+                            
+                        case "xpub":
+                            
+                            if !isInternetAvailable() {
+                                
+                                authorize(item:item["stringToExport"] as! String)
+                                
+                            } else {
+                                
+                                displayAlert(viewController: self, title: "Security Alert!", message: "Put your device into airplane mode and turn off wifi in order to proceed.")
+                            }
+                            
+                        case "xpriv":
+                            
+                            if !isInternetAvailable() {
+                                
+                                authorize(item:item["stringToExport"] as! String)
+                                
+                            } else {
+                                
+                                displayAlert(viewController: self, title: "Security Alert!", message: "Put your device into airplane mode and turn off wifi in order to proceed.")
+                            }
+                            
                         case "redemptionScript": authorize(item:item["stringToExport"] as! String)
                         default: self.performSegue(withIdentifier: "exportKeys", sender: self)
                         }
@@ -1832,7 +1336,11 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 
             }))
             
-            self.present(alert, animated: true, completion: nil)
+            alert.popoverPresentationController?.sourceView = self.view
+            
+            self.present(alert, animated: true) {
+                print("option menu presented")
+            }
             
         }
         
@@ -1846,7 +1354,10 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         
         addressBook = checkAddressBook()
         
-        
+        for (index, _) in self.addressBook.enumerated() {
+            
+            self.addressBook[index]["fiatBalance"] = "loading..."
+        }
         
         if addressBook.count == 0 {
             
@@ -1905,7 +1416,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     self.transactionsButton.removeFromSuperview()
                     self.newAddressButton.removeFromSuperview()
                     
-                    if modelName == "Simulator iPhone X" {
+                    if modelName == "iPhone X" {
                         self.buttonView.frame = CGRect(x: 0, y: self.view.frame.maxY - 160, width: self.view.frame.width, height: 160)
                     } else {
                         
@@ -1953,453 +1464,13 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
     }
     
    @objc func add() {
-        
-        DispatchQueue.main.async {
-            UIImpactFeedbackGenerator().impactOccurred()
-        }
-        
         print("add")
-        
-        self.importWallet()
-    }
     
-    func importWallet() {
-        
-        print("importWallet")
-        importView.frame = view.frame
-        
-        imageImportView.image = UIImage(named:"background.jpg")
-        imageImportView.frame = self.view.frame
-        imageImportView.contentMode = UIViewContentMode.scaleAspectFill
-        imageImportView.alpha = 0.05
-        
-        
-        self.backButton = UIButton(frame: CGRect(x: 5, y: 20, width: 55, height: 55))
-        self.backButton.showsTouchWhenHighlighted = true
-        self.backButton.setImage(#imageLiteral(resourceName: "back2.png"), for: .normal)
-        self.backButton.addTarget(self, action: #selector(self.dismissImportView), for: .touchUpInside)
-        
-        
-        self.textInput.frame = CGRect(x: self.view.frame.minX + 25, y: 150, width: self.view.frame.width - 50, height: 50)
-        self.textInput.textAlignment = .center
-        self.textInput.borderStyle = .roundedRect
-        self.textInput.autocorrectionType = .no
-        self.textInput.autocapitalizationType = .none
-        self.textInput.keyboardAppearance = UIKeyboardAppearance.dark
-        self.textInput.backgroundColor = UIColor.groupTableViewBackground
-        self.textInput.returnKeyType = UIReturnKeyType.go
-        self.textInput.placeholder = "Scan or type an Address or Private Key"
-        
-        let title = UILabel(frame: CGRect(x: self.view.center.x - ((self.view.frame.width - 50) / 2), y: self.textInput.frame.minY - 65, width: self.view.frame.width - 50, height: 55))
-        title.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
-        title.textColor = UIColor.white
-        title.text = "Import Address, Private Key, XPUB or XPRV"
-        title.numberOfLines = 0
-        addShadow(view: title)
-        title.adjustsFontSizeToFitWidth = true
-        title.textAlignment = .center
-        
-        
-        self.qrImageView.frame = CGRect(x: self.view.center.x - ((self.view.frame.width - 50)/2), y: self.textInput.frame.maxY + 10, width: self.view.frame.width - 50, height: self.view.frame.width - 50)
-        addShadow(view:self.qrImageView)
-        
-        self.uploadButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 140, y: self.view.frame.maxY - 60, width: 130, height: 55))
-        self.uploadButton.showsTouchWhenHighlighted = true
-        self.uploadButton.setTitle("From Photos", for: .normal)
-        addShadow(view: self.uploadButton)
-        self.uploadButton.setTitleColor(UIColor.white, for: .normal)
-        self.uploadButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
-        self.uploadButton.addTarget(self, action: #selector(self.chooseQRCodeFromLibrary), for: .touchUpInside)
-        
-        let createNew = UIButton()
-        createNew.frame = CGRect(x: 10, y: self.view.frame.maxY - 60, width: 130, height: 55)
-        createNew.showsTouchWhenHighlighted = true
-        createNew.setTitle("Create New", for: .normal)
-        createNew.setTitleColor(UIColor.white, for: .normal)
-        addShadow(view: createNew)
-        createNew.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 20)
-        createNew.addTarget(self, action: #selector(self.createNew), for: .touchUpInside)
-        
-        func scanQRCode() {
-            
-            do {
-                
-                try scanQRNow()
-                print("scanQRNow")
-                
-            } catch {
-                
-                print("Failed to scan QR Code")
-            }
-            
-        }
-        
-        DispatchQueue.main.async {
-            
-            self.view.addSubview(self.importView)
-            self.importView.addSubview(self.imageImportView)
-            self.importView.addSubview(title)
-            self.importView.addSubview(self.backButton)
-            self.importView.addSubview(self.textInput)
-            self.importView.addSubview(self.qrImageView)
-            self.importView.addSubview(self.uploadButton)
-            self.importView.addSubview(createNew)
-            scanQRCode()
-        }
-        
-    }
-    
-    @objc func createNew() {
-        
-        self.dismissImportView()
-        self.performSegue(withIdentifier: "createAccount", sender: self)
-        
-    }
-    
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
-        
-        if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
-            
-            let detector:CIDetector=CIDetector(ofType: CIDetectorTypeQRCode, context: nil, options: [CIDetectorAccuracy:CIDetectorAccuracyHigh])!
-            
-            let ciImage:CIImage = CIImage(image:pickedImage)!
-            
-            var qrCodeLink = ""
-            
-            let features=detector.features(in: ciImage)
-            
-            for feature in features as! [CIQRCodeFeature] {
-                
-                qrCodeLink += feature.messageString!
-            }
-            
-            print(qrCodeLink)
-            
-            if qrCodeLink != "" {
-                
-                DispatchQueue.main.async {
-                    
-                    self.processKeys(key: qrCodeLink)
-                    self.qrImageView.removeFromSuperview()
-                    self.avCaptureSession.stopRunning()
-                    
-                }
-                
-            }
-            
-        }
-        
-        dismiss(animated: true, completion: nil)
-    }
-    
-    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        dismiss(animated: true, completion: nil)
-    }
-    
-    
-    
-    @objc func chooseQRCodeFromLibrary() {
-        
-        present(imagePicker, animated: true, completion: nil)
-    }
-    
-    enum error: Error {
-        
-        case noCameraAvailable
-        case videoInputInitFail
-        
-    }
-    
-    func scanQRNow() throws {
-        
-        guard let avCaptureDevice = AVCaptureDevice.default(for: AVMediaType.video) else {
-            
-            print("no camera")
-            throw error.noCameraAvailable
-            
-        }
-        
-        guard let avCaptureInput = try? AVCaptureDeviceInput(device: avCaptureDevice) else {
-            
-            print("failed to int camera")
-            throw error.videoInputInitFail
-        }
-        
-        
-        let avCaptureMetadataOutput = AVCaptureMetadataOutput()
-        avCaptureMetadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-        
-        if let inputs = self.avCaptureSession.inputs as? [AVCaptureDeviceInput] {
-            for input in inputs {
-                self.avCaptureSession.removeInput(input)
-            }
-        }
-        
-        if let outputs = self.avCaptureSession.outputs as? [AVCaptureMetadataOutput] {
-            for output in outputs {
-                self.avCaptureSession.removeOutput(output)
-            }
-        }
-        
-        self.avCaptureSession.addInput(avCaptureInput)
-        self.avCaptureSession.addOutput(avCaptureMetadataOutput)
-        
-        avCaptureMetadataOutput.metadataObjectTypes = [AVMetadataObject.ObjectType.qr]
-        
-        let avCaptureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: avCaptureSession)
-        avCaptureVideoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
-        avCaptureVideoPreviewLayer.frame = self.qrImageView.bounds
-        self.qrImageView.layer.addSublayer(avCaptureVideoPreviewLayer)
-        
-        self.avCaptureSession.startRunning()
-        
-    }
-    
-    func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
-        if metadataObjects.count > 0 {
-            print("metadataOutput")
-            
-            let machineReadableCode = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
-            
-            if machineReadableCode.type == AVMetadataObject.ObjectType.qr {
-                
-                stringURL = machineReadableCode.stringValue!
-                print("stringURL = \(stringURL)")
-                
-                processKeys(key: stringURL)
-                
-                self.qrImageView.removeFromSuperview()
-                self.avCaptureSession.stopRunning()
-                
-            }
-        }
-    }
-    
-    func processKeys(key: String) {
-        print("processKeys = \(key)")
-        
-        var success = Bool()
-        
-        func processPrivateKey(privateKey: String) {
-            
-            if privateKey.hasPrefix("9") || privateKey.hasPrefix("c") {
-                print("testnetMode")
-                
-                if let privateKey = BTCPrivateKeyAddressTestnet(string: privateKey) {
-                    
-                    if let key = BTCKey.init(privateKeyAddress: privateKey) {
-                        
-                        print("privateKey = \(key.privateKeyAddressTestnet)")
-                        var bitcoinAddress = String()
-                        
-                        let privateKeyWIF = key.privateKeyAddressTestnet.string
-                        let addressHD = key.addressTestnet.string
-                        
-                        let publicKey = key.compressedPublicKey.hex()!
-                        print("publicKey = \(publicKey)")
-                        
-                        if self.legacyMode {
-                            
-                            bitcoinAddress = addressHD
-                            
-                        }
-                        
-                        if segwitMode {
-                            
-                            let compressedPKData = BTCRIPEMD160(BTCSHA256(key.compressedPublicKey as Data!) as Data!) as Data!
-                            
-                            do {
-                                
-                                bitcoinAddress = try segwit.encode(hrp: "tb", version: 0, program: compressedPKData!)
-                                
-                            } catch {
-                                
-                                displayAlert(viewController: self, title: "Error", message: "Please try again.")
-                                
-                            }
-                            
-                        }
-                        
-                        DispatchQueue.main.async {
-                            self.importView.removeFromSuperview()
-                            
-                            success = saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "testnet", type: "hot", index: UInt32(), label: "", xpriv: "")
-                            if success {
-                                self.addressBook = checkAddressBook()
-                                self.getArrays()
-                                displayAlert(viewController: self, title: "Success", message: "You imported a wallet, you can rename it by swiping it left and tapping edit.")
-                                
-                            } else {
-                                displayAlert(viewController: self, title: "Error", message: "There was a problem importing your key, please contact us at BitSenseApp@gmail.com")
-                            }
-                        }
-                        
-                    }
-                }
-                
-                
-            } else if privateKey.hasPrefix("5") || privateKey.hasPrefix("K") || privateKey.hasPrefix("L") {
-                print("mainnetMode")
-                
-                if let privateKey = BTCPrivateKeyAddress(string: privateKey) {
-                    
-                    if let key = BTCKey.init(privateKeyAddress: privateKey) {
-                        
-                        var bitcoinAddress = String()
-                        
-                        let privateKeyWIF = key.privateKeyAddress.string
-                        let addressHD = key.address.string
-                        let publicKey = key.compressedPublicKey.hex()!
-                        print("publicKey = \(publicKey)")
-                        
-                        if self.legacyMode {
-                            
-                            bitcoinAddress = addressHD
-                            
-                        }
-                        
-                        if segwitMode {
-                            
-                            let compressedPKData = BTCRIPEMD160(BTCSHA256(key.compressedPublicKey as Data!) as Data!) as Data!
-                            
-                            do {
-                                
-                                bitcoinAddress = try segwit.encode(hrp: "bc", version: 0, program: compressedPKData!)
-                                
-                            } catch {
-                                
-                                displayAlert(viewController: self, title: "Error", message: "Please try again.")
-                                
-                            }
-                            
-                        }
-                        
-                        DispatchQueue.main.async {
-                            self.importView.removeFromSuperview()
-                            
-                            success = saveWallet(viewController: self, mnemonic: "", xpub: "", address: bitcoinAddress, privateKey: privateKeyWIF, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot", index: UInt32(), label: "", xpriv: "")
-                            if success {
-                                self.addressBook = checkAddressBook()
-                                self.getArrays()
-                                displayAlert(viewController: self, title: "Success", message: "You imported a wallet, you can rename it by swiping it left and tapping edit.")
-                                
-                            } else {
-                                displayAlert(viewController: self, title: "Error", message: "There was a problem importing your key, please contact us at BitSenseApp@gmail.com")
-                            }
-                        }
-                        
-                    }
-                    
-                }
-                
-            }
-
-        }
-        
-        if key.hasPrefix("9") || key.hasPrefix("c") || key.hasPrefix("5") || key.hasPrefix("K") || key.hasPrefix("L") {
-            
-            processPrivateKey(privateKey: key)
-            
-        } else if key.hasPrefix("1") || key.hasPrefix("3") || key.hasPrefix("bc") || key.hasPrefix("2") {
-            
-            self.importView.removeFromSuperview()
-            
-            success = saveWallet(viewController: self, mnemonic: "", xpub: "", address: key, privateKey: "", publicKey: "", redemptionScript: "", network: "mainnet", type: "cold", index: UInt32(), label: "", xpriv: "")
-            
-            if success {
-                self.addressBook = checkAddressBook()
-                self.getArrays()
-                displayAlert(viewController: self, title: "Success", message: "You imported a wallet, you can rename it by swiping it left and tapping edit.")
-                
-            } else {
-                displayAlert(viewController: self, title: "Error", message: "There was a problem importing your key, please contact us at BitSenseApp@gmail.com")
-            }
-            
-        } else if key.hasPrefix("m") || key.hasPrefix("tb") || key.hasPrefix("2") {
-            
-            self.importView.removeFromSuperview()
-            
-            success = saveWallet(viewController: self, mnemonic: "", xpub: "", address: key, privateKey: "", publicKey: "", redemptionScript: "", network: "testnet", type: "cold", index: UInt32(), label: "", xpriv: "")
-            if success {
-                self.addressBook = checkAddressBook()
-                self.getArrays()
-                displayAlert(viewController: self, title: "Success", message: "You imported a wallet, you can rename it by swiping it left and tapping edit.")
-                
-            } else {
-                displayAlert(viewController: self, title: "Error", message: "There was a problem importing your key, please contact us at BitSenseApp@gmail.com")
-            }
-            
-        } else if key.hasPrefix("xpub") {
-                
-            self.importView.removeFromSuperview()
-            
-            if let keychain = BTCKeychain.init(extendedKey: key) {
-                
-                let addressHD = (keychain.key(at: 0).address.string)
-                keychain.key.isPublicKeyCompressed = true
-                let publicKey = (keychain.key(at: 0).compressedPublicKey.hex())!
-                
-                success = saveWallet(viewController: self, mnemonic: "", xpub: key, address: addressHD, privateKey: "", publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "cold", index: UInt32(), label: "", xpriv: "")
-                if success {
-                    self.addressBook = checkAddressBook()
-                    self.getArrays()
-                    displayAlert(viewController: self, title: "Success", message: "You imported a wallet, you can rename it by swiping it left and tapping edit.")
-                    
-                } else {
-                    displayAlert(viewController: self, title: "Error", message: "There was a problem importing your key, please contact us at BitSenseApp@gmail.com")
-                }
-            } else {
-                displayAlert(viewController: self, title: "Error", message: "We had an issue with your xpub, please contact us at BitSenseApp@gmail.com")
-            }
-            
-        } else if key.hasPrefix("xprv") {
-            
-            self.importView.removeFromSuperview()
-            
-            if let keychain = BTCKeychain.init(extendedKey: key) {
-                
-                let addressHD = (keychain.key(at: 0).address.string)
-                let pkHD = (keychain.key(at: 0).privateKeyAddress.string)
-                let xpub = keychain.extendedPublicKey!
-                keychain.key.isPublicKeyCompressed = true
-                let publicKey = (keychain.key(at: 0).compressedPublicKey.hex())!
-                
-                success = saveWallet(viewController: self, mnemonic: "", xpub: xpub, address: addressHD, privateKey: pkHD, publicKey: publicKey, redemptionScript: "", network: "mainnet", type: "hot", index: UInt32(), label: "", xpriv: key)
-                
-                if success {
-                    self.addressBook = checkAddressBook()
-                    self.getArrays()
-                    displayAlert(viewController: self, title: "Success", message: "You can rename it by swiping it left and tapping edit.")
-                    
-                } else {
-                    displayAlert(viewController: self, title: "Error", message: "There was a problem importing your key, please contact us at BitSenseApp@gmail.com")
-                }
-            } else {
-                displayAlert(viewController: self, title: "Error", message: "We had an issue with your xpub, please contact us at BitSenseApp@gmail.com")
-            }
-            
-        } else {
-            
-            displayAlert(viewController: self, title: "Error", message: "Thats not a valid Bitcoin Private Key or Address")
-            
-        }
-        
-     }
-    
-    @objc func dismissImportView() {
-        
         DispatchQueue.main.async {
             UIImpactFeedbackGenerator().impactOccurred()
         }
         
-        DispatchQueue.main.async {
-            self.imageImportView.removeFromSuperview()
-            self.textInput.removeFromSuperview()
-            self.avCaptureSession.stopRunning()
-            self.qrImageView.removeFromSuperview()
-            self.importView.removeFromSuperview()
-            
-        }
+        self.performSegue(withIdentifier: "importNow", sender: self)
         
     }
     
@@ -2563,7 +1634,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     print(error as Any)
                     self.removeSpinner()
                     DispatchQueue.main.async {
-                        self.avCaptureSession.startRunning()
                         displayAlert(viewController: self, title: "Error", message: "Please check your interent connection.")
                     }
                     
@@ -2593,8 +1663,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                                         DispatchQueue.main.async {
                                             
                                             self.exchangeRate = Double(rateCheck)
-                                            
-                                            
                                             self.addPrice(exchangeRate: self.exchangeRate)
                                             
                                             for (index, address) in self.addressBook.enumerated() {
@@ -2616,7 +1684,6 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                             print("JSon processing failed")
                             DispatchQueue.main.async {
                                 self.removeSpinner()
-                                self.avCaptureSession.startRunning()
                                 displayAlert(viewController: self, title: "Error", message: "Please try again.")
                             }
                         }
@@ -2636,9 +1703,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         }
         
         self.wallet = addressBook[indexPath.section]
-        
         tableView.allowsMultipleSelection = true
-        
         let cell = tableView.cellForRow(at: indexPath)!
         
         UIView.animate(withDuration: 0.2, animations: {
@@ -2807,37 +1872,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         return [delete, edit]
     }
     
-    /*func processKeyAndSegue() {
-        
-        //check if valid if not decrypt
-        if let _ = BTCPrivateKeyAddressTestnet.init(string: self.privateKeyToExport) {
-            
-            self.performSegue(withIdentifier: "exportKeys", sender: self)
-            
-        } else if let _ = BTCPrivateKeyAddress.init(string: self.privateKeyToExport) {
-            
-            self.performSegue(withIdentifier: "exportKeys", sender: self)
-            
-        } else {
-            
-            if self.privateKeyToExport != "" {
-                
-                let password = KeychainWrapper.standard.string(forKey: "AESPassword")!
-                let decrypted = AES256CBC.decryptString(self.privateKeyToExport, password: password)!
-                self.privateKeyToExport = decrypted
-                self.performSegue(withIdentifier: "exportKeys", sender: self)
-                
-            } else {
-                
-                self.performSegue(withIdentifier: "exportKeys", sender: self)
-                
-            }
-            
-            
-            
-        }
-    }*/
-    
+   
     func checkBalance(address: String, index: Int, network: String, type: String) {
         print("checkBalance")
         
@@ -3366,36 +2401,33 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         DispatchQueue.main.async {
             
             let modelName = UIDevice.modelName
-            
             if self.imageView != nil {
                 self.imageView.removeFromSuperview()
             }
             
             self.transactionsButton.removeFromSuperview()
-            self.transactionsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: self.bottomView.frame.minY - 55, width: 50, height: 50))
+            self.transactionsButton.frame = CGRect(x: self.view.frame.maxX - 70, y: self.bottomView.frame.minY - 70, width: 60, height: 60)
             if modelName == "iPhone X" {
-                self.transactionsButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 60, y: self.bottomView.frame.minY - 70, width: 55, height: 50))
+                self.transactionsButton.frame = CGRect(x: self.view.frame.maxX - 70, y: self.bottomView.frame.minY - 85, width: 60, height: 60)
             }
             self.transactionsButton.showsTouchWhenHighlighted = true
             self.transactionsButton.layer.cornerRadius = 10
             self.transactionsButton.backgroundColor = UIColor.clear
             self.transactionsButton.titleLabel?.textAlignment = .right
-            addShadow(view:self.transactionsButton)
-            self.transactionsButton.setTitle("Pay", for: .normal)
+            self.transactionsButton.setImage(#imageLiteral(resourceName: "blackPay.png"), for: .normal)
             self.transactionsButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 25)
             self.transactionsButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             
             self.newAddressButton.removeFromSuperview()
-            self.newAddressButton = UIButton(frame: CGRect(x: 5, y: self.bottomView.frame.minY - 55, width: 100, height: 50))//CGRect(x: self.view.frame.maxX - 110, y: self.view.frame.maxY - (58*2), width: 100, height: 50))
+            self.newAddressButton.frame = CGRect(x: 10, y: self.bottomView.frame.minY - 65, width: 50, height: 50)
             if modelName == "iPhone X" {
-                self.newAddressButton = UIButton(frame: CGRect(x: 5, y: self.bottomView.frame.minY - 70, width: 100, height: 50))//CGRect(x: self.view.frame.maxX - 110, y: self.bottomView.frame.minY - 70, width: 100, height: 50))
+                self.newAddressButton.frame = CGRect(x: 10, y: self.bottomView.frame.minY - 80, width: 50, height: 50)
             }
             self.newAddressButton.showsTouchWhenHighlighted = true
             self.newAddressButton.titleLabel?.textAlignment = .left
             self.newAddressButton.layer.cornerRadius = 10
             self.newAddressButton.backgroundColor = UIColor.clear
-            addShadow(view:self.newAddressButton)
-            self.newAddressButton.setTitle("Receive", for: .normal)
+            self.newAddressButton.setImage(#imageLiteral(resourceName: "blackPayMe.png"), for: .normal)
             self.newAddressButton.titleLabel?.font = UIFont.init(name: "HelveticaNeue-Bold", size: 25)
             self.newAddressButton.addTarget(self, action: #selector(self.newAddress), for: .touchUpInside)
             
@@ -3408,28 +2440,27 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             self.settingsGenButton.setImage(#imageLiteral(resourceName: "settings2.png"), for: .normal)
             self.settingsGenButton.addTarget(self, action: #selector(self.goTo), for: .touchUpInside)
             
-            let priceButton = UIButton(frame: CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 2.5 - (40/2)) - 5, y: 10/*16*/, width: 30, height: 30))
+            let priceButton = UIButton(frame: CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 2.5 - (40/2)) - 5, y: 10, width: 30, height: 30))
             if modelName == "iPhone X" {
-                priceButton.frame = CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 2.5 - (40/2)) - 5, y: 10/*36*/, width: 30, height: 30)
+                priceButton.frame = CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 2.5 - (40/2)) - 5, y: 10, width: 30, height: 30)
             }
             priceButton.showsTouchWhenHighlighted = true
             priceButton.layer.cornerRadius = 28
             priceButton.setImage(#imageLiteral(resourceName: "whiteQR.png"), for: .normal)
             priceButton.addTarget(self, action: #selector(self.gotocheckbalance), for: .touchUpInside)
             
-            
-            let toolboxButton = UIButton(frame: CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 6 - (40/2)) - 5, y: 10/*20*/, width: 35, height: 35))
+            let toolboxButton = UIButton(frame: CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 6 - (40/2)) - 5, y: 10, width: 35, height: 35))
             if modelName == "iPhone X" {
-                toolboxButton.frame = CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 6 - (40/2)) - 5, y: 10/*40*/, width: 35, height: 35)
+                toolboxButton.frame = CGRect(x: (self.view.center.x - (40/2)) - (self.view.frame.width / 6 - (40/2)) - 5, y: 10, width: 35, height: 35)
             }
             toolboxButton.showsTouchWhenHighlighted = true
             toolboxButton.layer.cornerRadius = 28
             toolboxButton.setImage(#imageLiteral(resourceName: "whiteKey.png"), for: .normal)
             toolboxButton.addTarget(self, action: #selector(self.gotokeytools), for: .touchUpInside)
             
-            self.lockButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 6 - (35/2)) + 5, y: 10/*20*/, width: 35, height: 35))
+            self.lockButton = UIButton(frame: CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 6 - (35/2)) + 5, y: 10, width: 35, height: 35))
             if modelName == "iPhone X" {
-                self.lockButton.frame = CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 6 - (35/2)) + 5, y: 10/*40*/, width: 35, height: 35)
+                self.lockButton.frame = CGRect(x: (self.view.center.x - (35/2)) + (self.view.frame.width / 6 - (35/2)) + 5, y: 10, width: 35, height: 35)
             }
             self.lockButton.showsTouchWhenHighlighted = true
             self.lockButton.layer.cornerRadius = 28
@@ -3451,9 +2482,9 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             addressBookButton.addTarget(self, action: #selector(self.add), for: .touchUpInside)
             
             self.infoButton.removeFromSuperview()
-            self.infoButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 45, y: 18, width: 38, height: 38))
+            self.infoButton.frame = CGRect(x: self.view.frame.maxX - 45, y: 18, width: 38, height: 38)
             if modelName == "iPhone X" {
-                self.infoButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 45, y: 28, width: 38, height: 38))
+                self.infoButton.frame = CGRect(x: self.view.frame.maxX - 45, y: 28, width: 38, height: 38)
             }
             self.infoButton.showsTouchWhenHighlighted = true
             self.infoButton.layer.cornerRadius = 28
@@ -3493,7 +2524,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
             var firstPassword = String()
             var secondPassword = String()
             
-            let alert = UIAlertController(title: "Protect your wallet by setting a password that locks and unlocks it.", message: "Please do not forget this password, you will need it to spend your Bitcoin, this is not mandatory but is highly recommended, you can do it later if you want.", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Protect your wallet by setting a password that locks and unlocks it.", message: "Please do not forget this password, you will need it to spend your Bitcoin, this is not mandatory but is highly recommended.", preferredStyle: .alert)
             
             alert.addTextField { (textField1) in
                 
@@ -3525,8 +2556,9 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                         
                         if saveSuccessful {
                             
-                            let retrievedPassword: String? = KeychainWrapper.standard.string(forKey: "unlockAESPassword")
-                            print("unlockAESPassword is: \(retrievedPassword!)")
+                            DispatchQueue.main.async {
+                                self.lockButton.setImage(#imageLiteral(resourceName: "whiteLock.png"), for: .normal)
+                            }
                             
                             displayAlert(viewController: self, title: "Success", message: "You have set your locking/unlocking password.")
                             
@@ -3569,46 +2601,11 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
         DispatchQueue.main.async {
             UIImpactFeedbackGenerator().impactOccurred()
         }
-        
         addressBook = checkAddressBook()
-        let aespassword = KeychainWrapper.standard.string(forKey: "AESPassword")!
-        var network = ""
-        var address = ""
-        
-        if addressBook.count > 0 {
-            
-            self.wallet = addressBook[addressBook.count - 1]
-            network = self.wallet["network"] as! String
-            address = self.wallet["address"] as! String
-            
-        }
-        
         if addressBook.count == 1 {
             
-            if let xpub = self.wallet["xpub"] as? String {
-                
-                if xpub != "" {
-                    
-                    if let decryptedXpub = AES256CBC.decryptString(xpub, password: aespassword) {
-                        
-                        if let index = self.wallet["index"] as? UInt32 {
-                            
-                            self.createInvoiceforHD(network: network, address: address, index: index + 1, xpub: decryptedXpub)
-                            
-                        }
-                        
-                    } else {
-                        
-                        displayAlert(viewController: self, title: "Error", message: "Error decrypting your xpub.")
-                    }
-                    
-                } else {
-                    
-                    self.HDAddress = self.wallet["address"] as! String
-                    self.createWalletInvoice()
-                }
-                
-            }
+            self.wallet = addressBook[0]
+            self.performSegue(withIdentifier: "createInvoice", sender: self)
             
         } else if addressBook.count > 1 {
             
@@ -3616,7 +2613,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                 
                     let alert = UIAlertController(title: "Which Wallet?", message: "Please select which wallet you'd like to receive to", preferredStyle: UIAlertControllerStyle.actionSheet)
                     
-                    for (index, wallet) in self.addressBook.enumerated() {
+                    for wallet in self.addressBook {
                         
                         var walletName = wallet["label"] as! String
                         
@@ -3629,37 +2626,7 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                             
                             print("wallet = \(wallet)")
                             self.wallet = wallet
-                            
-                            if let xpub = wallet["xpub"] as? String {
-                                
-                                if xpub != "" {
-                                    
-                                    if let decryptedXpub = AES256CBC.decryptString(xpub, password: aespassword) {
-                                        
-                                        if let index = self.wallet["index"] as? UInt32 {
-                                            
-                                            self.createInvoiceforHD(network: network, address: address, index: index + 1, xpub: decryptedXpub)
-                                            
-                                        }
-                                        
-                                    } else {
-                                        
-                                        displayAlert(viewController: self, title: "Error", message: "Error decrypting your xpub.")
-                                    }
-                                    
-                                } else {
-                                    
-                                    self.wallet = wallet
-                                    self.HDAddress = wallet["address"] as! String
-                                    self.createWalletInvoice()
-                                }
-                                
-                            } else {
-                                
-                                self.wallet = wallet
-                                self.HDAddress = wallet["address"] as! String
-                                self.createWalletInvoice()
-                            }
+                            self.performSegue(withIdentifier: "createInvoice", sender: self)
                             
                         }))
                         
@@ -3674,13 +2641,8 @@ class AddressBookViewController: UIViewController, UITableViewDelegate, UITableV
                     self.present(alert, animated: true) {
                         print("option menu presented")
                     }
-                    
-                
             }
-            
-            
         }
-        
     }
     
 }

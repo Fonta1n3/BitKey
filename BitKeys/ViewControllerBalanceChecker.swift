@@ -150,7 +150,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
         
         backgroundColours = [UIColor.red, UIColor.blue, UIColor.yellow]
         backgroundLoop = 0
-        animateBackgroundColour()
+        //animateBackgroundColour()
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard (_:)))
         self.view.addGestureRecognizer(tapGesture)
@@ -162,7 +162,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
     }
     
     func animateBackgroundColour () {
-        if backgroundLoop < backgroundColours.count - 1 {
+        /*if backgroundLoop < backgroundColours.count - 1 {
             self.backgroundLoop += 1
         } else {
             backgroundLoop = 0
@@ -171,7 +171,7 @@ class ViewControllerBalanceChecker: UIViewController, AVCaptureMetadataOutputObj
             self.view.backgroundColor =  self.backgroundColours[self.backgroundLoop];
         }) {(Bool) -> Void in
             self.animateBackgroundColour();
-        }
+        }*/
     }
     
     func addQRScannerView() {

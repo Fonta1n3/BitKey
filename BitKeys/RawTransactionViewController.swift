@@ -32,6 +32,8 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        view.backgroundColor = UIColor(hex: "49E900")
+        
         imagePicker.delegate = self
         imagePicker.allowsEditing = false
         imagePicker.sourceType = .photoLibrary
@@ -106,7 +108,7 @@ class RawTransactionViewController: UIViewController, UITextViewDelegate, AVCapt
         
         backgroundColours = [UIColor.red, UIColor.blue, UIColor.yellow]
         backgroundLoop = 0
-        animateBackgroundColour()
+        //animateBackgroundColour()
     }
     
     func animateBackgroundColour () {

@@ -79,8 +79,8 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
             
         }
         
-        sections = ["BIP39 Password", "Encryption Management", "Secure Backup"]
-        securityArray = [["Set BIP39 Password":isBIP39PasswordSet], ["Enable Biometrics":isBiometricsEnabled, "Set Lock/Unlock Password":isEncryptionPasswordSet], ["Create Backup":Bool(), "Restore From Backup":Bool()]]
+        sections = ["Dual Factor Password", "Encryption Management", "Secure Backup"]
+        securityArray = [["Set Dual Factor Password":isBIP39PasswordSet], ["Enable Biometrics":isBiometricsEnabled, "Set Lock/Unlock Password":isEncryptionPasswordSet], ["Create Backup":Bool(), "Restore From Backup":Bool()]]
         securitySettingsTable.reloadData()
         
         segwitMode = checkSettingsForKey(keyValue: "segwitMode")
@@ -176,7 +176,7 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
             footerView.backgroundColor = UIColor.white
             explanationLabel.backgroundColor = UIColor.white
             
-            explanationLabel.text = "A BIP39 password is used to create a dual factor recovery phrase, meaning you will need to type in the BIP39 password along with your recovery phrase in order to restore your Bitcoin. A dual factor recovery phrase is highly recommended as even if someone finds your recovery phrase they won't have access to your Bitcoin unless they also know your BIP39 password."
+            explanationLabel.text = "A Dual Factor password is used to create a dual factor recovery phrase, meaning you will need to type in the Dual Factor password along with your recovery phrase in order to restore your Bitcoin. A dual factor recovery phrase is highly recommended as even if someone finds your recovery phrase they won't have access to your Bitcoin unless they also know your Dual Factor password."
             footerView.addSubview(explanationLabel)
             
             
@@ -216,11 +216,11 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
         
         if indexPath.section == 0 {
             
-            if key == "Set BIP39 Password" {
+            if key == "Set Dual Factor Password" {
             
                 if isBIP39PasswordSet {
                     
-                    key = "Reset BIP39 Password"
+                    key = "Reset Dual Factor Password"
                     
                 }
                 
@@ -306,7 +306,7 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
             
             if indexPath.section == 0 {
                 
-                if key == "Set BIP39 Password" {
+                if key == "Set Dual Factor Password" {
                     
                     if isBIP39PasswordSet {
                         
@@ -589,8 +589,6 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
         
         let encryptionPassword = KeychainWrapper.standard.string(forKey: "AESPassword")!
         
-        print("encryptionPassword = \(encryptionPassword)")
-        
         let alert = UIAlertController(title: "Write this Back Up password down you will need it!\n\n\(String(describing: encryptionPassword))\n\n(all letters are lower case)", message: "Keep this Back Up password safe as your back up will be totally useless without it if you were to lose your device or delete the app.", preferredStyle: .alert)
         
         alert.addAction(UIAlertAction(title: NSLocalizedString("Continue", comment: ""), style: .default, handler: { (action) in
@@ -621,7 +619,6 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
         alert.addAction(UIAlertAction(title: NSLocalizedString("Confirm", comment: ""), style: .default, handler: { (action) in
             
             secondPassword = alert.textFields![0].text!
-            print("secondpassword = \(secondPassword)")
             
             if encryptionPassword == secondPassword {
                 
@@ -650,7 +647,6 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
         if let keyArray = self.getKeys() as? [String] {
             
             self.addAlertForShare(keysToBackUp: keyArray)
-            print("keyArray = \(keyArray)")
             
         } else {
             
@@ -772,19 +768,15 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                 qrCodeLink += feature.messageString!
             }
             
-            print(qrCodeLink)
-            
             if qrCodeLink != "" {
                 
                 DispatchQueue.main.async {
                     if self.textInput.text == "" {
                         
                         let password = KeychainWrapper.standard.string(forKey: "AESPassword")!
-                        print("password = \(password)")
                         
                         if let decrypted = AES256CBC.decryptString(qrCodeLink, password: password) as? String {
                             
-                            print("decrypted = \(decrypted)")
                             self.processKey(decryptedKey: decrypted)
                             self.avCaptureSession.stopRunning()
                             
@@ -797,11 +789,9 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                     } else {
                         
                         let password = self.textInput.text!
-                        print("password = \(password)")
                         
                         if let decrypted = AES256CBC.decryptString(qrCodeLink, password: password) as? String {
                             
-                            print("decrypted = \(decrypted)")
                             self.processKey(decryptedKey: decrypted)
                             self.avCaptureSession.stopRunning()
                             
@@ -883,17 +873,13 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
             if machineReadableCode.type == AVMetadataObject.ObjectType.qr {
                 
                 stringURL = machineReadableCode.stringValue!
-                print("stringURL = \(stringURL)")
-                
                 
                 if self.textInput.text == "" {
                     
                     let password = KeychainWrapper.standard.string(forKey: "AESPassword")!
-                    print("password = \(password)")
                     
                     if let decrypted = AES256CBC.decryptString(self.stringURL, password: password) as? String {
                         
-                        print("decrypted = \(decrypted)")
                         self.processKey(decryptedKey: decrypted)
                         self.avCaptureSession.stopRunning()
                         
@@ -906,11 +892,9 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                 } else {
                     
                     let password = self.textInput.text!
-                    print("password = \(password)")
                     
                     if let decrypted = AES256CBC.decryptString(self.stringURL, password: password) as? String {
                         
-                        print("decrypted = \(decrypted)")
                         self.processKey(decryptedKey: decrypted)
                         self.avCaptureSession.stopRunning()
                         
@@ -940,7 +924,6 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                     let privateKeyWIF = key.privateKeyAddressTestnet.string
                     let addressHD = key.addressTestnet.string
                     let publicKey = key.compressedPublicKey.hex()!
-                    print("publicKey = \(publicKey)")
                     
                     if self.legacyMode {
                         
@@ -1117,8 +1100,6 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                             if saveSuccessful {
                                 
                                 let retrievedPassword: String? = KeychainWrapper.standard.string(forKey: "unlockAESPassword")
-                                print("unlockAESPassword is: \(retrievedPassword!)")
-                                
                                 self.isEncryptionPasswordSet = true
                                 self.securitySettingsTable.reloadData()
                                 
@@ -1206,7 +1187,7 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
             var firstPassword = String()
             var secondPassword = String()
             
-            let alert = UIAlertController(title: "BIP39 Password", message: "Please create a BIP39 password, this will require you to remember your password along with your recovery phrase to import your Bitcoin, this is fully compatible with all BIP39 wallets.", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Dual Factor Password", message: "Please create a Dual Factor password, this will require you to remember your password along with your recovery phrase to import your Bitcoin, this is fully compatible with all BIP39 wallets.", preferredStyle: .alert)
             
             alert.addTextField { (textField1) in
                 
@@ -1241,7 +1222,6 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                         if saveSuccessful {
                             
                             let retrievedPassword: String? = KeychainWrapper.standard.string(forKey: "BIP39Password")
-                            print("BIP39Password is: \(retrievedPassword!)")
                             
                             displayAlert(viewController: self, title: "Success", message: "You have succesfully added a password that will be used when creating all your future wallets, please ensure you don't forget as you will need it along with your recovery phrase to recover your Bitcoin.")
                             
@@ -1297,7 +1277,7 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
                 
                 var password = String()
                 
-                let alert = UIAlertController(title: "Please input your password", message: "Please enter your password to reset your BIP39 password", preferredStyle: .alert)
+                let alert = UIAlertController(title: "Please input your password", message: "Please enter your password to reset your Dual Factor password", preferredStyle: .alert)
                 
                 alert.addTextField { (textField1) in
                     
@@ -1348,7 +1328,6 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
         if password != "" {
             
             let saveSuccessful:Bool = KeychainWrapper.standard.set(password, forKey: forKey)
-            print("Save was successful: \(saveSuccessful)")
             
         }
         
@@ -1357,14 +1336,12 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
     func getPassword(forKey: String) {
         
         let retrievedPassword: String? = KeychainWrapper.standard.string(forKey: forKey)
-        print("Retrieved passwork is: \(retrievedPassword!)")
         
     }
     
     func deletePassword(forKey: String) {
         
         let removeSuccessful: Bool = KeychainWrapper.standard.removeObject(forKey: forKey)
-        print("Delete was successful: \(removeSuccessful)")
         
     }
     
@@ -1382,7 +1359,7 @@ class SecuritySettingsViewController: UIViewController, UITableViewDelegate, UIT
             
         } else if self.changeBIP39password {
             
-            reasonString = "To reset BIP39 password"
+            reasonString = "To reset Dual Factor password"
             
         }
         

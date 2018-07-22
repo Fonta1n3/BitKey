@@ -16,6 +16,9 @@ import SwiftKeychainWrapper
 
 class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
     
+    let invoiceLabel = UILabel()
+    let sweepLabel = UILabel()
+    let rawTxLabel = UILabel()
     let amountLabel = UILabel()
     var activityIndicator:UIActivityIndicatorView!
     var index = Int()
@@ -103,8 +106,6 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         
         print("wallettospendfrom = \(walletToSpendFrom)")
         
-        NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-        
        if UserDefaults.standard.object(forKey: "firstTimeHere") != nil {
             
        } else {
@@ -167,9 +168,9 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
         tapGesture.numberOfTapsRequired = 1
         self.view.addGestureRecognizer(tapGesture)
         
-        backgroundColours = [UIColor.red, UIColor.blue, UIColor.yellow]
+        backgroundColours = [UIColor.red, UIColor.blue, UIColor.green]
         backgroundLoop = 0
-        animateBackgroundColour()
+        //animateBackgroundColour()
         
     }
     
@@ -206,10 +207,9 @@ class TransactionBuilderViewController: UIViewController, AVCaptureMetadataOutpu
             getUserDefaults()
             getReceivingAddressMode = true
             getSignatureMode = false
-            addChooseOptionButton()
             addBackButton()
             addAmount()
-            
+            addChooseOptionButton()
         }
         
     }
@@ -1011,56 +1011,51 @@ func addChooseOptionButton() {
     self.view.addSubview(self.optionsButton)
     
     self.moreOptionsButton.removeFromSuperview()
-    self.moreOptionsButton = UIButton(frame: CGRect(x: 10, y: self.view.frame.maxY - 45, width: 35, height: 35))
+    self.moreOptionsButton = UIButton(frame: CGRect(x: 20, y: self.amountToSend.frame.maxY + 10, width: 35, height: 35))
     self.moreOptionsButton.setImage(#imageLiteral(resourceName: "tool2.png"), for: .normal)
     self.moreOptionsButton.showsTouchWhenHighlighted = true
     self.moreOptionsButton.addTarget(self, action: #selector(addRawTransactionView), for: .touchUpInside)
     self.view.addSubview(self.moreOptionsButton)
     
+    rawTxLabel.removeFromSuperview()
+    rawTxLabel.frame = CGRect(x: self.moreOptionsButton.center.x - 40, y: self.moreOptionsButton.frame.maxY + 3, width: 80, height: 10)
+    rawTxLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 8)
+    rawTxLabel.textColor = UIColor.black
+    rawTxLabel.textAlignment = .center
+    rawTxLabel.text = "Raw Transaction"
+    view.addSubview(rawTxLabel)
+    
     self.sweepButton.removeFromSuperview()
-    self.sweepButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 45, y: self.view.frame.maxY - 45, width: 35, height: 35))
+    self.sweepButton = UIButton(frame: CGRect(x: self.view.frame.maxX - 55, y: self.amountToSend.frame.maxY + 10, width: 35, height: 35))
     self.sweepButton.setImage(#imageLiteral(resourceName: "broom.png"), for: .normal)
     self.sweepButton.showsTouchWhenHighlighted = true
     self.sweepButton.addTarget(self, action: #selector(sweep), for: .touchUpInside)
     self.view.addSubview(self.sweepButton)
     
+    sweepLabel.removeFromSuperview()
+    sweepLabel.frame = CGRect(x: self.sweepButton.center.x - 25, y: self.sweepButton.frame.maxY + 3, width: 50, height: 10)
+    sweepLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 8)
+    sweepLabel.textColor = UIColor.black
+    sweepLabel.textAlignment = .center
+    sweepLabel.text = "Sweep All"
+    view.addSubview(sweepLabel)
+    
     self.invoiceButton.removeFromSuperview()
-    self.invoiceButton = UIButton(frame: CGRect(x: self.view.center.x - (35/2), y: self.view.frame.maxY - 45, width: 35, height: 35))
+    self.invoiceButton = UIButton(frame: CGRect(x: self.view.center.x - (35/2), y: self.amountToSend.frame.maxY + 10, width: 35, height: 35))
     self.invoiceButton.setImage(#imageLiteral(resourceName: "bill.png"), for: .normal)
     self.invoiceButton.showsTouchWhenHighlighted = true
     self.invoiceButton.addTarget(self, action: #selector(payInvoice), for: .touchUpInside)
     self.view.addSubview(self.invoiceButton)
+    
+    invoiceLabel.removeFromSuperview()
+    invoiceLabel.frame = CGRect(x: self.invoiceButton.center.x - 25, y: self.invoiceButton.frame.maxY + 3, width: 50, height: 10)
+    invoiceLabel.font = UIFont.init(name: "HelveticaNeue-Light", size: 8)
+    invoiceLabel.textColor = UIColor.black
+    invoiceLabel.textAlignment = .center
+    invoiceLabel.text = "Pay Invoice"
+    view.addSubview(invoiceLabel)
         
     }
-    
-    
-    
-    @objc func keyboardWillShow(notification: NSNotification) {
-        
-        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
-                
-                if self.invoiceButton.frame.origin.y != 0 {
-                
-                let height = keyboardSize.height
-                
-                DispatchQueue.main.async {
-                    
-                    UIView.animate(withDuration: 0.25, animations: {
-                        
-                        self.invoiceButton.frame.origin.y -= height
-                        self.sweepButton.frame.origin.y -= height
-                        self.moreOptionsButton.frame.origin.y -= height
-                        
-                    })
-                    
-                }
-                
-                }
-                
-            }
-            
-    }
-    
     
     @objc func payInvoice() {
         
@@ -1075,6 +1070,9 @@ func addChooseOptionButton() {
         self.getReceivingAddressMode = true
         self.optionsButton.removeFromSuperview()
         self.moreOptionsButton.removeFromSuperview()
+        self.invoiceLabel.removeFromSuperview()
+        self.rawTxLabel.removeFromSuperview()
+        self.sweepLabel.removeFromSuperview()
         self.sweepButton.removeFromSuperview()
         self.invoiceButton.removeFromSuperview()
         self.nextButton.removeFromSuperview()
@@ -1092,6 +1090,9 @@ func addChooseOptionButton() {
         self.amountToSend.removeFromSuperview()
         self.getReceivingAddressMode = true
         self.moreOptionsButton.removeFromSuperview()
+        self.invoiceLabel.removeFromSuperview()
+        self.rawTxLabel.removeFromSuperview()
+        self.sweepLabel.removeFromSuperview()
         self.nextButton.removeFromSuperview()
         self.sweepButton.removeFromSuperview()
         self.optionsButton.removeFromSuperview()
@@ -1203,6 +1204,7 @@ func addChooseOptionButton() {
         amountLabel.font = UIFont.init(name: "HelveticaNeue-Bold", size: 30)
         addShadow(view: amountLabel)
         amountLabel.text = "Amount to Send:"
+        amountLabel.adjustsFontSizeToFitWidth = true
         amountLabel.textAlignment = .center
         amountLabel.textColor = UIColor.white
         
@@ -1244,6 +1246,9 @@ func addChooseOptionButton() {
         if self.amountToSend.text != "" {
             
             self.moreOptionsButton.removeFromSuperview()
+            self.invoiceLabel.removeFromSuperview()
+            self.rawTxLabel.removeFromSuperview()
+            self.sweepLabel.removeFromSuperview()
             self.nextButton.removeFromSuperview()
             self.sweepButton.removeFromSuperview()
             self.optionsButton.removeFromSuperview()
@@ -1527,7 +1532,7 @@ func addChooseOptionButton() {
             
             DispatchQueue.main.async {
                 self.nextButton.removeFromSuperview()
-                self.nextButton = UIButton(frame: CGRect(x: self.view.center.x - 40, y: self.amountToSend.frame.maxY + 10, width: 80, height: 55))
+                self.nextButton = UIButton(frame: CGRect(x: self.view.center.x - 40, y: self.amountToSend.frame.maxY + 70, width: 80, height: 55))
                 self.nextButton.showsTouchWhenHighlighted = true
                 self.nextButton.setTitle("Next", for: .normal)
                 addShadow(view: self.nextButton)
@@ -2829,7 +2834,7 @@ func addChooseOptionButton() {
             
         }
         
-        func authenticationWithTouchID() {
+        func authenticateTransactionWithTouchID() {
             
             let localAuthenticationContext = LAContext()
             localAuthenticationContext.localizedFallbackTitle = "Use Passcode"
@@ -2944,7 +2949,7 @@ func addChooseOptionButton() {
         if UserDefaults.standard.object(forKey: "bioMetricsEnabled") != nil {
             
             DispatchQueue.main.async {
-                authenticationWithTouchID()
+                authenticateTransactionWithTouchID()
             }
             
             
