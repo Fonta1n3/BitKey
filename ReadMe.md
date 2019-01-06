@@ -1,4 +1,4 @@
-# Project Title
+# BitKey
 
 A powerful Bitcoin toolkit written in Swift which turns your iOS device into a hardware wallet.
 
