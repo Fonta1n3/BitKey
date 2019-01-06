@@ -19,20 +19,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UITextFieldDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         print("didFinishLaunchingWithOptions")
-        
-        /*if KeychainWrapper.standard.string(forKey: "unlockAESPassword") != nil {
-            
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let loginVC = storyboard.instantiateViewController(withIdentifier: "LogIn")
-            let topVC = self.window?.rootViewController?.topViewController()
-            if topVC!.restorationIdentifier == "LogIn" {
-                //do nothing
-            } else {
-                topVC!.present(loginVC, animated: true, completion: nil)
-            }
-            
-        }*/
-        
         return true
         
     }
