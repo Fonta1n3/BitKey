@@ -26,6 +26,7 @@
 		D027521A20D1C3230025EC0E /* addressBook.png in Resources */ = {isa = PBXBuildFile; fileRef = D027521920D1C3220025EC0E /* addressBook.png */; };
 		D027522020D292B10025EC0E /* AddressBookViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D027521F20D292B10025EC0E /* AddressBookViewController.swift */; };
 		D027522220D2979E0025EC0E /* add.png in Resources */ = {isa = PBXBuildFile; fileRef = D027522120D2979E0025EC0E /* add.png */; };
+		D0286D5F21E261C700954991 /* ReadMe.md in Resources */ = {isa = PBXBuildFile; fileRef = D0286D5E21E261C700954991 /* ReadMe.md */; };
 		D040853520F4F8B000C2DA2B /* unlocked.png in Resources */ = {isa = PBXBuildFile; fileRef = D040853420F4F8AF00C2DA2B /* unlocked.png */; };
 		D04213E421039C48003B03DA /* ImportViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04213E321039C48003B03DA /* ImportViewController.swift */; };
 		D04213E62103C720003B03DA /* CreateInvoiceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04213E52103C720003B03DA /* CreateInvoiceViewController.swift */; };
@@ -142,6 +143,7 @@
 		D027521920D1C3220025EC0E /* addressBook.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = addressBook.png; sourceTree = "<group>"; };
 		D027521F20D292B10025EC0E /* AddressBookViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressBookViewController.swift; sourceTree = "<group>"; };
 		D027522120D2979E0025EC0E /* add.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = add.png; sourceTree = "<group>"; };
+		D0286D5E21E261C700954991 /* ReadMe.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ReadMe.md; sourceTree = "<group>"; };
 		D040853420F4F8AF00C2DA2B /* unlocked.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = unlocked.png; sourceTree = "<group>"; };
 		D04213E321039C48003B03DA /* ImportViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportViewController.swift; sourceTree = "<group>"; };
 		D04213E52103C720003B03DA /* CreateInvoiceViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateInvoiceViewController.swift; sourceTree = "<group>"; };
@@ -490,6 +492,7 @@
 		D0C56F4C1FCBFBC4004A5F47 = {
 			isa = PBXGroup;
 			children = (
+				D0286D5E21E261C700954991 /* ReadMe.md */,
 				D0C56F571FCBFBC4004A5F47 /* BitKeys */,
 				D055011B2094FE79001C35F0 /* BitKeysTests */,
 				D0C56F561FCBFBC4004A5F47 /* Products */,
@@ -628,6 +631,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0286D5F21E261C700954991 /* ReadMe.md in Resources */,
 				D01116B920EA587800B01E31 /* invoice.png in Resources */,
 				D049F13F20FB786B0073B807 /* dice2.png in Resources */,
 				D09603E020FF62CC00A7D1EE /* whiteFingerPrint.png in Resources */,
