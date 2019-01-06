@@ -4,7 +4,7 @@ A powerful Bitcoin toolkit written in Swift which turns your iOS device into a h
 
 ## Getting Started
 
-Download this project and run it in XCode.
+Download this project and run it in XCode. To check out the bulk of the code, got to (https://github.com/FontaineDenton/BitKey/tree/master/BitKeys/View%20Controllers)
 
 ### Prerequisites
 
